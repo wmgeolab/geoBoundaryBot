@@ -2,10 +2,9 @@ name: geoBoundary Bot
 description: "I provide automated checks for the geoBoundaries project."
 inputs:
   check:
-  description: 'The type of check you would like to run.'
-  required: true
-  default: 'file'
-
+    description: "The type of check you would like to run."
+    required: true
+    default: "file"
 runs:
   using: "composite"
     steps:
