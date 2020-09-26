@@ -6,7 +6,6 @@ inputs:
     required: true
     default: "file"
 runs:
-  using: "composite"
     steps:
     - name: Initialize Linux Environment
       run: |
