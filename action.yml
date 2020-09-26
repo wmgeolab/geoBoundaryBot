@@ -1,4 +1,4 @@
-name: geoBoundary Bot
+name: "geoBoundaryBot"
 description: "I provide automated checks for the geoBoundaries project."
 inputs:
   check:
