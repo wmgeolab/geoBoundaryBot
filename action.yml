@@ -1,53 +1,22 @@
-name: "geoBoundaryBot"
-description: "I provide automated checks for the geoBoundaries project."
+name: 'geoBoundaryBot'
+description: 'I provide automated checks for the geoBoundaries project.'
 inputs:
   check:
-    description: "The type of check you would like to run."
+    description: 'The type of check you would like to run.'
     required: true
-    default: "file"
+    default: 'file'
 runs:
-    steps:
-    - name: Initialize Linux Environment
-      run: |
-           echo ${{ inputs.check }}
-           apt-get update
-           apt-get install -y software-properties-common
-           add-apt-repository ppa:git-core/ppa
-           apt-get update
-           apt-get install -y git
-           curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
-           apt-get install git-lfs
-    
-    - name: Download Repository Code
-      uses: actions/checkout@v2.3.2
-      with:
-        ref: ${{ github.event.pull_request_target.head.sha }}  
+  using: "composite"
+  steps:
+    -run: echo Hello.
+    -run: echo ${{ inputs.check }}
+           
 
-    - id: changes
-      name: Detect Proposed Changes
-      uses: wmgeolab/get-changed-files@master
-      with:
-        format: 'json'
+
+
       
       
-    - name: Check for valid files in submission
-      run: |
-           export changes=${{ steps.changes.outputs.added_modified }}
-           export gitsha=${{github.sha}}
-           echo ${GITHUB_SHA}
-           echo ${GITHUB_WORKSPACE}
-           echo "==============================================="
-           git diff-tree --no-commit-id --name-only -r ${{github.sha}} > proposedChanges
-           cat proposedChanges
-           echo "==============================================="
-           mkdir tmp
-           mkdir tmp/${{github.sha}}
-           python actions/gbZipCheck.py
+
       
-    - name: Build Artifacts
-      uses: actions/upload-artifact@v2
-      with:
-          name: zipLogs
-          path: tmp/
-  
+
  
