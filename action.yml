@@ -9,7 +9,9 @@ runs:
   using: "composite"
   steps:
     -run: echo Hello.
+     shell: bash
     -run: echo ${{ inputs.check }}
+     shell: bash
            
 
 
