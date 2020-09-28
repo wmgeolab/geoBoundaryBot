@@ -54,11 +54,8 @@ if(len(zips) > 0):
         print("--------------------------------")
         print("Downloading: " + z)
         try:
-            os.remove(working + "/" + z)
-        except:
-            pass
-        try:
             dl = os.system('git lfs pull --include=\"' + z +'\"')
+            print(dl)
         except:
             print("No file on LFS to retrieve.  Continuing.")
         print("Data Check (" + str(zipTotal) + " of " + str(len(zips)) + "): " + z)

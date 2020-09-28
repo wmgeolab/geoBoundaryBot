@@ -88,10 +88,6 @@ if(len(zips) > 0):
         logWrite("")
         logWrite("Downloading: " + z)
         try:
-            os.remove(working + "/" + z)
-        except:
-            pass
-        try:
             dl = os.system('git lfs pull --include=\"' + z +'\"')
         except:
             print("No file on LFS to retrieve.  Continuing.")
