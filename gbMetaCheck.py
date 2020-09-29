@@ -334,17 +334,10 @@ if(len(zips) > 0):
     logWrite("Successes: " + str(zipSuccess))
     logWrite("Failures: " + str(zipFailures))
     
-    if(zipFailures == 0):
-        os.replace(logDir + "/" + "metaCheckLog.txt", logDir + "/" + "PASSED_metaCheckLog.txt")
-        os.remove(logDir + "/" + "metaCheckLog.txt")
 
     if(zipFailures > 0):
-        logWrite("CRITICAL ERROR: At least one Metadata check failed; check the log to see what's wrong.")
-        os.replace(logDir + "/" + "metaCheckLog.txt", logDir + "/" + "FAILED_metaCheckLog.txt")
-        os.remove(logDir + "/" + "metaCheckLog.txt")
-        
+        logWrite("CRITICAL ERROR: At least one Metadata check failed; check the log to see what's wrong.")        
 
 else:
-    logWrite("No modified zip files found.")
-    os.replace(logDir + "/" + "metaCheckLog.txt", logDir + "/" + "FAILED_metaCheckLog.txt")
-    os.remove(logDir + "/" + "metaCheckLog.txt")
+    logWrite("CRITICAL ERROR: No modified zip files found.")
+    
