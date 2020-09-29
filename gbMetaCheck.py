@@ -343,4 +343,4 @@ if(len(zips) > 0):
 
 else:
     logWrite("No modified zip files found.")
-    os.rename(logDir + "/" + "metaCheckLog.txt", logDir + "/" + "FAILED_metaCheckLog.txt")
+    os.replace(logDir + "/" + "metaCheckLog.txt", logDir + "/" + "FAILED_metaCheckLog.txt")
