@@ -8,7 +8,7 @@ import datetime
 try:
     working = os.environ['GITHUB_WORKSPACE']
     changedFiles = os.environ['changes'].strip('][').split(',')
-    logDir = working + "/tmp/" + os.environ['gitsha']
+    logDir = "~/tmp/" + os.environ['gitsha']
 except:
     changedFiles = ['.github/workflows/gbPush.yml', 'sourceData/gbOpen/ARE_ADM1.zip', 'sourceData/gbOpen/QAT_ADM0.zip']
     working = "/home/dan/git/gbRelease"
