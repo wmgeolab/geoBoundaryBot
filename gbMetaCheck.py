@@ -15,8 +15,6 @@ except:
     logDir = working + "/tmp/sha"
 print("Python WD: " + working)  
 
-os.mkdir(logDir)
-
 with open(logDir + "/metaCheckLog.txt", "w+") as f:
     f.write("Log for Metadata Checks \n")
     f.write("=========================== \n")
