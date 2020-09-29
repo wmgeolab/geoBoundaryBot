@@ -91,10 +91,11 @@ if(len(zips) > 0):
         checkFail = 0
         logWrite("")
         logWrite("Downloading: " + z)
-        try:
-            os.remove(working + "/" + z)
-        except:
-            pass
+
+#Note - this is not working right now.
+#Need to add in a check against .gitattributes for git lfs managed files.
+#And pull for those.
+
         try:
             dl = os.system('git lfs pull --include=\"' + z +'\"')
         except:
