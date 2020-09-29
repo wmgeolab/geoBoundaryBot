@@ -8,7 +8,7 @@ import datetime
 try:
     working = os.environ['GITHUB_WORKSPACE']
     changedFiles = os.environ['changes'].strip('][').split(',')
-    logDir = "~/tmp/"
+    logDir = "~/tmp"
 except:
     changedFiles = ['.github/workflows/gbPush.yml', 'sourceData/gbOpen/ARE_ADM1.zip', 'sourceData/gbOpen/QAT_ADM0.zip']
     working = "/home/dan/git/gbRelease"
@@ -338,9 +338,8 @@ if(len(zips) > 0):
 
     if(zipFailures > 0):
         os.replace(logDir + "/" + "metaCheckLog.txt", logDir + "/" + "FAILED_metaCheckLog.txt")
-        sys.exit("CRITICAL ERROR: At least one Metadata check failed; check the log to see what's wrong.")
+        logWrite("CRITICAL ERROR: At least one Metadata check failed; check the log to see what's wrong.")
 
 else:
     logWrite("No modified zip files found.")
     os.rename(logDir + "/" + "metaCheckLog.txt", logDir + "/" + "FAILED_metaCheckLog.txt")
-    sys.exit("Error: No zip files found!")
