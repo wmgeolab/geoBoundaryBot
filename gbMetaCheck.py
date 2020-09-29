@@ -15,10 +15,6 @@ except:
     logDir = working + "/tmp/sha"
 print("Python WD: " + working)  
 
-with open(logDir + "/metaCheckLog.txt", "w+") as f:
-    f.write("Log for Metadata Checks \n")
-    f.write("=========================== \n")
-    f.write("=========================== \n")
    
 def logWrite(line):
     print(line)
