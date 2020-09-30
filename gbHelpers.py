@@ -49,8 +49,8 @@ def checkRetrieveLFSFiles(z, workingDir="./"):
 
 def gbEnvVars(varName, content,mode):
     if(mode == "w"):
-        with open(os.path.expanduser("~") + "/tmp/" + varname + ".txt", w+):
+        with open(os.path.expanduser("~") + "/tmp/" + varname + ".txt", "w+"):
             f.write(content)
     if(mode == "r"):
-        with open(os.path.expanduser("~") + "/tmp/" + varname + ".txt", r):
+        with open(os.path.expanduser("~") + "/tmp/" + varname + ".txt", "r"):
             return f.read()
