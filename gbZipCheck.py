@@ -26,7 +26,7 @@ if(len(ws["zips"]) > 0):
             gbHelpers.logWrite(checkType, "Metadata file exists in " + z)
         else:
             gbHelpers.logWrite(checkType, "CRITICAL ERROR: Metadata file does not exist in " + z)
-            os.environ["PASS"] = "You submitted at least one file that is missing a meta.txt, which is required."
+            gbHelpers.gbEnvVars("PASS","You submitted at least one file that is missing a meta.txt, which is required.","w")
             checkFail = 1
         
         geojson = list(filter(lambda x: x[-4:] == '.geojson', bZip.namelist()))
@@ -37,19 +37,19 @@ if(len(ws["zips"]) > 0):
                 gbHelpers.logWrite(checkType, "Shapefile (*.shp) found. Checking if all required files are present.")
                 if(len(list(filter(lambda x: x[-4:] == '.shx', bZip.namelist()))) != 1):
                     gbHelpers.logWrite(checkType, "CRITICAL ERROR: A valid *.shp requires a *.shx (index) file. None was found in " + z)
-                    os.environ["PASS"] = "You submitted a *.shp file without a *.shx file, which is required (*.shx, *.dbf, and *.prj are all required)"
+                    gbHelpers.gbEnvVars("PASS","You submitted a *.shp file without a *.shx file, which is required (*.shx, *.dbf, and *.prj are all required)","w")
                     checkFail = 1
                 else:
                     gbHelpers.logWrite(checkType, ".shx found.")
                 if(len(list(filter(lambda x: x[-4:] == '.dbf', bZip.namelist()))) != 1):
                     gbHelpers.logWrite(checkType, "CRITICAL ERROR: A valid *.shp requires a *.dbf (index) file. None was found in " + z)
-                    os.environ["PASS"] = "You submitted a *.shp file without a *.dbf file, which is required (*.shx, *.dbf, and *.prj are all required)."
+                    gbHelpers.gbEnvVars("PASS","You submitted a *.shp file without a *.dbf file, which is required (*.shx, *.dbf, and *.prj are all required).","w")
                     checkFail = 1
                 else:
                     gbHelpers.logWrite(checkType, ".dbf found.")
                 if(len(list(filter(lambda x: x[-4:] == '.prj', bZip.namelist()))) != 1):
                     gbHelpers.logWrite(checkType, "CRITICAL ERROR: A valid *.shp requires a *.prj (index) file. None was found in " + z)
-                    os.environ["PASS"] = "You submitted a *.shp file without a *.prj file, which is required (*.shx, *.dbf, and *.prj are all required)."
+                    gbHelpers.gbEnvVars("PASS","You submitted a *.shp file without a *.prj file, which is required (*.shx, *.dbf, and *.prj are all required).","w")
                     checkFail = 1
                 else:
                     gbHelpers.logWrite(checkType, ".prj found.")
@@ -59,11 +59,11 @@ if(len(ws["zips"]) > 0):
 
         if(len(allShps) == 0):
             gbHelpers.logWrite(checkType, "CRITICAL ERROR: No *.shp or *.geojson found for " + z)
-            os.environ["PASS"] = "I couldn't find a *.shp or *.geojson in the zip file you provided.  Make sure all of your files are in the root - i.e., your file shouldn't have a folder inside it."
+            gbHelpers.gbEnvVars("PASS","I couldn't find a *.shp or *.geojson in the zip file you provided.  Make sure all of your files are in the root - i.e., your file shouldn't have a folder inside it.", "w")
             checkFail = 1
         if(len(allShps) > 1):
             gbHelpers.logWrite(checkType, "CRITICAL ERROR: More than one geometry file (*.shp, *.geojson) was found for " + z)
-            os.environ["PASS"] = "At least one file you submitted had more than one geometry file in it (i.e., multiple *.shp or *.geojson)."
+            gbHelpers.gbEnvVars("PASS","At least one file you submitted had more than one geometry file in it (i.e., multiple *.shp or *.geojson).","w")
             checkFail = 1
         
         if(checkFail == 1):
@@ -83,8 +83,7 @@ if(len(ws["zips"]) > 0):
     else:
         print("Set")
         gbHelpers.gbEnvVars("PASS", "PASSED", "w")
-        os.environ["PASS"] = "PASSED"
 
 else:
     gbHelpers.logWrite(checkType, "No modified zip files found.")
-    os.environ["PASS"] = "You didn't submit a zip file."
+    gbHelpers.gbEnvVars("PASS", "You didn't submit a zip file.", "w")
