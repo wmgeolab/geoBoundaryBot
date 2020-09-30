@@ -82,6 +82,7 @@ if(len(ws["zips"]) > 0):
         gbHelpers.logWrite(checkType, "CRITICAL ERROR: At least one Metadata check failed; check the log to see what's wrong.")
     else:
         print("Set")
+        gbHelpers.gbEnvVars("PASS", "PASSED", "w")
         os.environ["PASS"] = "PASSED"
 
 else:

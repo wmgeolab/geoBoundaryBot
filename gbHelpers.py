@@ -46,3 +46,11 @@ def checkRetrieveLFSFiles(z, workingDir="./"):
         print("No download from LFS required (file < 25mb): " + z)
         print("")
         return(0)
+
+def gbEnvVars(varName, content,mode):
+    if(mode == "w"):
+        with open(os.path.expanduser(~) + "/tmp/" + varname + ".txt", w+):
+            f.write(content)
+    if(mode == "r"):
+        with open(os.path.expanduser(~) + "/tmp/" + varname + ".txt", r):
+            return f.read()
