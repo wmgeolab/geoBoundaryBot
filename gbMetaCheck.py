@@ -288,6 +288,7 @@ if(len(ws["zips"]) > 0):
 
         else:
             gbHelpers.logWrite(checkType, "CRITICAL ERROR: Metadata file does not exist in " + z)
+            gbHelpers.gbEnvVars("PASS", "CRITICAL ERROR: Metadata file does not exist in " + z, "w")
             checkFail = 1
         
         
@@ -308,8 +309,12 @@ if(len(ws["zips"]) > 0):
     
 
     if(zipFailures > 0):
-        gbHelpers.logWrite(checkType, "CRITICAL ERROR: At least one Metadata check failed; check the log to see what's wrong.")        
+        gbHelpers.logWrite(checkType, "CRITICAL ERROR: At least one Metadata check failed; check the log to see what's wrong.")  
+        gbHelpers.gbEnvVars("PASS", "It looks like your metadata has one or more errors - take a look at the logs to see what you need to fix.", "w")      
+    else:
+        gbHelpers.gbEnvVars("PASS", "PASSED", "w")
 
 else:
     gbHelpers.logWrite(checkType, "CRITICAL ERROR: No modified zip files found.")
+    gbHelpers.gbEnvVars("PASS", "You didn't submit a zip file.", "w")
     

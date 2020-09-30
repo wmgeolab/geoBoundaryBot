@@ -205,6 +205,10 @@ if(len(ws["zips"]) > 0):
     
     if(zipFailures > 0):
         gbHelpers.logWrite(checkType, "CRITICAL ERROR: At least one data check failed; check the log to see what's wrong.")
+        gbHelpers.gbEnvVars("PASS", "A geometry or data check failed for the file you submitted - take a look at the logs to see what happened.", "w")
+    else:
+        gbHelpers.gbEnvVars("PASS", "PASSED", "w")
 
 else:
     gbHelpers.logWrite(checkType,  "CRITICAL ERROR: No modified zip files found.")
+    gbHelpers.gbEnvVars("PASS", "Looks like you didn't submit a zip file.", "w")
