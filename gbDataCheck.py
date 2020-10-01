@@ -5,6 +5,8 @@ import subprocess
 import pandas as pd
 import geopandas
 import gbHelpers
+from matplotlib import pyplot as plt
+from shapely.geometry import shape
 
 checkType = "geometryDataCheck"
 ws = gbHelpers.initiateWorkspace(checkType)
@@ -102,6 +104,11 @@ if(len(ws["zips"]) > 0):
             else:
                 gbHelpers.logWrite(checkType,  "WARN: No column for boundary ISOs found.  This is not required.")
             
+            #Create a map visualization.
+            fig = plt.figure()
+            dta.boundary.plot()
+            fig.savefig(os.path.expanduser("~") + "/tmp/preview.png")
+
             for index, row in dta.iterrows():
                 validBounds = 1
                 validGeom = 1
@@ -205,10 +212,10 @@ if(len(ws["zips"]) > 0):
     
     if(zipFailures > 0):
         gbHelpers.logWrite(checkType, "CRITICAL ERROR: At least one data check failed; check the log to see what's wrong.")
-        gbHelpers.gbEnvVars("PASS", "A geometry or data check failed for the file you submitted - take a look at the logs to see what happened.", "w")
+        gbHelpers.gbEnvVars("RESULT", "A geometry or data check failed for the file you submitted - take a look at the logs to see what happened.", "w")
     else:
-        gbHelpers.gbEnvVars("PASS", "PASSED", "w")
+        gbHelpers.gbEnvVars("RESULT", "PASSED", "w")
 
 else:
     gbHelpers.logWrite(checkType,  "CRITICAL ERROR: No modified zip files found.")
-    gbHelpers.gbEnvVars("PASS", "Looks like you didn't submit a zip file.", "w")
+    gbHelpers.gbEnvVars("RESULT", "Looks like you didn't submit a zip file.", "w")
