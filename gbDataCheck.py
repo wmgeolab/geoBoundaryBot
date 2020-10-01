@@ -105,9 +105,9 @@ if(len(ws["zips"]) > 0):
                 gbHelpers.logWrite(checkType,  "WARN: No column for boundary ISOs found.  This is not required.")
             
             #Create a map visualization.
-            fig = plt.figure()
+            #fig, axes = plt.subplots(nrows=1, ncols=1)
             dta.boundary.plot()
-            fig.savefig(os.path.expanduser("~") + "/tmp/preview.png")
+            plt.savefig(os.path.expanduser("~") + "/tmp/" + z.replace("/", "").replace(".", "") + "_preview.png")
 
             for index, row in dta.iterrows():
                 validBounds = 1

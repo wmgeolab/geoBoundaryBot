@@ -12,8 +12,8 @@ def initiateWorkspace(check):
         ws['zips'] = list(filter(lambda x: x[-4:] == '.zip', ws["changedFiles"]))
     except:
         ws['working'] = "/home/dan/git/gbRelease"
-        ws['changedFiles'] = ['sourceData/gbOpen/ARE_ADM1.zip', 'sourceData/gbOpen/QAT_ADM0.zip', 'sourceData/gbOpen/FRA_ADM5.zip']
-        ws['logPath'] = ws["working"] + "/tmp/sha/" + str(check) + ".txt"
+        ws['changedFiles'] = ['sourceData/gbOpen/ARE_ADM1.zip', 'sourceData/gbOpen/QAT_ADM0.zip']
+        ws['logPath'] = os.path.expanduser("~") + "/tmp/" + str(check) + ".txt"
         ws['zips'] = list(filter(lambda x: x[-4:] == '.zip', ws["changedFiles"]))
 
     print("Python WD: " + ws['working'])  
@@ -51,6 +51,7 @@ def gbEnvVars(varName, content,mode):
     if(mode == "w"):
         with open(os.path.expanduser("~") + "/tmp/" + varName + ".txt", "w+") as f:
             f.write(content)
+        print("Set variable " + str(varName) + " to " + str(content))
     if(mode == "r"):
         with open(os.path.expanduser("~") + "/tmp/" + varName + ".txt", "r") as f:
             return f.read()
