@@ -45,7 +45,7 @@ if(checkFailed > 0):
         else:
             responseText = responseText + str(check) + ": PASSED.  Nothing that needs to be done here right now. \\\\"
         
-        responseText = responseText + "Full logs for " str(check) + ": " + theUrl + str(check) + "\\\\" + str(check) +".txt" + "  \\\\"
+        responseText = responseText + "Full logs for " + str(check) + ": " + theUrl + str(check) + "\\\\" + str(check) +".txt" + "  \\\\"
 
     responseText = responseText + "I am going to attempt to visualize a map for you.  Sometimes this fails if something is wrong with the data, otherwise you can see it here: \\\\"
     responseText = responseText + "![Preview]("+ theUrl + "geometryDataChecks\preview.png)  \\\\"
