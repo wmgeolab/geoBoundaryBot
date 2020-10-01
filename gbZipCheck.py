@@ -4,7 +4,7 @@ import zipfile
 import subprocess
 import gbHelpers
 
-checkType = "technicalFileCheck"
+checkType = "fileChecks"
 ws = gbHelpers.initiateWorkspace(checkType)
 
 zipFailures = 0

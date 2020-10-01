@@ -8,7 +8,7 @@ import gbHelpers
 from matplotlib import pyplot as plt
 from shapely.geometry import shape
 
-checkType = "geometryDataCheck"
+checkType = "geometryDataChecks"
 ws = gbHelpers.initiateWorkspace(checkType)
 
 zipFailures = 0

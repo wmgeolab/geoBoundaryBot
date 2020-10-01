@@ -5,7 +5,7 @@ import subprocess
 import datetime
 import gbHelpers
 
-checkType = "metaDataCheck"
+checkType = "metaChecks"
 ws = gbHelpers.initiateWorkspace(checkType)
 
 zipFailures = 0
