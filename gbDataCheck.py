@@ -107,7 +107,7 @@ if(len(ws["zips"]) > 0):
             #Create a map visualization.
             #fig, axes = plt.subplots(nrows=1, ncols=1)
             dta.boundary.plot()
-            plt.savefig(os.path.expanduser("~") + "/tmp/" + z.replace("/", "").replace(".", "") + "_preview.png")
+            plt.savefig(os.path.expanduser("~") + "/tmp/preview.png")
 
             for index, row in dta.iterrows():
                 validBounds = 1
