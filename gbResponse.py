@@ -16,7 +16,7 @@ responseText = responseText + "If you have submitted something other than a new 
 
 responseText = responseText + "I will automatically re-run my checks when you edit your Pull Request, and provide the new results in a comment just like this. \\\\"
 
-responseText = responseText + "Once all of your files meet my programmed standards, I will flag your file for a manual review. \\\\"
+responseText = responseText + "Once all of your files meet my programmed standards, I will flag your file for a manual human review. \\\\"
 responseText = responseText + "  \\\\"
 
 
@@ -54,6 +54,6 @@ else:
     responseText = responseTest + "All checks have passed! I'll flag your boundary submission for a manual review by one of my humans.  \\\\"
     responseText = responseText + "![Preview]("+ theUrl + "geometryDataChecks\preview.png)  \\\\"
 
-
-os.environ["RESPONSE"] = responseText
-os.system("export RESPONSE='" + responseText + "'")
+print(responseText)
+with open(os.path.expanduser("~") + "/tmp/response.txt", "w") as f:
+    f.write(responseText)
