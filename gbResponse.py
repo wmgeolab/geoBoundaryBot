@@ -17,7 +17,7 @@ responseText = responseText + "I will automatically re-run my checks when you ed
 responseText = responseText + "Once all of your files meet my programmed standards, I will flag your file for a manual human review. <br />"
 
 
-responseText = responseText + "<br /><br />=========== Submission Findings =========== <br /><br />"
+responseText = responseText + "=========== Submission Findings =========== <br /><br />"
 #First, establish the overall finding, then report out the subfindings.
 checkResults = {}
 checkFailed = 0
@@ -29,7 +29,7 @@ for check in checkTypes:
         checkFailed = checkFailed + 1
 
 if(checkFailed > 0):
-    responseText = responseText + "**OVERALL STATUS**: " + str(checkFailed) + " checks are failing.  I have some recommendations for you on how you might fix these: <br />"
+    responseText = responseText + "**OVERALL STATUS**: " + str(checkFailed) + " checks are failing.  I have some recommendations for you on how you might fix these. <br /><br />"
 
     for check in checkTypes:
         with open(in_path + check + "/RESULT.txt", "r") as f:
@@ -39,7 +39,7 @@ if(checkFailed > 0):
             responseText = responseText + "**" + str(check) + "**: " + checkResults[check] + "  <br />"
             
         else:
-            responseText = responseText + str(check) + ": PASSED.  Nothing that needs to be done here right now. <br />"
+            responseText = responseText + "**" + str(check) + "**: All checks PASSED.  Nothing that needs to be done here right now. <br />"
         
         responseText = responseText + "[Full logs for " + str(check) + "](" + theUrl + str(check) + "/" + str(check) +".txt" + ")  <br /><br />"
 
