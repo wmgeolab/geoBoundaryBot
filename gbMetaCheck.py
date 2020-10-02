@@ -14,7 +14,7 @@ zipTotal = 0
 anyFail = 0
 
 #Load ISOs for later checks
-with open(ws["working"] + "/actions/dta/iso_3166_1_alpha_3.csv") as isoCsv:
+with open(ws["working"] + "/geoBoundaryBot/dta/iso_3166_1_alpha_3.csv") as isoCsv:
     lines = isoCsv.readlines()
 
 validISO = []
@@ -23,7 +23,7 @@ for line in lines:
     validISO.append(data[2])
 
 #Load licenses for later checks
-with open(ws["working"] + "/actions/dta/gbLicenses.csv") as lCsv:
+with open(ws["working"] + "/geoBoundaryBot/dta/gbLicenses.csv") as lCsv:
     lines = lCsv.readlines()
 
 validLicense = []
@@ -153,7 +153,7 @@ if(len(ws["zips"]) > 0):
                 if("license" == key.lower()):
                     if(('"' + val.lower().strip() + '"') not in validLicense):
                         gbHelpers.logWrite(checkType, "CRITICAL ERROR: Invalid license detected: " + val)
-                        gbHelpers.logWrite(checkType, "We expect one of the licenses in /actions/dta/gbLicenses.csv.  If you believe your license should be included, please open a ticket.")
+                        gbHelpers.logWrite(checkType, "We expect one of the licenses in https://github.com/wmgeolab/geoBoundaryBot/dta/gbLicenses.csv.  If you believe your license should be included, please open a ticket.")
                         checkFail = 1
                     else:
                         req["license"] = 1
