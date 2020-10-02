@@ -113,7 +113,7 @@ if(len(ws["zips"]) > 0):
                         gbHelpers.logWrite(checkType, "CRITICAL ERROR: ISO is invalid - we expect a 3-character ISO code following ISO-3166-1 (Alpha 3).")
                         checkFail = 1
                     if(val not in validISO):
-                        gbHelpers.logWrite(checkType, "CRITICAL ERROR: ISO is not on our list of valid ISO-3 codes.  See /actions/dta/iso_3166_1_alpha_3.csv for all valid codes this script checks against.")
+                        gbHelpers.logWrite(checkType, "CRITICAL ERROR: ISO is not on our list of valid ISO-3 codes.  See https://github.com/wmgeolab/geoBoundaryBot/blob/master/dta/iso_3166_1_alpha_3.csv for all valid codes this script checks against.")
                         checkFail = 1
                     else:
                         gbHelpers.logWrite(checkType, "Valid ISO detected: " + val)
