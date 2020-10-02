@@ -153,7 +153,7 @@ if(len(ws["zips"]) > 0):
                 if("license" == key.lower()):
                     if(('"' + val.lower().strip() + '"') not in validLicense):
                         gbHelpers.logWrite(checkType, "CRITICAL ERROR: Invalid license detected: " + val)
-                        gbHelpers.logWrite(checkType, "We expect one of the licenses in https://github.com/wmgeolab/geoBoundaryBot/dta/gbLicenses.csv.  If you believe your license should be included, please open a ticket.")
+                        gbHelpers.logWrite(checkType, "We expect one of the licenses in https://github.com/wmgeolab/geoBoundaryBot/blob/master/dta/gbLicenses.csv.  If you believe your license should be included, please open a ticket.")
                         checkFail = 1
                     else:
                         req["license"] = 1
