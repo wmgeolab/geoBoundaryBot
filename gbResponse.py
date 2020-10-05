@@ -47,7 +47,7 @@ if(checkFailed > 0):
     responseText = responseText + "![Preview]("+ theUrl + "geometryDataChecks/preview.png)  <br />"
 
 else:
-    responseText = responseTest + "All checks have passed! I'll flag your boundary submission for a manual review by one of my humans.  <br />"
+    responseText = responseText + "All checks have passed! I'll flag your boundary submission for a manual review by one of my humans.  <br />"
     responseText = responseText + "![Preview]("+ theUrl + "geometryDataChecks/preview.png)  <br />"
 
 print(responseText)
