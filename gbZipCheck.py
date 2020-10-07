@@ -26,7 +26,7 @@ if(len(ws["zips"]) > 0):
             gbHelpers.logWrite(checkType, "Metadata file exists in " + z)
         else:
             gbHelpers.logWrite(checkType, "CRITICAL ERROR: Metadata file does not exist in " + z)
-            gbHelpers.gbEnvVars("RESULT","You submitted at least one file that is missing a meta.txt, which is required.","w")
+            gbHelpers.gbEnvVars("RESULT","You submitted at least one file that is missing a meta.txt, which is required.  Please make sure your meta.txt is in the root of your submitted zip file - I have not yet been programmed to look in folders for your meta.txt.","w")
             checkFail = 1
         
         geojson = list(filter(lambda x: x[-4:] == '.geojson', bZip.namelist()))

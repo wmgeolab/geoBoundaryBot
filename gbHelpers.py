@@ -2,32 +2,48 @@
 import os
 import csv
 
-def initiateWorkspace(check):
-
+def initiateWorkspace(check, build = None):
     ws = {}
-    try:
-        ws['working'] = os.environ['GITHUB_WORKSPACE']
-        ws['changedFiles'] = os.environ['changes'].strip('][').split(',')
-        ws['logPath'] = os.path.expanduser("~") + "/tmp/" + str(check) + ".txt"
-        ws['zips'] = list(filter(lambda x: x[-4:] == '.zip', ws["changedFiles"]))
-    except:
-        ws['working'] = "/home/dan/git/gbRelease"
-        ws['changedFiles'] = ['sourceData/gbOpen/ARE_ADM1.zip', 'sourceData/gbOpen/QAT_ADM0.zip']
-        ws['logPath'] = os.path.expanduser("~") + "/tmp/" + str(check) + ".txt"
-        ws['zips'] = list(filter(lambda x: x[-4:] == '.zip', ws["changedFiles"]))
+    if(build != None):
+        try:
+            ws['working'] = os.environ['GITHUB_WORKSPACE']
+            ws['logPath'] = os.path.expanduser("~") + "/tmp/" + str(check) + "_buildStatus.csv"
+        except:
+            ws['working'] = "/home/dan/git/gbRelease"
+            ws['logPath'] = os.path.expanduser("~") + "/tmp/" + str(check) + "_buildStatus.csv"
 
-    print("Python WD: " + ws['working'])  
-    print("Python changedFiles: " + str(ws['changedFiles']))
-    print("Logging Path: " + str(ws["logPath"]))
-    print("Changed Zips Detected: " + str(ws['zips']))
+        print("Python WD: " + ws['working'])  
+        print("Logging Path: " + str(ws["logPath"]))
+        ws['zips'] = []
 
-    
+    else:
+        try:
+            ws['working'] = os.environ['GITHUB_WORKSPACE']
+            ws['changedFiles'] = os.environ['changes'].strip('][').split(',')
+            ws['logPath'] = os.path.expanduser("~") + "/tmp/" + str(check) + ".txt"
+            ws['zips'] = list(filter(lambda x: x[-4:] == '.zip', ws["changedFiles"]))
+        except:
+            ws['working'] = "/home/dan/git/gbRelease"
+            ws['changedFiles'] = ['sourceData/gbOpen/ARE_ADM1.zip', 'sourceData/gbOpen/QAT_ADM0.zip']
+            ws['logPath'] = os.path.expanduser("~") + "/tmp/" + str(check) + ".txt"
+            ws['zips'] = list(filter(lambda x: x[-4:] == '.zip', ws["changedFiles"]))
+
+        print("Python WD: " + ws['working'])  
+        print("Python changedFiles: " + str(ws['changedFiles']))
+        print("Logging Path: " + str(ws["logPath"]))
+        print("Changed Zips Detected: " + str(ws['zips']))
+
+    ws["zipFailures"] = 0
+    ws["zipSuccess"] = 0
+    ws["zipTotal"] = 0
+    ws["checkType"] = check
     return ws
 
 def logWrite(check, line):
-    print(line)
-    with open(os.path.expanduser("~") + "/tmp/" + str(check) + ".txt", "a") as f:
-        f.write(line + "\n")
+    if(check != "gbAuthoritative" and check != "gbHumanitarian" and check != "gbOpen"):
+        print(line)
+        with open(os.path.expanduser("~") + "/tmp/" + str(check) + ".txt", "a") as f:
+            f.write(line + "\n")
 
 def checkRetrieveLFSFiles(z, workingDir="./"):
     with open(workingDir + "/.gitattributes") as f:
@@ -41,10 +57,10 @@ def checkRetrieveLFSFiles(z, workingDir="./"):
         os.system('git lfs pull --include=\"' + z +'\"')
         
     else:
-        print("")
-        print("--------------------------------")
-        print("No download from LFS required (file < 25mb): " + z)
-        print("")
+        #print("")
+        #print("--------------------------------")
+        #print("No download from LFS required (file < 25mb): " + z)
+        #print("")
         return(0)
 
 def gbEnvVars(varName, content,mode):
