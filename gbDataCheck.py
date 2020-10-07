@@ -71,7 +71,10 @@ def geometryCheck(ws):
                     gbHelpers.logWrite(ws["checkType"],  "")
                     gbHelpers.logWrite(ws["checkType"],  "Column for name detected: " + str(nameCol[0]))
                     nameExample = dta[str(nameCol[0])][0]
-                    nameValues = (dta[dta[str(nameCol[0])].str.contains('.*', regex=True)][str(nameCol[0])]).count()
+                    try:
+                        nameValues = (dta[dta[str(nameCol[0])].str.contains('.*', regex=True)][str(nameCol[0])]).count()
+                    except:
+                        nameValues = 0
                     gbHelpers.logWrite(ws["checkType"],  "Total number of names detected: " + str(nameValues))
                     gbHelpers.logWrite(ws["checkType"],  "Example of first name detected: " + str(nameExample))
                     opt["bndName"] = 1
@@ -86,7 +89,10 @@ def geometryCheck(ws):
                     gbHelpers.logWrite(ws["checkType"],  "")
                     gbHelpers.logWrite(ws["checkType"],  "Column for boundary ISO detected: " + str(nameCol[0]))
                     nameExample = dta[str(nameCol[0])][0]
-                    nameValues = (dta[dta[str(nameCol[0])].str.contains('.*', regex=True)][str(nameCol[0])]).count()
+                    try:
+                        nameValues = (dta[dta[str(nameCol[0])].str.contains('.*', regex=True)][str(nameCol[0])]).count()
+                    except:
+                        nameValues = 0
                     gbHelpers.logWrite(ws["checkType"],  "Total number of boundary ISOs detected: " + str(nameValues))
                     gbHelpers.logWrite(ws["checkType"],  "Example of first boundary ISO detected: " + str(nameExample))
                     opt["bndISO"] = 1

@@ -62,7 +62,11 @@ def metaCheck(ws):
             checkFail = 0
 
             gbHelpers.logWrite(ws["checkType"], "Metadata Check (" + str(ws["zipTotal"]) + " of " + str(len(ws["zips"])) + "): " + z)
-            bZip = zipfile.ZipFile(ws["working"] + "/" + z)
+            try:
+                bZip = zipfile.ZipFile(ws["working"] + "/" + z)
+            except:
+                print("A zipfile didn't open.  " + str(z))
+                return [opt, req, 0]  
             if("meta.txt" in bZip.namelist()):
                 gbHelpers.logWrite(ws["checkType"], "")
                 gbHelpers.logWrite(ws["checkType"], "============================")
