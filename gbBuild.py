@@ -6,9 +6,11 @@ import zipfile
 import gbMetaCheck
 import csv
 import json
+import shutil
 
 buildType = str(sys.argv[1])
 buildVer = str(sys.argv[2])
+fullBuild = str(sys.argv[3])
 ws = gbHelpers.initiateWorkspace(buildType, build = True)
 csvR = []
 
@@ -98,34 +100,46 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/"):
             os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/")
 
-        if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
-            os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/")
+        if(fullBuild == "True"):
+            if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
+                os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/")
 
-        if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
-            os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/")
+            if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
+                os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/")
 
         
-        #Build JSON and TXT meta
-        basePath = os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"
-        with open("geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json")
+        if(fullBuild == "True"):
+            #Build JSON and TXT meta
+            basePath = os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"
+            #with open("geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json")
+
+            #Remember the attribute table standardization
+            #Shapely buffer 0
 
 
-        #Need to build the actual zip files and move things around.
-        #Make a temp copy in /tmp, then we'll copy to the gbRelease repository at the end.
-        zipPath = row["boundaryISO"] + "-" + row["boundaryType"] + "-geoBoundaries-" + buildType + "-all.zip"
-        
-        
-        #Note we need to simplify the boundaries and include them in the zip as well.
 
-        #Make map preview images
-        #dta.boundary.plot()
-        #plt.savefig(os.path.expanduser("~") + "/tmp/preview.png")
+            #Need to build the actual zip files and move things around.
+            #Make a temp copy in /tmp, then we'll copy to the gbRelease repository at the end.
+            zipPath = row["boundaryISO"] + "-" + row["boundaryType"] + "-geoBoundaries-" + buildType + "-all.zip"
+            
+            
+            #Note we need to simplify the boundaries and include them in the zip as well.
+
+            #Make map preview images
+            #dta.boundary.plot()
+            #plt.savefig(os.path.expanduser("~") + "/tmp/preview.png")
 
         csvR.append(row)
 
-#Build the CSV
+#Build the CSV - if fullbuild = False, this is all that gets pushed.
 keys = csvR[0].keys()
 with open(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(buildType) + "_metaData.csv", "w") as f:
     writer = csv.DictWriter(f, keys)
     writer.writeheader()
     writer.writerows(csvR)
+
+#Copy the tmp directory over to the main repository
+
+if(ws["working"] != "/home/dan/git/gbRelease"):
+    shutil.copytree(os.path.expanduser("~") + "/tmp/", ws["working"])
+    os.system("ls " + ws["working"])
