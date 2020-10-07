@@ -205,10 +205,6 @@ def geometryCheck(ws):
         gbHelpers.logWrite(ws["checkType"],  "All data checks complete.")
         gbHelpers.logWrite(ws["checkType"],  "Successes: " + str(ws["zipSuccess"]))
         gbHelpers.logWrite(ws["checkType"],  "Failures: " + str(ws["zipFailures"]))
-
-        #Return of the last element for overall build
-        return [opt, req, ws["zipSuccess"]]
-
         
         if(ws["zipFailures"] > 0):
             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: At least one data check failed; check the log to see what's wrong.")
@@ -216,6 +212,9 @@ def geometryCheck(ws):
         else:
             gbHelpers.logWrite(ws["checkType"], "All tests passed.")
             gbHelpers.gbEnvVars("RESULT", "PASSED", "w")
+        
+        #Return of the last element for overall build
+        return [opt, req, ws["zipSuccess"]]
 
     else:
         gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: No modified zip files found.")

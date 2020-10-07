@@ -295,18 +295,16 @@ def metaCheck(ws):
         gbHelpers.logWrite(ws["checkType"], "====================")
         gbHelpers.logWrite(ws["checkType"], "All metadata checks complete.")
         gbHelpers.logWrite(ws["checkType"], "Successes: " + str(ws["zipSuccess"]))
-        gbHelpers.logWrite(ws["checkType"], "Failures: " + str(ws["zipFailures"]))
-
-        #Return of the last element for overall build
-        return [opt, req, ws["zipSuccess"]]  
-        
+        gbHelpers.logWrite(ws["checkType"], "Failures: " + str(ws["zipFailures"]))        
 
         if(ws["zipFailures"] > 0):
             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: At least one Metadata check failed; check the log to see what's wrong.")  
             gbHelpers.gbEnvVars("RESULT", "It looks like your metadata has one or more errors - take a look at the logs to see what you need to fix.", "w")      
         else:
-            gbHelpers.logWrite(ws["checkType"], "All tests passed.")
             gbHelpers.gbEnvVars("RESULT", "PASSED", "w")
+        
+        #Return of the last element for overall build
+        return [opt, req, ws["zipSuccess"]]  
 
     else:
         gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: No modified zip files found.")
