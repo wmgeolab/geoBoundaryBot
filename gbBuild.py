@@ -6,7 +6,7 @@ import zipfile
 import gbMetaCheck
 import csv
 import json
-import shutil
+from distutils.dir_util import copy_tree
 
 buildType = str(sys.argv[1])
 buildVer = str(sys.argv[2])
@@ -141,5 +141,6 @@ with open(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" +
 #Copy the tmp directory over to the main repository
 
 if(ws["working"] != "/home/dan/git/gbRelease"):
-    shutil.copytree(os.path.expanduser("~") + "/tmp/", ws["working"])
+    os.system("ls " + ws["working"])
+    copy_tree(os.path.expanduser("~") + "/tmp/", ws["working"])
     os.system("ls " + ws["working"])
