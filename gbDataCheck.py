@@ -214,6 +214,7 @@ def geometryCheck(ws):
             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: At least one data check failed; check the log to see what's wrong.")
             gbHelpers.gbEnvVars("RESULT", "A geometry or data check failed for the file you submitted - take a look at the logs to see what happened.", "w")
         else:
+            gbHelpers.logWrite(ws["checkType"], "All tests passed.")
             gbHelpers.gbEnvVars("RESULT", "PASSED", "w")
 
     else:
