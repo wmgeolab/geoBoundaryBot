@@ -150,7 +150,7 @@ def metaCheck(ws):
                     if("license" == key.lower()):
                         if(('"' + val.lower().strip() + '"') not in validLicense):
                             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: Invalid license detected: " + val)
-                            gbHelpers.logWrite(ws["checkType"], "We expect one of the licenses in https://github.com/wmgeolab/geoBoundaryBot/blob/master/dta/gbLicenses.csv.  If you believe your license should be included, please open a ticket.")
+                            gbHelpers.logWrite(ws["checkType"], "We expect one of the licenses in https://github.com/wmgeolab/geoBoundaryBot/blob/master/dta/gbLicenses.csv.  It must exactly match one of these; we do no fuzzy matching to ensure accuracy. If you believe your license should be included, please open a ticket.")
                             checkFail = 1
                         else:
                             req["license"] = 1
