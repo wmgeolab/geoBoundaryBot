@@ -315,6 +315,6 @@ def metaCheck(ws):
         gbHelpers.gbEnvVars("RESULT", "You didn't submit a zip file.", "w")
 
 if __name__ == "__main__":
-    ws = gbHelpers.initiateWorkspace("geometryDataChecks")
+    ws = gbHelpers.initiateWorkspace("metaChecks")
     metaCheck(ws)
     
