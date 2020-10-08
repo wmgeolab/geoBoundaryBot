@@ -76,12 +76,18 @@ def metaCheck(ws):
                     meta = zF.read('meta.txt')
                 
                 for m in meta.splitlines():
-                    gbHelpers.logWrite(ws["checkType"], "")
-                    e = m.decode("latin1").split(":")
-                    if(len(e) > 2):
-                        e[1] = e[1] + e[2]
-                    key = e[0].strip()
-                    val = e[1].strip()
+                    try:
+                        gbHelpers.logWrite(ws["checkType"], "")
+                        e = m.decode("latin1").split(":")
+                        if(len(e) > 2):
+                            e[1] = e[1] + e[2]
+                        key = e[0].strip()
+                        val = e[1].strip()
+                    except:
+                        checkFail = 1
+                        gbHelpers.logWrite(ws["checkType"], "WARN: At least one line of the meta.txt failed to be read correctly: " + str(m))
+                        key = "readError"
+                        val = "readError"
                     
                     gbHelpers.logWrite(ws["checkType"], "Detected Key / Value: " + key + " / " + val)
                     if(("Year" in key) or "year" in key):
