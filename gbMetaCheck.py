@@ -85,14 +85,18 @@ def metaCheck(ws):
                     
                     gbHelpers.logWrite(ws["checkType"], "Detected Key / Value: " + key + " / " + val)
                     if(("Year" in key) or "year" in key):
-                        year = int(float(val))
-                        if( (year > 1990) and (year <= datetime.datetime.now().year)):
-                            gbHelpers.logWrite(ws["checkType"], "Valid year " + str(year) + " detected.")
-                            req["year"] = 1
-                        else:
-                            gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The year in the meta.txt file is invalid: " + str(year))
-                            gbHelpers.logWrite(ws["checkType"], "We expect a value between 1990 and " + str(datetime.datetime.now().year))
-                            checkFail = 1
+                        try:
+                            year = int(float(val))
+                            if( (year > 1990) and (year <= datetime.datetime.now().year)):
+                                gbHelpers.logWrite(ws["checkType"], "Valid year " + str(year) + " detected.")
+                                req["year"] = 1
+                            else:
+                                gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The year in the meta.txt file is invalid: " + str(year))
+                                gbHelpers.logWrite(ws["checkType"], "We expect a value between 1990 and " + str(datetime.datetime.now().year))
+                                checkFail = 1
+                        except:
+                                gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The year in the meta.txt file is invalid.")
+                                checkFail = 1
                     
                     if("boundary type" in key.lower() and "name" not in key.lower()):
                         #May add other valid types in the future, but for now ADMs only.
