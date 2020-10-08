@@ -141,6 +141,10 @@ with open(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" +
 #Copy the tmp directory over to the main repository
 
 if(ws["working"] != "/home/dan/git/gbRelease"):
+    try:
+        os.remove(os.path.expanduser("~")+"/tmp/RESULT.TXT")
+    except:
+        print("Cleanup skipped.  Proceeding with Upload.")
     os.system("ls " + ws["working"])
     copy_tree(os.path.expanduser("~") + "/tmp/", ws["working"])
     os.system("ls " + ws["working"])
