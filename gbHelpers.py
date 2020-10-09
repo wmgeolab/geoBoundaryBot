@@ -74,7 +74,7 @@ def gbEnvVars(varName, content,mode):
             return f.read()
 
 def unzipGB(zipObj):
-    bZip.extractall("tmp/")
+    zipObj.extractall("tmp/")
     if(os.path.exists("tmp/__MACOSX")):
         shutil.rmtree("tmp/__MACOSX")
 

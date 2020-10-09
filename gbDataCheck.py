@@ -44,6 +44,8 @@ def geometryCheck(ws):
 
             geojson = list(filter(lambda x: x[-4:] == '.geojson', bZip.namelist()))
             shp = list(filter(lambda x: x[-4:] == '.shp', bZip.namelist()))
+            geojson = [x for x in geojson if not x.__contains__("MACOS")]
+            shp = [x for x in shp if not x.__contains__("MACOS")]
             allShps = geojson + shp
 
             if(len(allShps) == 1):

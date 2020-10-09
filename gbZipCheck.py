@@ -40,19 +40,19 @@ if(len(ws["zips"]) > 0):
         if(len(allShps) == 1):
             if(len(shp) == 1):
                 gbHelpers.logWrite(checkType, "Shapefile (*.shp) found. Checking if all required files are present.")
-                if(len(list(filter(lambda x: x[-4:] == '.shx', bZip.namelist()))) != 1):
+                if(len(list(filter(lambda x: x[-4:] == '.shx', bZip.namelist()))) < 1):
                     gbHelpers.logWrite(checkType, "CRITICAL ERROR: A valid *.shp requires a *.shx (index) file. None was found in " + z)
                     gbHelpers.gbEnvVars("RESULT","You submitted a *.shp file without a *.shx file, which is required (*.shx, *.dbf, and *.prj are all required)","w")
                     checkFail = 1
                 else:
                     gbHelpers.logWrite(checkType, ".shx found.")
-                if(len(list(filter(lambda x: x[-4:] == '.dbf', bZip.namelist()))) != 1):
+                if(len(list(filter(lambda x: x[-4:] == '.dbf', bZip.namelist()))) < 1):
                     gbHelpers.logWrite(checkType, "CRITICAL ERROR: A valid *.shp requires a *.dbf (index) file. None was found in " + z)
                     gbHelpers.gbEnvVars("RESULT","You submitted a *.shp file without a *.dbf file, which is required (*.shx, *.dbf, and *.prj are all required).","w")
                     checkFail = 1
                 else:
                     gbHelpers.logWrite(checkType, ".dbf found.")
-                if(len(list(filter(lambda x: x[-4:] == '.prj', bZip.namelist()))) != 1):
+                if(len(list(filter(lambda x: x[-4:] == '.prj', bZip.namelist()))) < 1):
                     gbHelpers.logWrite(checkType, "CRITICAL ERROR: A valid *.shp requires a *.prj (index) file. None was found in " + z)
                     gbHelpers.gbEnvVars("RESULT","You submitted a *.shp file without a *.prj file, which is required (*.shx, *.dbf, and *.prj are all required).","w")
                     checkFail = 1
@@ -84,7 +84,7 @@ if(len(ws["zips"]) > 0):
     gbHelpers.logWrite(checkType, "Successes: " + str(zipSuccess))
     gbHelpers.logWrite(checkType, "Failures: " + str(zipFailures))
     if(zipFailures > 0):
-        gbHelpers.logWrite(checkType, "CRITICAL ERROR: At least one Metadata check failed; check the log to see what's wrong.")
+        gbHelpers.logWrite(checkType, "CRITICAL ERROR: At least one file check failed; check the log to see what's wrong.")
     else:
         print("Set")
         gbHelpers.gbEnvVars("RESULT", "PASSED", "w")
