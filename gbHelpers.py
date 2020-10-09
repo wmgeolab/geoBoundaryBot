@@ -1,6 +1,7 @@
 
 import os
 import csv
+import shutil
 
 def initiateWorkspace(check, build = None):
     ws = {}
@@ -71,3 +72,9 @@ def gbEnvVars(varName, content,mode):
     if(mode == "r"):
         with open(os.path.expanduser("~") + "/tmp/" + varName + ".txt", "r") as f:
             return f.read()
+
+def unzipGB(zipObj):
+    bZip.extractall("tmp/")
+    if(os.path.exists("tmp/__MACOSX")):
+        shutil.rmtree("tmp/__MACOSX")
+

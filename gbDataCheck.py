@@ -40,7 +40,7 @@ def geometryCheck(ws):
             bZip = zipfile.ZipFile(ws["working"] + "/" + z)
 
             #Extract the zipfiles contents
-            bZip.extractall("tmp/")
+            gbHelpers.unzipGB(bZip)
 
             geojson = list(filter(lambda x: x[-4:] == '.geojson', bZip.namelist()))
             shp = list(filter(lambda x: x[-4:] == '.shp', bZip.namelist()))

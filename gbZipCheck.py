@@ -22,6 +22,9 @@ if(len(ws["zips"]) > 0):
         gbHelpers.checkRetrieveLFSFiles(z, ws["working"])        
         gbHelpers.logWrite(checkType, "File Check (" + str(zipTotal) + " of " + str(len(ws["zips"])) + "): " + z)
         bZip = zipfile.ZipFile(ws["working"] + "/" + z)
+
+        
+
         if("meta.txt" in bZip.namelist()):
             gbHelpers.logWrite(checkType, "Metadata file exists in " + z)
         else:
@@ -31,6 +34,8 @@ if(len(ws["zips"]) > 0):
         
         geojson = list(filter(lambda x: x[-4:] == '.geojson', bZip.namelist()))
         shp = list(filter(lambda x: x[-4:] == '.shp', bZip.namelist()))
+        geojson = [x for x in geojson if not x.__contains__("MACOS")]
+        shp = [x for x in shp if not x.__contains__("MACOS")]
         allShps = geojson + shp 
         if(len(allShps) == 1):
             if(len(shp) == 1):
