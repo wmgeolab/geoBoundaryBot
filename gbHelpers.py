@@ -49,9 +49,10 @@ def logWrite(check, line):
 def checkRetrieveLFSFiles(z, workingDir="./"):
     with open(workingDir + "/.gitattributes") as f:
         lfsList = list(csv.reader(f, delimiter=" "))
-    print(lfsFiles)
+    print(lfsList)
     print(z)
     lfsFiles = [i[0] for i in lfsList]
+    print(lfsFiles)
     if(z in lfsFiles):
         print("")
         print("--------------------------------")
