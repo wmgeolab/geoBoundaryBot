@@ -152,7 +152,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             row["downloadURL"] = "METADATA ERROR"
         
         #Build status code
-        if(status == ""):
+        if(row["status"] == ""):
             if(row["META_requiredChecksPassing"] == True and row["GEOM_requiredChecksPassing"] == True):
                 row["status"] = "PASS"
             else:
