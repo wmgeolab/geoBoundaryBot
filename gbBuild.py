@@ -90,19 +90,65 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                     sys.exit(1)
 
             zipMeta[key] = val
-        
-        row["boundaryID"] = zipMeta['ISO-3166-1 (Alpha-3)'] + "-" + zipMeta["Boundary Type"] + "-" + buildVer
-        row["boundaryISO"] = zipMeta['ISO-3166-1 (Alpha-3)']
-        row["boundaryYear"] = zipMeta["Boundary Representative of Year"]
-        row["boundaryType"] = zipMeta["Boundary Type"]
-        row["boundarySource_1"] = zipMeta["Source 1"]
-        row["boundarySource_2"] = zipMeta["Source 2"]
-        row["boundaryCanonical"] = zipMeta["Canonical Boundary Type Name"]
-        row["boundaryLicense"] = zipMeta["License"]
-        row["licenseDetail"] = zipMeta["License Notes"]
-        row["licenseSource"] = zipMeta["License Source"]
-        row["boundarySourceURL"] = zipMeta["Link to Source Data"]
-        row["downloadURL"] = "https://github.com/wmgeolab/gbRelease/raw/master/releaseData/" + str(buildType) + "/" + str(filename)
+        try:
+            row["boundaryID"] = zipMeta['ISO-3166-1 (Alpha-3)'] + "-" + zipMeta["Boundary Type"] + "-" + buildVer
+        except:
+            row["boundaryID"] = "METADATA ERROR"
+
+        try:
+            row["boundaryISO"] = zipMeta['ISO-3166-1 (Alpha-3)']
+        except:
+            row["boundaryISO"] = "METADATA ERROR"
+
+        try:
+            row["boundaryYear"] = zipMeta["Boundary Representative of Year"]
+        except:
+            row["boundaryYear"] = "METADATA ERROR"
+
+        try:
+            row["boundaryType"] = zipMeta["Boundary Type"]
+        except:
+            row["boundaryType"] = "METADATA ERROR"
+
+        try:
+            row["boundarySource_1"] = zipMeta["Source 1"]
+        except:
+            row["boundarySource_1"] = "METADATA ERROR"
+
+        try:
+            row["boundarySource_2"] = zipMeta["Source 2"]
+        except:
+            row["boundarySource_2"] = "METADATA ERROR"
+
+        try:
+            row["boundaryCanonical"] = zipMeta["Canonical Boundary Type Name"]
+        except:
+            row["boundaryCanonical"] = "METADATA ERROR"
+
+        try:
+            row["boundaryLicense"] = zipMeta["License"]
+        except:
+            row["boundaryLicense"] = "METADATA ERROR"
+
+        try:
+            row["licenseDetail"] = zipMeta["License Notes"]
+        except:
+            row["licenseDetail"] = "METADATA ERROR"
+
+        try:
+            row["licenseSource"] = zipMeta["License Source"]
+        except:
+            row["licenseSource"] = "METADATA ERROR"
+
+        try:
+            row["boundarySourceURL"] = zipMeta["Link to Source Data"]
+        except:
+            row["boundarySourceURL"] = "METADATA ERROR"
+
+        try:
+            row["downloadURL"] = "https://github.com/wmgeolab/gbRelease/raw/master/releaseData/" + str(buildType) + "/" + str(filename)
+        except:
+            row["downloadURL"] = "METADATA ERROR"
         
         #Build high level structure
         if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/"):
