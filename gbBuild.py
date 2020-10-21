@@ -20,6 +20,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         bCnt = bCnt + 1
         print("Processing " + str(filename) + " (boundary " + str(bCnt) + ")")
         row = {}
+        row["status"] = ""
         row["META_requiredChecksPassing"] = 0
         row["GEOM_requiredChecksPassing"] = 0
         ws["zipSuccess"] = 0
@@ -31,7 +32,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 meta = zF.read('meta.txt')
         except:
             if(buildVer == "dev"):
-                row["status"] = "FAILING; no meta.txt"
+                row["status"] = "FAIL"
             else:
                 print("No meta.txt in at least one file.  To make a release build, all checks must pass.  Try running a dev build first. Exiting.")
                 sys.exit(1)
@@ -84,7 +85,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 val = e[1].strip()
             except:
                 if(buildVer == "dev"):
-                    row["status"] = "FAILING; could not parse at least one line of the meta.txt file"
+                    row["status"] = "FAIL"
                 else:
                     print("The meta.txt file was not parsed correctly for at least one file.  To make a release build, all checks must pass.  Try running a dev build first. Exiting.")
                     sys.exit(1)
@@ -149,6 +150,13 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             row["downloadURL"] = "https://github.com/wmgeolab/gbRelease/raw/master/releaseData/" + str(buildType) + "/" + str(filename)
         except:
             row["downloadURL"] = "METADATA ERROR"
+        
+        #Build status code
+        if(status == ""):
+            if(row["META_requiredChecksPassing"] == True and row["GEOM_requiredChecksPassing"] == True):
+                row["status"] = "PASS"
+            else:
+                row["status"] = "FAIL"
         
         #Build high level structure
         if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/"):
