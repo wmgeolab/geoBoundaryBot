@@ -101,7 +101,7 @@ def geometryCheck(ws):
                     opt["isoExample"] = nameExample
                     opt["isoCount"] = nameValues
 
-                    if(len(opt["isoExample"]) < 3):
+                    if(len(str(opt["isoExample"])) < 3):
                         gbHelpers.logWrite(ws["checkType"],  "WARN: While a boundary ISO code column exists with data, the data appears to be invalid and would not be used in a release.  Please ensure the ISO codes follow ISO 3166-2, or the appropriate equivalent standard.")
 
                 else:
