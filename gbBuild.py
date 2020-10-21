@@ -77,7 +77,15 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             if(len(e) > 2):
                 e[1] = e[1] + e[2]
             key = e[0].strip()
-            val = e[1].strip()
+            try:
+                val = e[1].strip()
+            except:
+                if(buildVer == "dev"):
+                    row["status"] = "FAILING; could not parse at least one line of the meta.txt file"
+                else:
+                    print("The meta.txt file was not parsed correctly for at least one file.  To make a release build, all checks must pass.  Try running a dev build first. Exiting.")
+                    sys.exit(1)
+
             zipMeta[key] = val
         
         row["boundaryID"] = zipMeta['ISO-3166-1 (Alpha-3)'] + "-" + zipMeta["Boundary Type"] + "-" + buildVer
