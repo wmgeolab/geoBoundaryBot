@@ -16,6 +16,7 @@ csvR = []
 
 for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + buildType + "/"):
     for filename in filenames:
+        print("Processing " + str(filename))
         row = {}
         row["META_requiredChecksPassing"] = 0
         row["GEOM_requiredChecksPassing"] = 0
