@@ -13,10 +13,12 @@ buildVer = str(sys.argv[2])
 fullBuild = str(sys.argv[3])
 ws = gbHelpers.initiateWorkspace(buildType, build = True)
 csvR = []
+bCnt = 0
 
 for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + buildType + "/"):
     for filename in filenames:
-        print("Processing " + str(filename))
+        bCnt = bCnt + 1
+        print("Processing " + str(filename) + " (boundary " + str(bCnt) + ")")
         row = {}
         row["META_requiredChecksPassing"] = 0
         row["GEOM_requiredChecksPassing"] = 0
