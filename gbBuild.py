@@ -220,17 +220,16 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                     print("Commenting on issue for " + str(row["boundaryISO"]+"+"+row["boundaryType"]+"+"+buildType))
                     issueCommentCount = issueCommentCount + 1
                     print("issueComment: " + str(issueCommentCount))
-                    if(issueCommentCount == 1):
-                        wordsForHello = ["Greetings", "Hello", "Hi", "Howdy", "Bonjour", "Beep Boop Beep", "Good Day", "Hello Human"]
-                        responsestr = random.choice(wordsForHello) + "!  I am the geoBoundary bot, here with a some details on what I need. \n"
-                        responsestr = responsestr + "I'll print out my logs for you below so you know what's happening! \n"
-                        responsestr = responsestr + "\n\n \n"
-                        responsestr = responsestr + json.dumps(row, sort_keys=True, indent=4)
-                        responsestr = responsestr + "\n\n \n"
-                        responsestr = responsestr + "====robotid-d7329e7104s40t927830R028o9327y372h87u910m197a9472n2837s649==== \n"
-                        responsestr = responsestr + "\n\n"
-                        likelyIssues[0].create_comment(responsestr)
-                        comment_create = True
+                    wordsForHello = ["Greetings", "Hello", "Hi", "Howdy", "Bonjour", "Beep Boop Beep", "Good Day", "Hello Human", "Hola", "Hiya", "Hello There", "Ciao", "Aloha", "What's Poppin'","Salutations","Gidday"]
+                    responsestr = random.choice(wordsForHello) + "!  I am the geoBoundary bot, here with a some details on what I need. \n"
+                    responsestr = responsestr + "I'll print out my logs for you below so you know what's happening! \n"
+                    responsestr = responsestr + "\n\n \n"
+                    responsestr = responsestr + json.dumps(row, sort_keys=True, indent=4)
+                    responsestr = responsestr + "\n\n \n"
+                    responsestr = responsestr + "====robotid-d7329e7104s40t927830R028o9327y372h87u910m197a9472n2837s649==== \n"
+                    responsestr = responsestr + "\n\n"
+                    likelyIssues[0].create_comment(responsestr)
+                    comment_create = True
                 else:
                     print("I have already commented on " + str(row["boundaryISO"]+"+"+row["boundaryType"]+"+"+buildType))
         
