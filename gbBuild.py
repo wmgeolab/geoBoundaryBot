@@ -14,6 +14,8 @@ fullBuild = str(sys.argv[3])
 ws = gbHelpers.initiateWorkspace(buildType, build = True)
 csvR = []
 bCnt = 0
+issueCreationCount = 0
+issueCommentCount = 0
 
 for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + buildType + "/"):
     for filename in filenames:
@@ -157,6 +159,77 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 row["status"] = "PASS"
             else:
                 row["status"] = "FAIL"
+        
+        if(row["status"] == "FAIL"):
+            #Identify if an issue already exists, and if not create one.
+            import github
+            import json
+            import random
+            import time
+            time.sleep(5)
+            #Load in testing environment
+            try:
+                with open("tmp/accessToken", "r") as f:
+                    token = f.read()
+            except:
+                token = os.environ["GITHUB_TOKEN"]
+            
+            g = github.Github(token)
+
+            #Github has no "OR" for searching, so a bit of a messy hack here to allow for
+            #"ADM0" and "ADM 0"
+            likelyIssues = g.search_issues(query=str(row["boundaryISO"]+"+"+row["boundaryType"]+"+"+buildType), repo="wmgeolab/gbRelease", state="open")
+            issueCount = sum(not issue.pull_request for issue in likelyIssues)
+
+            if(issueCount == 0):
+                admLevel = row["boundaryType"].split("M")[1]
+                likelyIssues = g.search_issues(query=str(row["boundaryISO"]+"+'ADM "+str(admLevel)+"'+"+buildType), repo="wmgeolab/gbRelease", state="open")
+                issueCount = sum(not issue.pull_request for issue in likelyIssues)
+
+            
+
+            if(issueCount > 1):
+                print("There are currently more than one active issue for this boundary.  Skipping issue creation for now.")
+            
+            if(issueCount == 0):
+                print("Creating issue for " + str(row["boundaryISO"]+"+"+row["boundaryType"]+"+"+buildType))
+                repo = g.get_repo("wmgeolab/gbRelease")
+                issueCreationCount = issueCreationCount + 1
+                print("issueCreation:" + str(issueCreationCount))
+                #Testing - only create the first issue for now.
+                if(issueCreationCount == 1):
+                    wordsForHello = ["Greetings", "Hello", "Hi", "Howdy", "Bonjour", "Beep Boop Beep", "Good Day", "Hello Human"]
+                    responsestr = random.choice(wordsForHello) + "!  I am the geoBoundary bot, here with a some details on what I need. \n"
+                    responsestr = responsestr + "I'll print out my logs for you below so you know what's happening! \n"
+                    responsestr = responsestr + "\n\n \n"
+                    responsestr = responsestr + json.dumps(row, sort_keys=True, indent=4)
+                    responsestr = responsestr + "\n\n \n"
+                    responsestr = responsestr + "====robotid-d7329e7104s40t927830R028o9327y372h87u910m197a9472n2837s649==== \n"
+                    responsestr = responsestr + "\n\n"
+                    
+                    repo.create_issue(title=str(row["boundaryISO"]+" "+row["boundaryType"]+" "+buildType), body=responsestr)
+                
+
+            if(issueCount == 1):
+                allCommentText = ""
+                for i in range(0, likelyIssues[0].get_comments().totalCount):
+                    allCommentText = allCommentText + likelyIssues[0].get_comments()[i].body
+                if("d7329e7104s40t927830R028o9327y372h87u910m197a9472n2837s649" not in allCommentText):
+                    print("Commenting on issue for " + str(row["boundaryISO"]+"+"+row["boundaryType"]+"+"+buildType))
+                    issueCommentCount = issueCommentCount + 1
+                    print("issueComment: " + str(issueCommentCount))
+                    if(issueCommentCount == 1):
+                        wordsForHello = ["Greetings", "Hello", "Hi", "Howdy", "Bonjour", "Beep Boop Beep", "Good Day", "Hello Human"]
+                        responsestr = random.choice(wordsForHello) + "!  I am the geoBoundary bot, here with a some details on what I need. \n"
+                        responsestr = responsestr + "I'll print out my logs for you below so you know what's happening! \n"
+                        responsestr = responsestr + "\n\n \n"
+                        responsestr = responsestr + json.dumps(row, sort_keys=True, indent=4)
+                        responsestr = responsestr + "\n\n \n"
+                        responsestr = responsestr + "====robotid-d7329e7104s40t927830R028o9327y372h87u910m197a9472n2837s649==== \n"
+                        responsestr = responsestr + "\n\n"
+                        likelyIssues[0].create_comment(responsestr)
+                else:
+                    print("I have already commented on " + str(row["boundaryISO"]+"+"+row["boundaryType"]+"+"+buildType))
         
         #Build high level structure
         if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/"):
