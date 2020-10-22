@@ -213,7 +213,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 repo_create = True
 
             if(issueCount == 1 and repo_create == False and comment_create == False):
-                allCommentText = ""
+                allCommentText = likelyIssues[0].body
                 for i in range(0, likelyIssues[0].get_comments().totalCount):
                     allCommentText = allCommentText + likelyIssues[0].get_comments()[i].body
                 if("d7329e7104s40t927830R028o9327y372h87u910m197a9472n2837s649" not in allCommentText):
