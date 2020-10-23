@@ -27,6 +27,8 @@ for check in checkTypes:
     
     if(checkResults[check] != "PASSED"):
         checkFailed = checkFailed + 1
+    else:
+        responseText = responseText + "[Full logs for " + str(check) + "](" + theUrl + str(check) + "/" + str(check) +".txt" + ")  <br /><br />"
 
 if(checkFailed > 0):
     responseText = responseText + "**OVERALL STATUS**: " + str(checkFailed) + " checks are failing.  I have some recommendations for you on how you might fix these. <br /><br />"
@@ -49,6 +51,7 @@ if(checkFailed > 0):
 else:
     responseText = responseText + "All checks have passed! I'll flag your boundary submission for a manual review by one of my humans.  <br />"
     responseText = responseText + "![Preview]("+ theUrl + "geometryDataChecks/preview.png)  <br />"
+    
 
 print(responseText)
 with open(os.path.expanduser("~") + "/tmp/response.txt", "w") as f:

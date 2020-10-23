@@ -220,7 +220,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                     print("Commenting on issue for " + str(row["boundaryISO"]+"+"+row["boundaryType"]+"+"+buildType))
                     issueCommentCount = issueCommentCount + 1
                     print("issueComment: " + str(issueCommentCount))
-                    wordsForHello = ["Greetings", "Hello", "Hi", "Howdy", "Bonjour", "Beep Boop Beep", "Good Day", "Hello Human", "Hola", "Hiya", "Hello There", "Ciao", "Aloha", "What's Poppin'","Salutations","Gidday"]
+                    wordsForHello = ["Greetings", "Hello", "Hi", "Howdy", "Bonjour", "Beep Boop Beep", "Good Day", "Hello Human", "Hola", "Hiya", "Hello There", "Ciao", "Aloha", "What's Poppin'","Salutations","Gidday", "Cheers"]
                     responsestr = random.choice(wordsForHello) + "!  I am the geoBoundary bot, here with a some details on what I need. \n"
                     responsestr = responsestr + "I'll print out my logs for you below so you know what's happening! \n"
                     responsestr = responsestr + "\n\n \n"
