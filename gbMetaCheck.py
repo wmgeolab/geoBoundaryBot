@@ -115,7 +115,7 @@ def metaCheck(ws):
                             gbHelpers.logWrite(ws["checkType"], "We expect one of: " + str(validTypes))
                             checkFail = 1
                     
-                    if("iso" in key.lower()):
+                    if("iso" in key.lower().strip()):
                         if(len(val) != 3):
                             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: ISO is invalid - we expect a 3-character ISO code following ISO-3166-1 (Alpha 3).")
                             checkFail = 1
@@ -240,7 +240,7 @@ def metaCheck(ws):
                     gbHelpers.logWrite(ws["checkType"], "Both a license and release type are defined.  Checking for compatability.")
                     if(req["releaseTypeName"] == "gbopen"):
                         if(('"' + req["licenseName"] + '"') in validOpenLicense):
-                            gbHelpers.logWrite(ws["checkType"], "License type is a valid license for the gbOpen product.")
+                            gbHelpers.logWrite(ws["checkType"], "License type is valid license for the gbOpen product.")
                         else:
                             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The license you have specified is not valid for the gbOpen product.")
                             checkFail = 1
