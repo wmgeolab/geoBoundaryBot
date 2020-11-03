@@ -145,8 +145,8 @@ Mauritania,MR,MRT,478,20,-12
 Mauritius,MU,MUS,480,-20.2833,57.55
 Mayotte,YT,MYT,175,-12.8333,45.1667
 Mexico,MX,MEX,484,23,-102
-Micronesia,FederatedStatesof,FM,FSM,583,6.9167,158.25
-Moldova,Republicof,MD,MDA,498,47,29
+MicronesiaFederatedStatesof,FM,FSM,583,6.9167,158.25
+MoldovaRepublicof,MD,MDA,498,47,29
 Monaco,MC,MCO,492,43.7333,7.4
 Mongolia,MN,MNG,496,46,105
 Montenegro,ME,MNE,499,42,19
@@ -245,11 +245,11 @@ UnitedStatesMinorOutlyingIslands,UM,UMI,581,19.2833,166.6
 Uruguay,UY,URY,858,-33,-56
 Uzbekistan,UZ,UZB,860,41,64
 Vanuatu,VU,VUT,548,-16,167
-Venezuela,BolivarianRepublicof,VE,VEN,862,8,-66
+VenezuelaBolivarianRepublicof,VE,VEN,862,8,-66
 Venezuela,VE,VEN,862,8,-66
 VietNam,VN,VNM,704,16,106
 Vietnam,VN,VNM,704,16,106
-VirginIslands,British,VG,VGB,92,18.5,-64.5
+VirginIslandsBritish,VG,VGB,92,18.5,-64.5
 VirginIslandsU.S.,VI,VIR,850,18.3333,-64.8333
 WallisandFutuna,WF,WLF,876,-13.3,-176.2
 WesternSahara,EH,ESH,732,24.5,-13
