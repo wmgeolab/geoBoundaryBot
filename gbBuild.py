@@ -77,7 +77,10 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
         #Build release columns
         zipMeta = {}
-            
+        row["boundaryID"] = "METADATA ERROR"
+        row["boundaryISO"] = "METADATA ERROR"
+        row["boundaryType"] = "METADATA ERROR"
+
         for m in meta.splitlines():
             e = m.decode("latin1").split(":")
             if(len(e) > 2):
