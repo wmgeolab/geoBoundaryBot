@@ -189,13 +189,18 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 likelyIssues = g.search_issues(query=str(row["boundaryISO"]+"+'ADM "+str(admLevel)+"'+"+buildType), repo="wmgeolab/gbRelease", state="open")
                 issueCount = sum(not issue.pull_request for issue in likelyIssues)
 
-            
+            if(issueCount == 0):
+                #Search by filename and type, if metadata.txt failed to open at all.
+                likelyIssues = g.search_issues(query=str(filename+"+"+str(buildType)), repo="wmgeolab/gbRelease", state="open")
+                issueCount = sum(not issue.pull_request for issue in likelyIssues)
+                 
+                
 
             if(issueCount > 1):
                 print("There are currently more than one active issue for this boundary.  Skipping issue creation for now.")
             
             if(issueCount == 0):
-                print("Creating issue for " + str(row["boundaryISO"]+"+"+row["boundaryType"]+"+"+buildType))
+                print("Creating issue for " + str(filename)+" "+ buildType)
                 repo = g.get_repo("wmgeolab/gbRelease")
                 issueCreationCount = issueCreationCount + 1
                 print("issueCreation:" + str(issueCreationCount))
@@ -209,7 +214,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 responsestr = responsestr + "====robotid-d7329e7104s40t927830R028o9327y372h87u910m197a9472n2837s649==== \n"
                 responsestr = responsestr + "\n\n"
                 
-                repo.create_issue(title=str(row["boundaryISO"]+" "+row["boundaryType"]+" "+buildType), body=responsestr)
+                repo.create_issue(title=str(filename+" "+buildType), body=responsestr)
                 repo_create = True
 
             if(issueCount == 1 and repo_create == False and comment_create == False):
@@ -217,7 +222,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 for i in range(0, likelyIssues[0].get_comments().totalCount):
                     allCommentText = allCommentText + likelyIssues[0].get_comments()[i].body
                 if("d7329e7104s40t927830R028o9327y372h87u910m197a9472n2837s649" not in allCommentText):
-                    print("Commenting on issue for " + str(row["boundaryISO"]+"+"+row["boundaryType"]+"+"+buildType))
+                    print("Commenting on issue for " + filename +"+"+buildType)
                     issueCommentCount = issueCommentCount + 1
                     print("issueComment: " + str(issueCommentCount))
                     wordsForHello = ["Greetings", "Hello", "Hi", "Howdy", "Bonjour", "Beep Boop Beep", "Good Day", "Hello Human", "Hola", "Hiya", "Hello There", "Ciao", "Aloha", "What's Poppin'","Salutations","Gidday", "Cheers"]
@@ -231,7 +236,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                     likelyIssues[0].create_comment(responsestr)
                     comment_create = True
                 else:
-                    print("I have already commented on " + str(row["boundaryISO"]+"+"+row["boundaryType"]+"+"+buildType))
+                    print("I have already commented on " + filename +"+"+buildType)
         
         #Build high level structure
         if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/"):
