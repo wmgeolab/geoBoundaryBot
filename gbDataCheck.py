@@ -61,7 +61,7 @@ def geometryCheck(ws):
                 if(len(geojson) == 1):
                     gbHelpers.logWrite(ws["checkType"],  "geoJSON (*.geojson) found. Attempting to load.")
                     try:
-                        dta = geopandas.read_file(geojson[0])
+                        dta = geopandas.read_file("tmp/" + geojson[0])
                     except:
                         gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: The geoJSON provided failed to load.")
                         checkFail = 1
