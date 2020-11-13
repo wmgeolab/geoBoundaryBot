@@ -32,7 +32,7 @@ if(len(ws["zips"]) > 0):
             gbHelpers.gbEnvVars("RESULT","You submitted at least one file that is missing a meta.txt, which is required.  Please make sure your meta.txt is in the root of your submitted zip file - I have not yet been programmed to look in folders for your meta.txt.","w")
             checkFail = 1
         
-        geojson = list(filter(lambda x: x[-4:] == '.geojson', bZip.namelist()))
+        geojson = list(filter(lambda x: x[-8:] == '.geojson', bZip.namelist()))
         shp = list(filter(lambda x: x[-4:] == '.shp', bZip.namelist()))
         geojson = [x for x in geojson if not x.__contains__("MACOS")]
         shp = [x for x in shp if not x.__contains__("MACOS")]
