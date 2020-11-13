@@ -72,7 +72,12 @@ def geometryCheck(ws):
                 if(len(nameCol) == 1):
                     gbHelpers.logWrite(ws["checkType"],  "")
                     gbHelpers.logWrite(ws["checkType"],  "Column for name detected: " + str(nameCol[0]))
-                    nameExample = dta[str(nameCol[0])][0]
+                    try:
+                        nameExample = dta[str(nameCol[0])][0]
+                    except:
+                        nameExample = "CRITICAL ERROR"
+                        gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: The file provided failed to load - it doesn't look like you have an attribute table.")
+                        checkFail = 1
                     try:
                         nameValues = (dta[dta[str(nameCol[0])].str.contains('.*', regex=True)][str(nameCol[0])]).count()
                     except:
