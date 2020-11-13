@@ -116,8 +116,12 @@ def geometryCheck(ws):
                 #created in the build script for those.
                 #fig, axes = plt.subplots(nrows=1, ncols=1)
                 if(ws["checkType"] != "gbAuthoritative" and ws["checkType"] != "gbOpen" and ws["checkType"] != "gbHumanitarian"):
-                    dta.boundary.plot()
-                    plt.savefig(os.path.expanduser("~") + "/tmp/preview.png")
+                    try:
+                        dta.boundary.plot()
+                        plt.savefig(os.path.expanduser("~") + "/tmp/preview.png")
+                    except:
+                        gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: The file provided failed to produce a map - lots of underlying issues with your data could be causing this.")
+                        checkFail = 1
 
                 for index, row in dta.iterrows():
                     validBounds = 1
