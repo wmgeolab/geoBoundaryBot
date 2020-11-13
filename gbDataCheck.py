@@ -123,6 +123,10 @@ def geometryCheck(ws):
                         gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: The file provided failed to produce a map - lots of underlying issues with your data could be causing this.")
                         checkFail = 1
 
+                #In case of no data, need to set valid to 0 at the start.
+                validBounds = 0
+                validGeom = 0
+                warnBuffer = 1
                 for index, row in dta.iterrows():
                     validBounds = 1
                     validGeom = 1
@@ -165,14 +169,16 @@ def geometryCheck(ws):
                     gbHelpers.logWrite(ws["checkType"],  "")
                     gbHelpers.logWrite(ws["checkType"],  "WARN: At least one polygon was invalid, but could be cleared by shapely buffer(0).  It needs to be visually examined when possible.")
 
-
-                if(dta.crs == "epsg:4326"):
-                    gbHelpers.logWrite(ws["checkType"],  "Projection confirmed as " + str(dta.crs))
-                    req["proj"] = 1
-                else:
+                try:
+                    if(dta.crs == "epsg:4326"):
+                        gbHelpers.logWrite(ws["checkType"],  "Projection confirmed as " + str(dta.crs))
+                        req["proj"] = 1
+                    else:
+                        gbHelpers.logWrite(ws["checkType"],  "The projection must be EPSG 4326.  The file proposed has a projection of: " + str(dta.crs))
+                        checkFail = 1
+                except:
                     gbHelpers.logWrite(ws["checkType"],  "The projection must be EPSG 4326.  The file proposed has a projection of: " + str(dta.crs))
-                    checkFail = 1
-                    
+                    checkFail = 1        
 
             if(len(allShps) == 0):
                 gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: No *.shp or *.geojson found for " + z)
