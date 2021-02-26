@@ -61,7 +61,7 @@ def metaCheck(ws):
 
             checkFail = 0
 
-            gbHelpers.logWrite(ws["checkType"], "Metadata Check (" + str(ws["zipTotal"]) + " of " + str(len(ws["zips"])) + "): " + z)
+            gbHelpers.logWrite(ws["checkType"], "Metadata Check: " + z)
             try:
                 bZip = zipfile.ZipFile(ws["working"] + "/" + z)
             except:

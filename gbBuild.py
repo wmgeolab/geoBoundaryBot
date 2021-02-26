@@ -11,14 +11,22 @@ from distutils.dir_util import copy_tree
 buildType = str(sys.argv[1])
 buildVer = str(sys.argv[2])
 fullBuild = str(sys.argv[3])
+countries = str(sys.argv[4])
 ws = gbHelpers.initiateWorkspace(buildType, build = True)
+print(ws)
 csvR = []
 bCnt = 0
 issueCreationCount = 0
 issueCommentCount = 0
 
+
 for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + buildType + "/"):
-    for filename in filenames:
+    selFiles = []
+    for i in countries.split(","):
+        selFiles.append([x for x in filenames if x.startswith(i)])
+    filesToProcess = [item for sublist in selFiles for item in sublist]
+    print(filesToProcess)
+    for filename in filesToProcess:
         bCnt = bCnt + 1
         print("Processing " + str(filename) + " (boundary " + str(bCnt) + ")")
         row = {}
@@ -40,6 +48,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 sys.exit(1)
         
         #Check that the meta.txt is passing all checks.
+        print("Processing metadata checks for " + str(filename) + " (boundary " + str(bCnt) + ")")
         metaChecks = gbMetaCheck.metaCheck(ws)
 
         if(metaChecks[2] != 1 and buildVer != "dev"):
@@ -60,6 +69,8 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             row["META_dataSourceExists"] = bool(metaChecks[1]["dataSource"])
 
         #Run the automated geometry checks
+        print("Processing geometry checks for " + str(filename) + " (boundary " + str(bCnt) + ")")
+        print(ws)
         geomChecks = gbDataCheck.geometryCheck(ws)
 
         if(geomChecks[2] != 1 and buildVer != "dev"):
@@ -255,10 +266,21 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
                 os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/")
 
-        
-        if(fullBuild == "True"):
+            #Only fill in the folder structure if data is ready to ship
+            
+            if(row["META_requiredChecksPassing"] == True and row["GEOM_requiredChecksPassing"] == True):
+                basePath = os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"
+
+                #First, generate the citation and use document
+                with open(basePath + "CITATION-AND-USE-geoBoundaries-"+str(buildType)+".txt", "w") as cu:
+                    cu.write(gbHelpers.citationUse(str(buildType)))
+                
+                #with open("geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json"):
+
+
+
             #Build JSON and TXT meta
-            basePath = os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"
+            
             #with open("geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json")
 
             #Remember the attribute table standardization
@@ -279,9 +301,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
         csvR.append(row)
 
-#Build the CSV - if fullbuild = False, this is all that gets pushed.
+#Build the CSV - if fullbuild = False, this is all that gets pushed.  Saved as an artifact.
 keys = csvR[0].keys()
-with open(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(buildType) + "_metaData.csv", "w") as f:
+with open(os.path.expanduser("~") + "artifacts/results.csv", "w") as f:
     writer = csv.DictWriter(f, keys)
     writer.writeheader()
     writer.writerows(csvR)

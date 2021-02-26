@@ -5,7 +5,10 @@ import subprocess
 import pandas as pd
 import geopandas
 import gbHelpers
+import multiprocessing
+import time
 from matplotlib import pyplot as plt
+from shapely.validation import explain_validity
 from shapely.geometry import shape
 
 
@@ -17,8 +20,6 @@ def geometryCheck(ws):
         
         for z in ws["zips"]:
             gbHelpers.checkRetrieveLFSFiles(z, ws['working'])
-
-            ws["zipTotal"] = ws["zipTotal"] + 1
             req = {}
             opt = {}
 
@@ -36,7 +37,7 @@ def geometryCheck(ws):
             checkFail = 0
 
             #Checks begin....
-            gbHelpers.logWrite(ws["checkType"],  "Data Check (" + str(ws["zipTotal"]) + " of " + str(len(ws["zips"])) + "): " + z)
+            gbHelpers.logWrite(ws["checkType"],  "Data Check: " + z)
             bZip = zipfile.ZipFile(ws["working"] + "/" + z)
 
             #Extract the zipfiles contents
@@ -128,6 +129,8 @@ def geometryCheck(ws):
                 validGeom = 0
                 warnBuffer = 1
                 for index, row in dta.iterrows():
+                    shortRow = [v for k, v in row.iteritems() if k not in ("geometry")]
+                    print(shortRow)
                     validBounds = 1
                     validGeom = 1
                     warnBuffer = 0
@@ -141,16 +144,18 @@ def geometryCheck(ws):
                         checkFail = 1
                         validBounds = 0
                     if(not row["geometry"].is_valid):
+                        gbHelpers.logWrite(ws["checkType"], "WARN: Something is wrong with this geometry: " + str(explain_validity(row["geometry"])))
+                        
                         if(not row["geometry"].buffer(0).is_valid):
                             checkFail = 1
                             validGeom = 0
                             gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: At least one polygon is invalid and cannot be corrected.")
-                            gbHelpers.logWrite(ws["checkType"],  "Here is what we know: " + str(row))
+                            gbHelpers.logWrite(ws["checkType"],  "Here is what we know: " + str(shortRow))
                             opt["topology"] = 0
                         else:
                             warnBuffer = 1
                             gbHelpers.logWrite(ws["checkType"],  "WARN: At least one polygon is invalid; automatically correcting with shapely buffer(0) clears this error, but it needs to be visually examined.")
-                            gbHelpers.logWrite(ws["checkType"],  "Here is what we know: " + str(row))
+                            gbHelpers.logWrite(ws["checkType"],  "Here is what we know: " + str(shortRow))
                             opt["topology"] = 0
 
                 if(validBounds == 1):
@@ -222,7 +227,7 @@ def geometryCheck(ws):
                 ws["zipSuccess"] = ws["zipSuccess"] + 1
                 gbHelpers.logWrite(ws["checkType"],  "Data checks passed for " + z)
                 
-
+            ws["zipTotal"] = ws["zipTotal"] + 1
         gbHelpers.logWrite(ws["checkType"],  "")
         gbHelpers.logWrite(ws["checkType"],  "====================")
         gbHelpers.logWrite(ws["checkType"],  "All data checks complete.")
