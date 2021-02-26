@@ -303,7 +303,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
 #Build the CSV - if fullbuild = False, this is all that gets pushed.  Saved as an artifact.
 keys = csvR[0].keys()
-with open(os.path.expanduser("~") + "artifacts/results.csv", "w") as f:
+with open(os.path.expanduser("~") + "/artifacts/results.csv", "w") as f:
     writer = csv.DictWriter(f, keys)
     writer.writeheader()
     writer.writerows(csvR)
