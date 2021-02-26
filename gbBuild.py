@@ -309,7 +309,7 @@ with open(os.path.expanduser("~") + "/artifacts/results.csv", "w") as f:
     writer.writerows(csvR)
 
 #Copy the log over for an artifact
-os.system("mv " + os.path.expanduser("~") + "/tmp/" + str(check) + ".txt" +" " + os.path.expanduser("~") + "/artifacts/log.txt")
+os.system("mv " + os.path.expanduser("~") + "/tmp/" + str(buildType) + ".txt" +" " + os.path.expanduser("~") + "/artifacts/log.txt")
 
 #Copy the tmp directory over to the main repository
 
