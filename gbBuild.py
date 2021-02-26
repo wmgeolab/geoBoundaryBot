@@ -308,6 +308,9 @@ with open(os.path.expanduser("~") + "/artifacts/results.csv", "w") as f:
     writer.writeheader()
     writer.writerows(csvR)
 
+#Copy the log over for an artifact
+os.system("mv " + os.path.expanduser("~") + "/tmp/" + str(check) + ".txt" +" " + os.path.expanduser("~") + "/artifacts/log.txt")
+
 #Copy the tmp directory over to the main repository
 
 if(ws["working"] != "/home/dan/git/gbRelease"):
