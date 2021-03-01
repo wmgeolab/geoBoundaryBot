@@ -127,14 +127,14 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             row["boundaryType"] = "METADATA ERROR"
 
         try:
-            row["boundarySource_1"] = zipMeta["Source 1"]
+            row["boundarySource-1"] = zipMeta["Source 1"]
         except:
-            row["boundarySource_1"] = "METADATA ERROR"
+            row["boundarySource-1"] = "METADATA ERROR"
 
         try:
-            row["boundarySource_2"] = zipMeta["Source 2"]
+            row["boundarySource-2"] = zipMeta["Source 2"]
         except:
-            row["boundarySource_2"] = "METADATA ERROR"
+            row["boundarySource-2"] = "METADATA ERROR"
 
         try:
             row["boundaryCanonical"] = zipMeta["Canonical Boundary Type Name"]
@@ -272,8 +272,15 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             #First, generate the citation and use document
             with open(basePath + "CITATION-AND-USE-geoBoundaries-"+str(buildType)+".txt", "w") as cu:
                 cu.write(gbHelpers.citationUse(str(buildType)))
-            
-            #with open("geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json"):
+
+            #Metadata
+            with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json", "w") as jsonMeta:
+                json.dump(row, jsonMeta)
+
+            with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.txt", "w") as textMeta:
+                for i in row:
+                    textMeta.write(i + ":" + str(row[i]) + "\n")
+                
 
 
 

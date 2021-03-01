@@ -145,6 +145,7 @@ def citationUse(releaseType):
     citUse = citUse + "shapeGroup - The country or similar organizational group that a shape belongs to, in ISO 3166-1 where relevant.\n"
     citUse = citUse + "shapeType - The type of boundary represented by the shape.\n"
     citUse = citUse + "shapeISO - ISO codes for individual administrative districts, where available.  Where possible, these conform to ISO 3166-2, but this is not guaranteed in all cases. 'None' if not identified.\n"
+    citUse = citUse + "boundaryCanonical - Canonical name(s) for the administrative hierarchy represented.  Present where available."
     citUse = citUse + " \n"
     citUse = citUse + "====================================================\n"
     citUse = citUse + "Reporting Issues or Errors\n"
