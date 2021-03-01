@@ -7,6 +7,9 @@ import gbMetaCheck
 import csv
 import json
 from distutils.dir_util import copy_tree
+import time
+import geopandas
+import shutil
 
 buildType = str(sys.argv[1])
 buildVer = str(sys.argv[2])
@@ -33,8 +36,12 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         row["META_requiredChecksPassing"] = 0
         row["GEOM_requiredChecksPassing"] = 0
         ws["zipSuccess"] = 0
+
+        #I don't know how this happened, but am too tired to parse it right now...
         ws['zips'] = []
         ws['zips'].append("/sourceData/" + buildType + "/" + filename)
+
+
         gbHelpers.checkRetrieveLFSFiles(ws['zips'][0], ws['working'])
         try:
             with zipfile.ZipFile(ws["working"] + "/" + ws['zips'][0]) as zF:
@@ -264,43 +271,82 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"):
             os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/")
 
-        #Only fill in the folder structure if data is ready to ship
-        
+
+
         if(row["META_requiredChecksPassing"] == True and row["GEOM_requiredChecksPassing"] == True):
             basePath = os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"
-
-            #First, generate the citation and use document
-            with open(basePath + "CITATION-AND-USE-geoBoundaries-"+str(buildType)+".txt", "w") as cu:
-                cu.write(gbHelpers.citationUse(str(buildType)))
-
-            #Metadata
-            with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json", "w") as jsonMeta:
-                json.dump(row, jsonMeta)
-
-            with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.txt", "w") as textMeta:
-                for i in row:
-                    textMeta.write(i + ":" + str(row[i]) + "\n")
-                
+            
+            workingPath = os.path.expanduser("~") + "/working/"
+            if not os.path.exists(workingPath):
+                os.makedirs(workingPath)
 
 
+            #Build the files if needed, and all tests are passed.
+            jsonOUT = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + ".geojson")
+            topoOUT = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + ".topojson")
+            shpOUT  = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + ".zip")
+            fullZip = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-all.zip")
+            inputDataPath = ws["working"] + "/" + ws['zips'][0]
 
-        #Build JSON and TXT meta
-        
-        #with open("geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json")
+            #If a build zip already exists, check if our data is newer.
+            buildFlag = 0
+            if(os.path.isfile(fullZip)):
+                buildTimeStamp = os.path.getmtime(fullZip) 
+                currentBuild = os.path.getmtime(inputDataPath)
 
-        #Remember the attribute table standardization
-        #Shapely buffer 0
+                #The data we have is newer, so we want to build.
+                if((buildTimeStamp - currentBuild) < 0):
+                    buildFlag = 1
+            else:
+                buildFlag = 1
+            
+            if(buildFlag == 1):
+                print("Building Metadata and HPSCU Geometries for: " + str(fullZip))
+                row["updateDate"] = time.strftime('%l:%M%p %z on %b %d, %Y')
+
+                #Clean any old items
+                if(os.path.isfile(fullZip)):
+                    shutil.rmtree(basePath)
+                    os.mkdir(basePath)
+
+                #First, generate the citation and use document
+                with open(basePath + "CITATION-AND-USE-geoBoundaries-"+str(buildType)+".txt", "w") as cu:
+                    cu.write(gbHelpers.citationUse(str(buildType)))
+
+                #Metadata
+                #Clean it up by removing our geom and meta checks.
+                removeKey = ["status", "META_requiredChecksPassing", "GEOM_requiredChecksPassing", "META_canonicalNameInMeta", "META_licenseImageInZip", "META_yearValid", "META_isoValid","META_boundaryTypeValid", "META_sourceExists", "META_releaseTypeValid", "META_releaseTypeCorrectFolder", "META_licenseValid", "META_licenseSourceExists", "META_dataSourceExists", "GEOM_boundaryNamesColumnExists", "GEOM_boundaryNamesFilledIn", "GEOM_boundaryISOColumnExists", "GEOM_boundaryISOsFilledIn", "GEOM_Topology", "GEOM_Projection"]
+                rowMetaOut = {key: row[key] for key in row if key not in removeKey}
+                with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json", "w") as jsonMeta:
+                    json.dump(rowMetaOut, jsonMeta)
+
+                with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.txt", "w") as textMeta:
+                    for i in rowMetaOut:
+                        textMeta.write(i + " : " + str(rowMetaOut[i]) + "\n")
+            
+                #Load geometries
+
+                with zipfile.ZipFile(ws["working"] + "/" + ws['zips'][0]) as zF:
+                    zF.extractall(workingPath)
+
+                    geojson = list(filter(lambda x: x[-8:] == '.geojson', zF.namelist()))
+                    shp = list(filter(lambda x: x[-4:] == '.shp', zF.namelist()))
+                    geojson = [x for x in geojson if not x.__contains__("MACOS")]
+                    shp = [x for x in shp if not x.__contains__("MACOS")]
+                    allShps = geojson + shp
+
+                print(shp)
+                print(geojson)
+                try:
+                    dta = geopandas.read_file(workingPath + shp[0])
+                except:
+                    try:
+                        dta = geopandas.read_file(workingPath + geojson[0])
+                    except:
+                        print("CRITICAL ERROR: Could not load geometry to build file.")
+               
 
 
-
-        #Need to build the actual zip files and move things around.
-        #Make a temp copy in /tmp, then we'll copy to the gbRelease repository at the end.
-        zipPath = row["boundaryISO"] + "-" + row["boundaryType"] + "-geoBoundaries-" + buildType + "-all.zip"
-        
-        
-        #Note we need to simplify the boundaries and include them in the zip as well.
-
-        #Make map preview images
         #dta.boundary.plot()
         #plt.savefig(os.path.expanduser("~") + "/tmp/preview.png")
 

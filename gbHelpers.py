@@ -115,7 +115,7 @@ def citationUse(releaseType):
     citUse = citUse + "Example citations for GeoBoundaries are:  \n"
     citUse = citUse + " \n"
     citUse = citUse + "+++++ General Use Citation +++++\n"
-    citUse = citUse + "Please include the term 'geoBoundaries' with a link to"
+    citUse = citUse + "Please include the term 'geoBoundaries' with a link to \n"
     citUse = citUse + "https://www.geoboundaries.org\n"
     citUse = citUse + " \n"
     citUse = citUse + "+++++ Academic Use Citation +++++++++++\n"
