@@ -10,8 +10,7 @@ from distutils.dir_util import copy_tree
 
 buildType = str(sys.argv[1])
 buildVer = str(sys.argv[2])
-fullBuild = str(sys.argv[3])
-countries = str(sys.argv[4])
+cQuery = str(sys.argv[3])
 ws = gbHelpers.initiateWorkspace(buildType, build = True)
 print(ws)
 csvR = []
@@ -22,7 +21,7 @@ issueCommentCount = 0
 
 for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + buildType + "/"):
     selFiles = []
-    for i in countries.split(","):
+    for i in cQuery.split(","):
         selFiles.append([x for x in filenames if x.startswith(i)])
     filesToProcess = [item for sublist in selFiles for item in sublist]
     print(filesToProcess)
@@ -41,20 +40,20 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             with zipfile.ZipFile(ws["working"] + "/" + ws['zips'][0]) as zF:
                 meta = zF.read('meta.txt')
         except:
-            if(buildVer == "dev"):
+            if(buildVer == "nightly"):
                 row["status"] = "FAIL"
             else:
-                print("No meta.txt in at least one file.  To make a release build, all checks must pass.  Try running a dev build first. Exiting.")
+                print("No meta.txt in at least one file.  To make a release build, all checks must pass.  Try running a nightly build first. Exiting.")
                 sys.exit(1)
         
         #Check that the meta.txt is passing all checks.
         print("Processing metadata checks for " + str(filename) + " (boundary " + str(bCnt) + ")")
         metaChecks = gbMetaCheck.metaCheck(ws)
 
-        if(metaChecks[2] != 1 and buildVer != "dev"):
-            print("At least one metadata check is failing, so you cannot make a release build.  Try a dev build first. Here is what we know :" + str(metaChecks))
+        if(metaChecks[2] != 1 and buildVer != "nightly"):
+            print("At least one metadata check is failing, so you cannot make a release build.  Try a nightly build first. Here is what we know :" + str(metaChecks))
 
-        if(buildVer == "dev"):
+        if(buildVer == "nightly"):
             row["META_requiredChecksPassing"] = bool(metaChecks[2])
             row["META_canonicalNameInMeta"] = bool(metaChecks[0]['canonical'])
             row["META_licenseImageInZip"] = bool(metaChecks[0]['licenseImage'])
@@ -73,11 +72,11 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         print(ws)
         geomChecks = gbDataCheck.geometryCheck(ws)
 
-        if(geomChecks[2] != 1 and buildVer != "dev"):
-            print("At least one geometry check is failing, so you cannot make a release build.  Try a dev build first. Here is what we know :" + str(geomChecks))
+        if(geomChecks[2] != 1 and buildVer != "nightly"):
+            print("At least one geometry check is failing, so you cannot make a release build.  Try a nightly build first. Here is what we know :" + str(geomChecks))
             sys.exit()
 
-        if(buildVer == "dev"):
+        if(buildVer == "nightly"):
             row["GEOM_requiredChecksPassing"] = bool(geomChecks[2])
             row["GEOM_boundaryNamesColumnExists"] = bool(geomChecks[0]["bndName"])
             row["GEOM_boundaryNamesFilledIn"] = bool(geomChecks[0]["nameCount"])
@@ -100,10 +99,10 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             try:
                 val = e[1].strip()
             except:
-                if(buildVer == "dev"):
+                if(buildVer == "nightly"):
                     row["status"] = "FAIL"
                 else:
-                    print("The meta.txt file was not parsed correctly for at least one file.  To make a release build, all checks must pass.  Try running a dev build first. Exiting.")
+                    print("The meta.txt file was not parsed correctly for at least one file.  To make a release build, all checks must pass.  Try running a nightly build first. Exiting.")
                     sys.exit(1)
 
             zipMeta[key] = val
@@ -259,49 +258,48 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/"):
             os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/")
 
-        if(fullBuild == "True"):
-            if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
-                os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/")
+        if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
+            os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/")
 
-            if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
-                os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/")
+        if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"):
+            os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/")
 
-            #Only fill in the folder structure if data is ready to ship
+        #Only fill in the folder structure if data is ready to ship
+        
+        if(row["META_requiredChecksPassing"] == True and row["GEOM_requiredChecksPassing"] == True):
+            basePath = os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"
+
+            #First, generate the citation and use document
+            with open(basePath + "CITATION-AND-USE-geoBoundaries-"+str(buildType)+".txt", "w") as cu:
+                cu.write(gbHelpers.citationUse(str(buildType)))
             
-            if(row["META_requiredChecksPassing"] == True and row["GEOM_requiredChecksPassing"] == True):
-                basePath = os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"
-
-                #First, generate the citation and use document
-                with open(basePath + "CITATION-AND-USE-geoBoundaries-"+str(buildType)+".txt", "w") as cu:
-                    cu.write(gbHelpers.citationUse(str(buildType)))
-                
-                #with open("geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json"):
+            #with open("geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json"):
 
 
 
-            #Build JSON and TXT meta
-            
-            #with open("geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json")
+        #Build JSON and TXT meta
+        
+        #with open("geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json")
 
-            #Remember the attribute table standardization
-            #Shapely buffer 0
+        #Remember the attribute table standardization
+        #Shapely buffer 0
 
 
 
-            #Need to build the actual zip files and move things around.
-            #Make a temp copy in /tmp, then we'll copy to the gbRelease repository at the end.
-            zipPath = row["boundaryISO"] + "-" + row["boundaryType"] + "-geoBoundaries-" + buildType + "-all.zip"
-            
-            
-            #Note we need to simplify the boundaries and include them in the zip as well.
+        #Need to build the actual zip files and move things around.
+        #Make a temp copy in /tmp, then we'll copy to the gbRelease repository at the end.
+        zipPath = row["boundaryISO"] + "-" + row["boundaryType"] + "-geoBoundaries-" + buildType + "-all.zip"
+        
+        
+        #Note we need to simplify the boundaries and include them in the zip as well.
 
-            #Make map preview images
-            #dta.boundary.plot()
-            #plt.savefig(os.path.expanduser("~") + "/tmp/preview.png")
+        #Make map preview images
+        #dta.boundary.plot()
+        #plt.savefig(os.path.expanduser("~") + "/tmp/preview.png")
 
         csvR.append(row)
 
-#Build the CSV - if fullbuild = False, this is all that gets pushed.  Saved as an artifact.
+# Saved as an artifact.
 keys = csvR[0].keys()
 with open(os.path.expanduser("~") + "/artifacts/results"+str(buildType)+".csv", "w") as f:
     writer = csv.DictWriter(f, keys)
