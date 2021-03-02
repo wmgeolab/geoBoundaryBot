@@ -10,6 +10,10 @@ from distutils.dir_util import copy_tree
 import time
 import geopandas
 import shutil
+import hashlib
+import matplotlib.pyplot as plt
+from shapely.geometry.polygon import Polygon
+from shapely.geometry.multipolygon import MultiPolygon
 
 buildType = str(sys.argv[1])
 buildVer = str(sys.argv[2])
@@ -44,8 +48,24 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
         gbHelpers.checkRetrieveLFSFiles(ws['zips'][0], ws['working'])
         try:
+            
             with zipfile.ZipFile(ws["working"] + "/" + ws['zips'][0]) as zF:
                 meta = zF.read('meta.txt')
+            
+            m = hashlib.sha256()
+            chunkSize = 8192
+            with open(ws["working"] + "/" + ws['zips'][0], 'rb') as zF:
+                while True:
+                    chunk = zF.read(chunkSize)
+                    if(len(chunk)):
+                        m.update(chunk)
+                    else:
+                        break
+                #8 digit modulo on the hash.  Won't guarantee unique,
+                #but as this is per ADM/ISO, collision is very (very) unlikely.
+                metaHash = int(m.hexdigest(), 16) % 10**8
+                print(metaHash)
+
         except:
             if(buildVer == "nightly"):
                 row["status"] = "FAIL"
@@ -114,7 +134,17 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
             zipMeta[key] = val
         try:
-            row["boundaryID"] = zipMeta['ISO-3166-1 (Alpha-3)'] + "-" + zipMeta["Boundary Type"] + "-" + buildVer
+            ###New in 4.0
+            ###Instead of an arbitrary incrementing ID and version in the path,
+            ###We're instead going to be hashing the input / source zip to generate the ID.
+            ###This will result in a unique ID for each input dataset, with a very (very very) small chance
+            ###of collision, as we'll be retaining the ISO and Boundary Type prefixes.
+            ###This will also be compatible with previous versions of gB, as we will retain the use of
+            ###an integer - it will just be a hash int instead of arbitray.
+            ###Most importantly, users can identify if what we have is the same or different than what they have
+            ###based on the ID alone, and we can track changes based on ID.
+
+            row["boundaryID"] = zipMeta['ISO-3166-1 (Alpha-3)'] + "-" + zipMeta["Boundary Type"] + "-" + str(metaHash)
         except:
             row["boundaryID"] = "METADATA ERROR"
 
@@ -146,7 +176,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         try:
             row["boundaryCanonical"] = zipMeta["Canonical Boundary Type Name"]
         except:
-            row["boundaryCanonical"] = "METADATA ERROR"
+            row["boundaryCanonical"] = ""
 
         try:
             row["boundaryLicense"] = zipMeta["License"]
@@ -285,6 +315,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             jsonOUT = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + ".geojson")
             topoOUT = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + ".topojson")
             shpOUT  = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + ".zip")
+            imgOUT  = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-PREVIEW.png")
             fullZip = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-all.zip")
             inputDataPath = ws["working"] + "/" + ws['zips'][0]
 
@@ -300,9 +331,11 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             else:
                 buildFlag = 1
             
+            print("Build?:" + str(buildFlag))
+
             if(buildFlag == 1):
                 print("Building Metadata and HPSCU Geometries for: " + str(fullZip))
-                row["updateDate"] = time.strftime('%l:%M%p %z on %b %d, %Y')
+                row["updateDate"] = time.strftime('%b %d, %Y')
 
                 #Clean any old items
                 if(os.path.isfile(fullZip)):
@@ -346,9 +379,66 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                         print("CRITICAL ERROR: Could not load geometry to build file.")
                
 
+                ####################
+                ####################
+                #Handle casting to MultiPolygon for Consistency 
+                dta["geometry"] = [MultiPolygon([feature]) if type(feature) == Polygon else feature for feature in dta["geometry"]]
 
-        #dta.boundary.plot()
-        #plt.savefig(os.path.expanduser("~") + "/tmp/preview.png")
+                ####################
+                ####################     
+                ####Standardize the Name and ISO columns, if they exist.
+                nameC = set(['Name', 'name', 'NAME', 'shapeName', 'shapename', 'SHAPENAME']) 
+                nameCol = list(nameC & set(dta.columns))
+                if(len(nameCol) == 1):
+                    dta = dta.rename(columns={nameCol[0]:"shapeName"})
+                
+                isoC = set(['ISO', 'ISO_code', 'ISO_Code', 'iso', 'shapeISO', 'shapeiso', 'shape_iso']) 
+                isoCol = list(isoC & set(dta.columns))
+                if(len(isoCol) == 1):
+                    dta = dta.rename(columns={isoCol[0]:"shapeISO"})
+
+                ####################
+                ####################     
+                ####Shape IDs.  ID building strategy has changed in gb 4.0.
+                ####Previously, an incrementing arbitrary numeric ID was set.
+                ####Now, we are hashing the geometry.  Thus, if the geometry doesn't change,
+                ####The ID won't either.  This will also be robust across datasets.
+                def geomID(geom, metaHash = row["boundaryID"]):
+                    hashVal = int(hashlib.sha256(str(geom["geometry"]).encode(encoding='UTF-8')).hexdigest(), 16) % 10**8
+                    return(str(metaHash) + "B" + str(hashVal))
+
+                dta[["shapeID"]] = dta.apply(lambda row: geomID(row), axis=1)#int(hashlib.sha256(str(dta["geometry"]).encode(encoding='UTF-8')).hexdigest(), 16) % 10**8
+                
+                dta[["shapeGroup"]] = row["boundaryISO"]
+                dta[["shapeType"]] = row["boundaryType"]
+                
+                #Output the intermediary geojson without topology corrections
+                dta.to_file(workingPath + row["boundaryID"] + ".geoJSON", driver="GeoJSON")
+                
+                #Write our shapes with self-intersection corrections
+                #New in 4.0: we are now snapping to an approximately .1 meter grid.
+                #To the surprise of hopefully noone, our products are not suitable for applications
+                #which require sub-.1 meter accuracy (true limits will be much higher than this, due to data accuracy).
+                write = ("mapshaper-xl 6gb " + workingPath + row["boundaryID"] + ".geoJSON" +
+                        " -clean gap-fill-area=0 sliver-control=0 snap-interval= .000001 rewind" +
+                        " -o format=shapefile " + shpOUT +
+                        " -o format=topojson " + topoOUT +
+                        " -o format=geojson " + jsonOUT)
+                
+                os.system(write)
+
+                
+
+                dta.boundary.plot(edgecolor="black")
+                if(len(row["boundaryCanonical"]) > 1):
+                    plt.title("geoBoundaries.org - " + buildType + "\n" + row["boundaryISO"] + " " + row["boundaryType"] + "(" + row["boundaryCanonical"] +")" + "\nLast Update: " + str(row["updateDate"]) + "\nSource: " + str(row["boundarySource-1"]))
+                else:
+                    plt.title("geoBoundaries.org - " + buildType + "\n" + row["boundaryISO"] + " " + row["boundaryType"] + "\nLast Update: " + str(row["updateDate"]) + "\nSource: " + str(row["boundarySource-1"]))
+                plt.savefig(imgOUT)
+
+                shutil.make_archive(workingPath + row["boundaryID"], 'zip', basePath)
+                shutil.move(workingPath + row["boundaryID"] + ".zip", fullZip)
+                
 
         csvR.append(row)
 

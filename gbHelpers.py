@@ -1,7 +1,8 @@
-
 import os
 import csv
 import shutil
+import geopandas as gpd
+from shapely.geometry import Polygon, MultiPolygon
 
 def initiateWorkspace(check, build = None):
     ws = {}
@@ -159,3 +160,4 @@ def citationUse(releaseType):
     citUse = citUse + "-Dan Runfola (github.com/DanRunfola ; danr@wm.edu)"
 
     return(citUse)
+
