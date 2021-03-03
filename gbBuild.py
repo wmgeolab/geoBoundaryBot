@@ -288,22 +288,25 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 else:
                     print("I have already commented on " + filename +"+"+buildType)
         
-        #Build high level structure
-        if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/"):
-            os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/")
 
-        if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/"):
-            os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/")
-
-        if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
-            os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/")
-
-        if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"):
-            os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/")
 
 
 
         if(row["META_requiredChecksPassing"] == True and row["GEOM_requiredChecksPassing"] == True):
+
+            #Build high level structure
+            if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/"):
+                os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/")
+
+            if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/"):
+                os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/")
+
+            if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
+                os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/")
+
+            if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"):
+                os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/")
+                
             basePath = os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"
             
             workingPath = os.path.expanduser("~") + "/working/"
