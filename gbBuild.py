@@ -445,12 +445,12 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
         csvR.append(row)
 
-# Saved as an artifact.
-keys = csvR[0].keys()
-with open(os.path.expanduser("~") + "/artifacts/results"+str(buildType)+".csv", "w") as f:
-    writer = csv.DictWriter(f, keys)
-    writer.writeheader()
-    writer.writerows(csvR)
+# Saved CSV as an artifact - TBD if this code stays here, or just log.
+#keys = csvR[0].keys()
+#with open(os.path.expanduser("~") + "/artifacts/results"+str(buildType)+".csv", "w") as f:
+#    writer = csv.DictWriter(f, keys)
+#    writer.writeheader()
+#    writer.writerows(csvR)
 
 #Copy the log over for an artifact
 os.system("mv " + os.path.expanduser("~") + "/tmp/" + str(buildType) + ".txt" +" " + os.path.expanduser("~") + "/artifacts/log"+str(buildType)+".txt")
