@@ -446,22 +446,31 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         csvR.append(row)
 
 # Saved CSV as an artifact - TBD if this code stays here, or just log.
-#keys = csvR[0].keys()
-#with open(os.path.expanduser("~") + "/artifacts/results"+str(buildType)+".csv", "w") as f:
-#    writer = csv.DictWriter(f, keys)
-#    writer.writeheader()
-#    writer.writerows(csvR)
 
-#Copy the log over for an artifact
-os.system("mv " + os.path.expanduser("~") + "/tmp/" + str(buildType) + ".txt" +" " + os.path.expanduser("~") + "/artifacts/log"+str(buildType)+".txt")
+try:
+    keys = csvR[0].keys()
+    with open(os.path.expanduser("~") + "/artifacts/results"+str(buildType)+".csv", "w") as f:
+        writer = csv.DictWriter(f, keys)
+        writer.writeheader()
+        writer.writerows(csvR)
+except:
+    print("No CSV log to output.")
 
+try:
+    #Copy the log over for an artifact
+    os.system("mv " + os.path.expanduser("~") + "/tmp/" + str(buildType) + ".txt" +" " + os.path.expanduser("~") + "/artifacts/log"+str(buildType)+".txt")
+except:
+    print("No log to output.")
 #Copy the tmp directory over to the main repository
 
-if(ws["working"] != "/home/dan/git/gbRelease"):
-    try:
-        os.remove(os.path.expanduser("~")+"/tmp/RESULT.TXT")
-    except:
-        print("Cleanup skipped.  Proceeding with Upload.")
-    os.system("ls " + ws["working"])
-    copy_tree(os.path.expanduser("~") + "/tmp/", ws["working"])
-    os.system("ls " + ws["working"])
+try:
+    if(ws["working"] != "/home/dan/git/gbRelease"):
+        try:
+            os.remove(os.path.expanduser("~")+"/tmp/RESULT.TXT")
+        except:
+            print("Cleanup skipped.  Proceeding with Upload.")
+        os.system("ls " + ws["working"])
+        copy_tree(os.path.expanduser("~") + "/tmp/", ws["working"])
+        os.system("ls " + ws["working"])
+except:
+    print("No changes to copy / commit")
