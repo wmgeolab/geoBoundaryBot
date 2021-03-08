@@ -322,123 +322,108 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             fullZip = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-all.zip")
             inputDataPath = ws["working"] + "/" + ws['zips'][0]
 
-            #If a build zip already exists, check if our data is newer.
-            buildFlag = 0
+            print("Building Metadata and HPSCU Geometries for: " + str(fullZip))
+            row["updateDate"] = time.strftime('%b %d, %Y')
+
+            #Clean any old items
             if(os.path.isfile(fullZip)):
-                buildTimeStamp = os.path.getmtime(fullZip) 
-                currentBuild = os.path.getmtime(inputDataPath)
+                shutil.rmtree(basePath)
+                os.mkdir(basePath)
 
-                #The data we have is newer, so we want to build.
-                if((buildTimeStamp - currentBuild) < 0):
-                    buildFlag = 1
-            else:
-                buildFlag = 1
-            
-            print("Build?:" + str(buildFlag))
+            #First, generate the citation and use document
+            with open(basePath + "CITATION-AND-USE-geoBoundaries-"+str(buildType)+".txt", "w") as cu:
+                cu.write(gbHelpers.citationUse(str(buildType)))
 
-            if(buildFlag == 1):
-                print("Building Metadata and HPSCU Geometries for: " + str(fullZip))
-                row["updateDate"] = time.strftime('%b %d, %Y')
+            #Metadata
+            #Clean it up by removing our geom and meta checks.
+            removeKey = ["status", "META_requiredChecksPassing", "GEOM_requiredChecksPassing", "META_canonicalNameInMeta", "META_licenseImageInZip", "META_yearValid", "META_isoValid","META_boundaryTypeValid", "META_sourceExists", "META_releaseTypeValid", "META_releaseTypeCorrectFolder", "META_licenseValid", "META_licenseSourceExists", "META_dataSourceExists", "GEOM_boundaryNamesColumnExists", "GEOM_boundaryNamesFilledIn", "GEOM_boundaryISOColumnExists", "GEOM_boundaryISOsFilledIn", "GEOM_Topology", "GEOM_Projection"]
+            rowMetaOut = {key: row[key] for key in row if key not in removeKey}
+            with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json", "w", encoding="utf-8") as jsonMeta:
+                json.dump(rowMetaOut, jsonMeta)
 
-                #Clean any old items
-                if(os.path.isfile(fullZip)):
-                    shutil.rmtree(basePath)
-                    os.mkdir(basePath)
+            with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.txt", "w", encoding="utf-8") as textMeta:
+                for i in rowMetaOut:
+                    textMeta.write(i + " : " + str(rowMetaOut[i]) + "\n")
+        
+            #Load geometries
 
-                #First, generate the citation and use document
-                with open(basePath + "CITATION-AND-USE-geoBoundaries-"+str(buildType)+".txt", "w") as cu:
-                    cu.write(gbHelpers.citationUse(str(buildType)))
+            with zipfile.ZipFile(ws["working"] + "/" + ws['zips'][0]) as zF:
+                zF.extractall(workingPath)
 
-                #Metadata
-                #Clean it up by removing our geom and meta checks.
-                removeKey = ["status", "META_requiredChecksPassing", "GEOM_requiredChecksPassing", "META_canonicalNameInMeta", "META_licenseImageInZip", "META_yearValid", "META_isoValid","META_boundaryTypeValid", "META_sourceExists", "META_releaseTypeValid", "META_releaseTypeCorrectFolder", "META_licenseValid", "META_licenseSourceExists", "META_dataSourceExists", "GEOM_boundaryNamesColumnExists", "GEOM_boundaryNamesFilledIn", "GEOM_boundaryISOColumnExists", "GEOM_boundaryISOsFilledIn", "GEOM_Topology", "GEOM_Projection"]
-                rowMetaOut = {key: row[key] for key in row if key not in removeKey}
-                with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json", "w", encoding="utf-8") as jsonMeta:
-                    json.dump(rowMetaOut, jsonMeta)
+                geojson = list(filter(lambda x: x[-8:] == '.geojson', zF.namelist()))
+                shp = list(filter(lambda x: x[-4:] == '.shp', zF.namelist()))
+                geojson = [x for x in geojson if not x.__contains__("MACOS")]
+                shp = [x for x in shp if not x.__contains__("MACOS")]
+                allShps = geojson + shp
 
-                with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.txt", "w", encoding="utf-8") as textMeta:
-                    for i in rowMetaOut:
-                        textMeta.write(i + " : " + str(rowMetaOut[i]) + "\n")
-            
-                #Load geometries
-
-                with zipfile.ZipFile(ws["working"] + "/" + ws['zips'][0]) as zF:
-                    zF.extractall(workingPath)
-
-                    geojson = list(filter(lambda x: x[-8:] == '.geojson', zF.namelist()))
-                    shp = list(filter(lambda x: x[-4:] == '.shp', zF.namelist()))
-                    geojson = [x for x in geojson if not x.__contains__("MACOS")]
-                    shp = [x for x in shp if not x.__contains__("MACOS")]
-                    allShps = geojson + shp
-
-                print(shp)
-                print(geojson)
+            print(shp)
+            print(geojson)
+            try:
+                dta = geopandas.read_file(workingPath + shp[0])
+            except:
                 try:
-                    dta = geopandas.read_file(workingPath + shp[0])
+                    dta = geopandas.read_file(workingPath + geojson[0])
                 except:
-                    try:
-                        dta = geopandas.read_file(workingPath + geojson[0])
-                    except:
-                        print("CRITICAL ERROR: Could not load geometry to build file.")
-               
+                    print("CRITICAL ERROR: Could not load geometry to build file.")
+            
 
-                ####################
-                ####################
-                #Handle casting to MultiPolygon for Consistency 
-                dta["geometry"] = [MultiPolygon([feature]) if type(feature) == Polygon else feature for feature in dta["geometry"]]
+            ####################
+            ####################
+            #Handle casting to MultiPolygon for Consistency 
+            dta["geometry"] = [MultiPolygon([feature]) if type(feature) == Polygon else feature for feature in dta["geometry"]]
 
-                ####################
-                ####################     
-                ####Standardize the Name and ISO columns, if they exist.
-                nameC = set(['Name', 'name', 'NAME', 'shapeName', 'shapename', 'SHAPENAME']) 
-                nameCol = list(nameC & set(dta.columns))
-                if(len(nameCol) == 1):
-                    dta = dta.rename(columns={nameCol[0]:"shapeName"})
-                
-                isoC = set(['ISO', 'ISO_code', 'ISO_Code', 'iso', 'shapeISO', 'shapeiso', 'shape_iso']) 
-                isoCol = list(isoC & set(dta.columns))
-                if(len(isoCol) == 1):
-                    dta = dta.rename(columns={isoCol[0]:"shapeISO"})
+            ####################
+            ####################     
+            ####Standardize the Name and ISO columns, if they exist.
+            nameC = set(['Name', 'name', 'NAME', 'shapeName', 'shapename', 'SHAPENAME']) 
+            nameCol = list(nameC & set(dta.columns))
+            if(len(nameCol) == 1):
+                dta = dta.rename(columns={nameCol[0]:"shapeName"})
+            
+            isoC = set(['ISO', 'ISO_code', 'ISO_Code', 'iso', 'shapeISO', 'shapeiso', 'shape_iso']) 
+            isoCol = list(isoC & set(dta.columns))
+            if(len(isoCol) == 1):
+                dta = dta.rename(columns={isoCol[0]:"shapeISO"})
 
-                ####################
-                ####################     
-                ####Shape IDs.  ID building strategy has changed in gb 4.0.
-                ####Previously, an incrementing arbitrary numeric ID was set.
-                ####Now, we are hashing the geometry.  Thus, if the geometry doesn't change,
-                ####The ID won't either.  This will also be robust across datasets.
-                def geomID(geom, metaHash = row["boundaryID"]):
-                    hashVal = int(hashlib.sha256(str(geom["geometry"]).encode(encoding='UTF-8')).hexdigest(), 16) % 10**8
-                    return(str(metaHash) + "B" + str(hashVal))
+            ####################
+            ####################     
+            ####Shape IDs.  ID building strategy has changed in gb 4.0.
+            ####Previously, an incrementing arbitrary numeric ID was set.
+            ####Now, we are hashing the geometry.  Thus, if the geometry doesn't change,
+            ####The ID won't either.  This will also be robust across datasets.
+            def geomID(geom, metaHash = row["boundaryID"]):
+                hashVal = int(hashlib.sha256(str(geom["geometry"]).encode(encoding='UTF-8')).hexdigest(), 16) % 10**8
+                return(str(metaHash) + "B" + str(hashVal))
 
-                dta[["shapeID"]] = dta.apply(lambda row: geomID(row), axis=1)
-                
-                dta[["shapeGroup"]] = row["boundaryISO"]
-                dta[["shapeType"]] = row["boundaryType"]
-                
-                #Output the intermediary geojson without topology corrections
-                dta.to_file(workingPath + row["boundaryID"] + ".geoJSON", driver="GeoJSON")
-                
-                #Write our shapes with self-intersection corrections
-                #New in 4.0: we are now snapping to an approximately .1 meter grid.
-                #To the surprise of hopefully noone, our products are not suitable for applications which require
-                #sub-.1 meter accuracy (true limits will be much higher than this, due to data accuracy).
-                write = ("mapshaper-xl 6gb " + workingPath + row["boundaryID"] + ".geoJSON" +
-                        " -clean gap-fill-area=0 sliver-control=0 snap-interval= .000001 rewind" +
-                        " -o format=shapefile " + shpOUT +
-                        " -o format=topojson " + topoOUT +
-                        " -o format=geojson " + jsonOUT)
-                
-                os.system(write)                
+            dta[["shapeID"]] = dta.apply(lambda row: geomID(row), axis=1)
+            
+            dta[["shapeGroup"]] = row["boundaryISO"]
+            dta[["shapeType"]] = row["boundaryType"]
+            
+            #Output the intermediary geojson without topology corrections
+            dta.to_file(workingPath + row["boundaryID"] + ".geoJSON", driver="GeoJSON")
+            
+            #Write our shapes with self-intersection corrections
+            #New in 4.0: we are now snapping to an approximately .1 meter grid.
+            #To the surprise of hopefully noone, our products are not suitable for applications which require
+            #sub-.1 meter accuracy (true limits will be much higher than this, due to data accuracy).
+            write = ("mapshaper-xl 6gb " + workingPath + row["boundaryID"] + ".geoJSON" +
+                    " -clean gap-fill-area=0 sliver-control=0 snap-interval= .000001 rewind" +
+                    " -o format=shapefile " + shpOUT +
+                    " -o format=topojson " + topoOUT +
+                    " -o format=geojson " + jsonOUT)
+            
+            os.system(write)                
 
-                dta.boundary.plot(edgecolor="black")
-                if(len(row["boundaryCanonical"]) > 1):
-                    plt.title("geoBoundaries.org - " + buildType + "\n" + row["boundaryISO"] + " " + row["boundaryType"] + "(" + row["boundaryCanonical"] +")" + "\nLast Update: " + str(row["updateDate"]) + "\nSource: " + str(row["boundarySource-1"]))
-                else:
-                    plt.title("geoBoundaries.org - " + buildType + "\n" + row["boundaryISO"] + " " + row["boundaryType"] + "\nLast Update: " + str(row["updateDate"]) + "\nSource: " + str(row["boundarySource-1"]))
-                plt.savefig(imgOUT)
+            dta.boundary.plot(edgecolor="black")
+            if(len(row["boundaryCanonical"]) > 1):
+                plt.title("geoBoundaries.org - " + buildType + "\n" + row["boundaryISO"] + " " + row["boundaryType"] + "(" + row["boundaryCanonical"] +")" + "\nLast Update: " + str(row["updateDate"]) + "\nSource: " + str(row["boundarySource-1"]))
+            else:
+                plt.title("geoBoundaries.org - " + buildType + "\n" + row["boundaryISO"] + " " + row["boundaryType"] + "\nLast Update: " + str(row["updateDate"]) + "\nSource: " + str(row["boundarySource-1"]))
+            plt.savefig(imgOUT)
 
-                shutil.make_archive(workingPath + row["boundaryID"], 'zip', basePath)
-                shutil.move(workingPath + row["boundaryID"] + ".zip", fullZip)
+            shutil.make_archive(workingPath + row["boundaryID"], 'zip', basePath)
+            shutil.move(workingPath + row["boundaryID"] + ".zip", fullZip)
                 
 
         csvR.append(row)

@@ -99,6 +99,8 @@ try:
             if(buildDate > codeDate):
                 print("Build is up-to-date with most recent build script.  No further actions necessary.")
                 sysExit = 1
+            else:
+                print("Build script has been updated.  Re-running build.")
         else:
             print("Source is newer than build data.  Commencing new build.")
     except:
