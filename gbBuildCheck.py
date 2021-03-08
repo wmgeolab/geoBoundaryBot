@@ -53,7 +53,7 @@ buildQuery = """
                 }
             }
             """
-
+sysExit = 0
 try:
     commitDate = result["data"]["repository"]["object"]["blame"]["ranges"][0]["commit"]["committedDate"]
     print("Most recent source file is from " + commitDate + ".  Contrasting to build.")
@@ -63,7 +63,7 @@ try:
         print("Most recent build is from " + buildDate +".")
         if(buildDate > commitDate):
             print("Build is already up-to-date.  No action needed.")
-            sys.exit("1")
+            sysExit = 1
         else:
             print("Source is newer than build data.  Commencing new build.")
     except:
@@ -73,4 +73,6 @@ except:
     print("No source file for this layer currently exists in the repository. Skipping any further action.")
     sys.exit("1")
 
+if(sysExit == 1):
+    sys.exit("1")
 
