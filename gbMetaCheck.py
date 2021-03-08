@@ -78,7 +78,7 @@ def metaCheck(ws):
                 for m in meta.splitlines():
                     try:
                         gbHelpers.logWrite(ws["checkType"], "")
-                        e = m.decode("latin1").split(":")
+                        e = m.decode("utf-8").split(":")
                         if(len(e) > 2):
                             e[1] = e[1] + e[2]
                         key = e[0].strip()

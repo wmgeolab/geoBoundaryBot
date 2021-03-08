@@ -42,7 +42,6 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         row["GEOM_requiredChecksPassing"] = 0
         ws["zipSuccess"] = 0
 
-        #I don't know how this happened, but am too tired to parse it right now...
         ws['zips'] = []
         ws['zips'].append("/sourceData/" + buildType + "/" + filename)
 
@@ -120,7 +119,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         row["boundaryType"] = "METADATA ERROR"
 
         for m in meta.splitlines():
-            e = m.decode("latin1").split(":")
+            e = m.decode("utf-8").split(":")
             if(len(e) > 2):
                 e[1] = e[1] + e[2]
             key = e[0].strip()
@@ -354,10 +353,10 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 #Clean it up by removing our geom and meta checks.
                 removeKey = ["status", "META_requiredChecksPassing", "GEOM_requiredChecksPassing", "META_canonicalNameInMeta", "META_licenseImageInZip", "META_yearValid", "META_isoValid","META_boundaryTypeValid", "META_sourceExists", "META_releaseTypeValid", "META_releaseTypeCorrectFolder", "META_licenseValid", "META_licenseSourceExists", "META_dataSourceExists", "GEOM_boundaryNamesColumnExists", "GEOM_boundaryNamesFilledIn", "GEOM_boundaryISOColumnExists", "GEOM_boundaryISOsFilledIn", "GEOM_Topology", "GEOM_Projection"]
                 rowMetaOut = {key: row[key] for key in row if key not in removeKey}
-                with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json", "w") as jsonMeta:
+                with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.json", "w", encoding="utf-8") as jsonMeta:
                     json.dump(rowMetaOut, jsonMeta)
 
-                with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.txt", "w") as textMeta:
+                with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.txt", "w", encoding="utf-8") as textMeta:
                     for i in rowMetaOut:
                         textMeta.write(i + " : " + str(rowMetaOut[i]) + "\n")
             
@@ -411,7 +410,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                     hashVal = int(hashlib.sha256(str(geom["geometry"]).encode(encoding='UTF-8')).hexdigest(), 16) % 10**8
                     return(str(metaHash) + "B" + str(hashVal))
 
-                dta[["shapeID"]] = dta.apply(lambda row: geomID(row), axis=1)#int(hashlib.sha256(str(dta["geometry"]).encode(encoding='UTF-8')).hexdigest(), 16) % 10**8
+                dta[["shapeID"]] = dta.apply(lambda row: geomID(row), axis=1)
                 
                 dta[["shapeGroup"]] = row["boundaryISO"]
                 dta[["shapeType"]] = row["boundaryType"]
@@ -421,17 +420,15 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 
                 #Write our shapes with self-intersection corrections
                 #New in 4.0: we are now snapping to an approximately .1 meter grid.
-                #To the surprise of hopefully noone, our products are not suitable for applications
-                #which require sub-.1 meter accuracy (true limits will be much higher than this, due to data accuracy).
+                #To the surprise of hopefully noone, our products are not suitable for applications which require
+                #sub-.1 meter accuracy (true limits will be much higher than this, due to data accuracy).
                 write = ("mapshaper-xl 6gb " + workingPath + row["boundaryID"] + ".geoJSON" +
                         " -clean gap-fill-area=0 sliver-control=0 snap-interval= .000001 rewind" +
                         " -o format=shapefile " + shpOUT +
                         " -o format=topojson " + topoOUT +
                         " -o format=geojson " + jsonOUT)
                 
-                os.system(write)
-
-                
+                os.system(write)                
 
                 dta.boundary.plot(edgecolor="black")
                 if(len(row["boundaryCanonical"]) > 1):
