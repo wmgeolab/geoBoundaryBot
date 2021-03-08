@@ -53,6 +53,25 @@ buildQuery = """
                 }
             }
             """
+
+codeQuery = """
+            {
+                repository(owner: \"wmgeolab\", name: \"geoBoundaryBot\") {
+                object(expression: \"master\") {
+                    ... on Commit {
+                    blame(path: \"gbBuild.py\") {
+                        ranges {
+                        commit {
+                            committedDate
+                        }
+                        }
+                    }
+                    }
+                }
+                }
+            }
+            """
+
 sysExit = 0
 try:
     commitDate = result["data"]["repository"]["object"]["blame"]["ranges"][0]["commit"]["committedDate"]
@@ -62,8 +81,12 @@ try:
         buildDate = buildResult["data"]["repository"]["object"]["blame"]["ranges"][0]["commit"]["committedDate"]
         print("Most recent build is from " + buildDate +".")
         if(buildDate > commitDate):
-            print("Build is already up-to-date.  No action needed.")
-            sysExit = 1
+            print("Build is already up-to-date.  Confirming build script has not updated.")
+            codeResult = run_query(codeQuery, key)
+            codeDate = codeResult["data"]["repository"]["object"]["blame"]["ranges"][0]["commit"]["committedDate"]
+            if(buildDate > codeDate):
+                print("Build is up-to-date with most recent build script.  No further actions necessary.")
+                sysExit = 1
         else:
             print("Source is newer than build data.  Commencing new build.")
     except:
