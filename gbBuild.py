@@ -421,9 +421,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
             dta.boundary.plot(edgecolor="black")
             if(len(row["boundaryCanonical"]) > 1):
-                plt.title("geoBoundaries.org - " + buildType + "\n" + row["boundaryISO"] + " " + row["boundaryType"] + "(" + row["boundaryCanonical"] +")" + "\nLast Update: " + str(row["updateDate"]) + "\nSource: " + str(row["boundarySource-1"]))
+                plt.title("geoBoundaries.org - " + buildType + "\n" + row["boundaryISO"] + " " + row["boundaryType"] + "(" + row["boundaryCanonical"] +")" + "\nLast Source Data Update: " + str(row["sourceDataUpdateDate"]) + "\nSource: " + str(row["boundarySource-1"]))
             else:
-                plt.title("geoBoundaries.org - " + buildType + "\n" + row["boundaryISO"] + " " + row["boundaryType"] + "\nLast Update: " + str(row["updateDate"]) + "\nSource: " + str(row["boundarySource-1"]))
+                plt.title("geoBoundaries.org - " + buildType + "\n" + row["boundaryISO"] + " " + row["boundaryType"] + "\nLast Source Data Update: " + str(row["sourceDataUpdateDate"]) + "\nSource: " + str(row["boundarySource-1"]))
             plt.savefig(imgOUT)
 
             shutil.make_archive(workingPath + row["boundaryID"], 'zip', basePath)
