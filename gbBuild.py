@@ -14,6 +14,7 @@ import hashlib
 import matplotlib.pyplot as plt
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.multipolygon import MultiPolygon
+from datetime import datetime
 
 buildType = str(sys.argv[1])
 buildVer = str(sys.argv[2])
@@ -322,8 +323,11 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             fullZip = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-all.zip")
             inputDataPath = ws["working"] + "/" + ws['zips'][0]
 
+            currentBuild = os.path.getmtime(inputDataPath)
+           
             print("Building Metadata and HPSCU Geometries for: " + str(fullZip))
-            row["updateDate"] = time.strftime('%b %d, %Y')
+            row["sourceDataUpdateDate"] = datetime.utcfromtimestamp(currentBuild).strftime('%b %d, %Y')
+            row["buildUpdateDate"] = time.strftime('%b %d, %Y')
 
             #Clean any old items
             if(os.path.isfile(fullZip)):
