@@ -18,6 +18,7 @@ from shapely.geometry.multipolygon import MultiPolygon
 buildType = str(sys.argv[1])
 buildVer = str(sys.argv[2])
 cQuery = str(sys.argv[3])
+typeQuery = str(sys.argv[4])
 ws = gbHelpers.initiateWorkspace(buildType, build = True)
 print(ws)
 csvR = []
@@ -29,7 +30,7 @@ issueCommentCount = 0
 for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + buildType + "/"):
     selFiles = []
     for i in cQuery.split(","):
-        selFiles.append([x for x in filenames if x.startswith(i)])
+        selFiles.append([x for x in filenames if x.startswith(i + "_" + typeQuery)])
     filesToProcess = [item for sublist in selFiles for item in sublist]
     print(filesToProcess)
     for filename in filesToProcess:
