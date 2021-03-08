@@ -17,6 +17,17 @@ def run_query(query, key):
     except Exception as e:
         return(e)
 
+def findDate(queryResponse):
+    for i in range(0, len(queryResponse["data"]["repository"]["object"]["blame"]["ranges"])):
+        curDate = queryResponse["data"]["repository"]["object"]["blame"]["ranges"][i]["commit"]["committedDate"]
+        if(i == 0):
+            recentDate = curDate
+        else:
+            if(recentDate < curDate):
+                recentDate = curDate
+    
+    return(recentDate)
+
 sourceQuery = """
             {
                 repository(owner: \"wmgeolab\", name: \"gbRelease\") {
@@ -74,16 +85,16 @@ codeQuery = """
 
 sysExit = 0
 try:
-    commitDate = result["data"]["repository"]["object"]["blame"]["ranges"][0]["commit"]["committedDate"]
+    commitDate = findDate(result)
     print("Most recent source file is from " + commitDate + ".  Contrasting to build.")
     try:
         buildResult = run_query(buildQuery, key)
-        buildDate = buildResult["data"]["repository"]["object"]["blame"]["ranges"][0]["commit"]["committedDate"]
+        buildDate = findDate(buildResult)
         print("Most recent build is from " + buildDate +".")
         if(buildDate > commitDate):
             print("Build is already up-to-date.  Confirming build script has not updated.")
             codeResult = run_query(codeQuery, key)
-            codeDate = codeResult["data"]["repository"]["object"]["blame"]["ranges"][0]["commit"]["committedDate"]
+            codeDate = findDate(codeResult)
             print("Most recent code is from " + codeDate)
             if(buildDate > codeDate):
                 print("Build is up-to-date with most recent build script.  No further actions necessary.")
