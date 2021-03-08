@@ -84,6 +84,7 @@ try:
             print("Build is already up-to-date.  Confirming build script has not updated.")
             codeResult = run_query(codeQuery, key)
             codeDate = codeResult["data"]["repository"]["object"]["blame"]["ranges"][0]["commit"]["committedDate"]
+            print("Most recent code is from " + codeDate)
             if(buildDate > codeDate):
                 print("Build is up-to-date with most recent build script.  No further actions necessary.")
                 sysExit = 1
