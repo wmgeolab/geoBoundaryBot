@@ -16,6 +16,7 @@ from shapely.geometry.polygon import Polygon
 from shapely.geometry.multipolygon import MultiPolygon
 from datetime import datetime
 from gbBuildCheck import run_query, findDate
+import requests
 
 buildType = str(sys.argv[1])
 buildVer = str(sys.argv[2])
@@ -348,7 +349,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
         
             headers = {"Authorization": "Bearer %s" % APIkey}
+            print(headers)
             request = requests.post('https://api.github.com/graphql', json={'query': sourceQuery}, headers=headers)
+            print(request)
 
             for i in range(0, len(request["data"]["repository"]["object"]["blame"]["ranges"])):
                 curDate = request["data"]["repository"]["object"]["blame"]["ranges"][i]["commit"]["committedDate"]
