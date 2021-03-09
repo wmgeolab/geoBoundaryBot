@@ -15,11 +15,13 @@ import matplotlib.pyplot as plt
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.multipolygon import MultiPolygon
 from datetime import datetime
+from gbBuildCheck import run_query, findDate
 
 buildType = str(sys.argv[1])
 buildVer = str(sys.argv[2])
 cQuery = str(sys.argv[3])
 typeQuery = str(sys.argv[4])
+APIkey = str(sys.argv[5])
 ws = gbHelpers.initiateWorkspace(buildType, build = True)
 print(ws)
 csvR = []
@@ -324,9 +326,31 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             inputDataPath = ws["working"] + "/" + ws['zips'][0]
 
             currentBuild = os.path.getmtime(inputDataPath)
+            
+            #Get commit from most recent source file.
+            sourceQuery = """
+                        {
+                            repository(owner: \"wmgeolab\", name: \"gbRelease\") {
+                            object(expression: \"master\") {
+                                ... on Commit {
+                                blame(path: \"sourceData/"""+buildType+"""/"""+cQuery+"""_"""+typeQuery+""".zip\") {
+                                    ranges {
+                                    commit {
+                                        committedDate
+                                    }
+                                    }
+                                }
+                                }
+                            }
+                            }
+                        }
+                        """
+            result = run_query(sourceQuery, APIkey)
+            commitDate = findDate(result)
+
            
             print("Building Metadata and HPSCU Geometries for: " + str(fullZip))
-            row["sourceDataUpdateDate"] = datetime.utcfromtimestamp(currentBuild).strftime('%b %d, %Y')
+            row["sourceDataUpdateDate"] = str(commitDate)
             row["buildUpdateDate"] = time.strftime('%b %d, %Y')
 
             #Clean any old items
@@ -457,7 +481,6 @@ try:
         except:
             print("Cleanup skipped.  Proceeding with Upload.")
         os.system("ls " + ws["working"])
-        copy_tree(os.path.expanduser("~") + "/tmp/", ws["working"])
-        os.system("ls " + ws["working"])
+
 except:
     print("No changes to copy / commit")
