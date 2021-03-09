@@ -82,7 +82,7 @@ codeQuery = """
                 }
             }
             """
-
+print(result)
 sysExit = 0
 try:
     commitDate = findDate(result)
