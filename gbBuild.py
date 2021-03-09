@@ -345,8 +345,18 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                             }
                         }
                         """
-            result = run_query(sourceQuery, APIkey)
-            commitDate = findDate(result)
+
+        
+            headers = {"Authorization": "Bearer %s" % APIkey}
+            request = requests.post('https://api.github.com/graphql', json={'query': sourceQuery}, headers=headers)
+
+            for i in range(0, len(request["data"]["repository"]["object"]["blame"]["ranges"])):
+                curDate = request["data"]["repository"]["object"]["blame"]["ranges"][i]["commit"]["committedDate"]
+                if(i == 0):
+                    commitDate = curDate
+                else:
+                    if(commitDate < curDate):
+                        commitDate = curDate
 
            
             print("Building Metadata and HPSCU Geometries for: " + str(fullZip))
