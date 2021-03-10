@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.multipolygon import MultiPolygon
 from datetime import datetime
-from gbBuildCheck import run_query, findDate
 import requests
 
 buildType = str(sys.argv[1])
