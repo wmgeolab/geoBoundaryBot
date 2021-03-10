@@ -202,7 +202,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             row["boundarySourceURL"] = "METADATA ERROR"
 
         try:
-            row["downloadURL"] = "https://github.com/wmgeolab/gbRelease/raw/master/releaseData/" + str(buildType) + "/" + str(filename)
+            row["downloadURL"] = "https://github.com/wmgeolab/geoBoundaries/raw/main/releaseData/" + str(buildType) + "/" + str(filename)
         except:
             row["downloadURL"] = "METADATA ERROR"
         
@@ -233,18 +233,18 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
             #Github has no "OR" for searching, so a bit of a messy hack here to allow for
             #"ADM0" and "ADM 0"
-            likelyIssues = g.search_issues(query=str(row["boundaryISO"]+"+"+row["boundaryType"]+"+"+buildType), repo="wmgeolab/gbRelease", state="open")
+            likelyIssues = g.search_issues(query=str(row["boundaryISO"]+"+"+row["boundaryType"]+"+"+buildType), repo="wmgeolab/geoBoundaries", state="open")
             issueCount = sum(not issue.pull_request for issue in likelyIssues)
             repo_create = False
             comment_create = False
             if(issueCount == 0):
                 admLevel = row["boundaryType"].split("M")[1]
-                likelyIssues = g.search_issues(query=str(row["boundaryISO"]+"+'ADM "+str(admLevel)+"'+"+buildType), repo="wmgeolab/gbRelease", state="open")
+                likelyIssues = g.search_issues(query=str(row["boundaryISO"]+"+'ADM "+str(admLevel)+"'+"+buildType), repo="wmgeolab/geoBoundaries", state="open")
                 issueCount = sum(not issue.pull_request for issue in likelyIssues)
 
             if(issueCount == 0):
                 #Search by filename and type, if metadata.txt failed to open at all.
-                likelyIssues = g.search_issues(query=str(filename+"+"+str(buildType)), repo="wmgeolab/gbRelease", state="open")
+                likelyIssues = g.search_issues(query=str(filename+"+"+str(buildType)), repo="wmgeolab/geoBoundaries", state="open")
                 issueCount = sum(not issue.pull_request for issue in likelyIssues)
                  
                 
@@ -254,7 +254,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             
             if(issueCount == 0):
                 print("Creating issue for " + str(filename)+" "+ buildType)
-                repo = g.get_repo("wmgeolab/gbRelease")
+                repo = g.get_repo("wmgeolab/geoBoundaries")
                 issueCreationCount = issueCreationCount + 1
                 print("issueCreation:" + str(issueCreationCount))
 
@@ -330,8 +330,8 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             #Get commit from most recent source file.
             sourceQuery = """
                         {
-                            repository(owner: \"wmgeolab\", name: \"gbRelease\") {
-                            object(expression: \"master\") {
+                            repository(owner: \"wmgeolab\", name: \"geoBoundaries\") {
+                            object(expression: \"main\") {
                                 ... on Commit {
                                 blame(path: \"sourceData/"""+buildType+"""/"""+cQuery+"""_"""+typeQuery+""".zip\") {
                                     ranges {
@@ -488,7 +488,7 @@ except:
 #Copy the tmp directory over to the main repository
 
 try:
-    if(ws["working"] != "/home/dan/git/gbRelease"):
+    if(ws["working"] != "/home/dan/git/geoBoundaries"):
         try:
             os.remove(os.path.expanduser("~")+"/tmp/RESULT.TXT")
         except:

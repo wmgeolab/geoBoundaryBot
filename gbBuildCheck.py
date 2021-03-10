@@ -30,8 +30,8 @@ def findDate(queryResponse):
 
 sourceQuery = """
             {
-                repository(owner: \"wmgeolab\", name: \"gbRelease\") {
-                object(expression: \"master\") {
+                repository(owner: \"wmgeolab\", name: \"geoBoundaries\") {
+                object(expression: \"main\") {
                     ... on Commit {
                     blame(path: \"sourceData/"""+buildType+"""/"""+cQuery+"""_"""+level+""".zip\") {
                         ranges {
@@ -49,8 +49,8 @@ result = run_query(sourceQuery, key)
 
 buildQuery = """
             {
-                repository(owner: \"wmgeolab\", name: \"gbRelease\") {
-                object(expression: \"master\") {
+                repository(owner: \"wmgeolab\", name: \"geoBoundaries\") {
+                object(expression: \"main\") {
                     ... on Commit {
                     blame(path: \"releaseData/"""+buildType+"""/"""+cQuery+"""/"""+level+"""/geoBoundaries-"""+cQuery+"""-"""+level+""".geojson\") {
                         ranges {
@@ -68,7 +68,7 @@ buildQuery = """
 codeQuery = """
             {
                 repository(owner: \"wmgeolab\", name: \"geoBoundaryBot\") {
-                object(expression: \"master\") {
+                object(expression: \"main\") {
                     ... on Commit {
                     blame(path: \"gbBuild.py\") {
                         ranges {

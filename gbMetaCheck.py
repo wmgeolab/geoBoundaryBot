@@ -120,7 +120,7 @@ def metaCheck(ws):
                             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: ISO is invalid - we expect a 3-character ISO code following ISO-3166-1 (Alpha 3).")
                             checkFail = 1
                         if(val not in validISO):
-                            gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: ISO is not on our list of valid ISO-3 codes.  See https://github.com/wmgeolab/geoBoundaryBot/blob/master/dta/iso_3166_1_alpha_3.csv for all valid codes this script checks against.")
+                            gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: ISO is not on our list of valid ISO-3 codes.  See https://github.com/wmgeolab/geoBoundaryBot/blob/main/dta/iso_3166_1_alpha_3.csv for all valid codes this script checks against.")
                             checkFail = 1
                         else:
                             gbHelpers.logWrite(ws["checkType"], "Valid ISO detected: " + val)
@@ -160,7 +160,7 @@ def metaCheck(ws):
                     if("license" == key.lower()):
                         if(('"' + val.lower().strip() + '"') not in validLicense):
                             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: Invalid license detected: " + val)
-                            gbHelpers.logWrite(ws["checkType"], "We expect one of the licenses in https://github.com/wmgeolab/geoBoundaryBot/blob/master/dta/gbLicenses.csv.  It must exactly match one of these; we do no fuzzy matching to ensure accuracy. If you believe your license should be included, please open a ticket.")
+                            gbHelpers.logWrite(ws["checkType"], "We expect one of the licenses in https://github.com/wmgeolab/geoBoundaryBot/blob/main/dta/gbLicenses.csv.  It must exactly match one of these; we do no fuzzy matching to ensure accuracy. If you believe your license should be included, please open a ticket.")
                             checkFail = 1
                         else:
                             req["license"] = 1

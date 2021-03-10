@@ -11,7 +11,7 @@ def initiateWorkspace(check, build = None):
             ws['working'] = os.environ['GITHUB_WORKSPACE']
             ws['logPath'] = os.path.expanduser("~") + "/tmp/" + str(check) + "_buildStatus.csv"
         except:
-            ws['working'] = "/home/dan/git/gbRelease"
+            ws['working'] = "/home/dan/git/geoBoundaries"
             ws['logPath'] = os.path.expanduser("~") + "/tmp/" + str(check) + "_buildStatus.csv"
 
         print("Python WD: " + ws['working'])  
@@ -25,7 +25,7 @@ def initiateWorkspace(check, build = None):
             ws['logPath'] = os.path.expanduser("~") + "/tmp/" + str(check) + ".txt"
             ws['zips'] = list(filter(lambda x: x[-4:] == '.zip', ws["changedFiles"]))
         except:
-            ws['working'] = "/home/dan/git/gbRelease"
+            ws['working'] = "/home/dan/git/geoBoundaries"
             ws['changedFiles'] = ['sourceData/gbOpen/ARE_ADM1.zip', 'sourceData/gbOpen/QAT_ADM0.zip']
             ws['logPath'] = os.path.expanduser("~") + "/tmp/" + str(check) + ".txt"
             ws['zips'] = list(filter(lambda x: x[-4:] == '.zip', ws["changedFiles"]))
@@ -153,7 +153,7 @@ def citationUse(releaseType):
     citUse = citUse + "====================================================\n"
     citUse = citUse + "We track issues associated with the geoBoundaries dataset publically,\n"
     citUse = citUse + "and any individual can contribute comments through our github repository:\n"
-    citUse = citUse + "https://github.com/wmgeolab/gbRelease\n"
+    citUse = citUse + "https://github.com/wmgeolab/geoBoundaries\n"
     citUse = citUse + " \n"
     citUse = citUse + "Thank you for citing your use of geoBoundaries and reporting any issues you find -\n"
     citUse = citUse + "as a non-profit academic project, your citations are what keeps geoBoundaries alive.\n"
