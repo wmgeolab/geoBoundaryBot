@@ -52,7 +52,7 @@ buildQuery = """
                 repository(owner: \"wmgeolab\", name: \"geoBoundaries\") {
                 object(expression: \"main\") {
                     ... on Commit {
-                    blame(path: \"releaseData/"""+buildType+"""/"""+cQuery+"""/"""+level+"""/geoBoundaries-"""+cQuery+"""-"""+level+""".zip\") {
+                    blame(path: \"releaseData/"""+buildType+"""/"""+cQuery+"""/"""+level+"""/geoBoundaries-"""+cQuery+"""-"""+level+"""-all.zip\") {
                         ranges {
                         commit {
                             committedDate
