@@ -485,7 +485,16 @@ try:
     os.system("mv " + os.path.expanduser("~") + "/tmp/" + str(buildType) + ".txt" +" " + os.path.expanduser("~") + "/artifacts/log"+str(buildType)+".txt")
 except:
     print("No log to output.")
+
+
 #Copy the tmp directory over to the main repository
+try:
+    os.system("ls " + ws["working"])
+    copy_tree(os.path.expanduser("~") + "/tmp/", ws["working"])
+    os.system("ls " + ws["working"])
+except:
+    print("Nothing to copy.")
+
 
 try:
     if(ws["working"] != "/home/dan/git/geoBoundaries"):
