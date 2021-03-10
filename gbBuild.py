@@ -348,12 +348,13 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
         
             headers = {"Authorization": "Bearer %s" % APIkey}
-            print(headers)
+            
             request = requests.post('https://api.github.com/graphql', json={'query': sourceQuery}, headers=headers)
-            print(request)
+            response = request.json()
+            
 
-            for i in range(0, len(request["data"]["repository"]["object"]["blame"]["ranges"])):
-                curDate = request["data"]["repository"]["object"]["blame"]["ranges"][i]["commit"]["committedDate"]
+            for i in range(0, len(response["data"]["repository"]["object"]["blame"]["ranges"])):
+                curDate = response["data"]["repository"]["object"]["blame"]["ranges"][i]["commit"]["committedDate"]
                 if(i == 0):
                     commitDate = curDate
                 else:
