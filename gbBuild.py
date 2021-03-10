@@ -363,7 +363,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
            
             print("Building Metadata and HPSCU Geometries for: " + str(fullZip))
-            humanDate = datetime.datetime.strptime(commitDate.split("T")[0], '%Y-%m-%d')
+            humanDate = datetime.strptime(commitDate.split("T")[0], '%Y-%m-%d')
             row["sourceDataUpdateDate"] = humanDate.strftime('%b %d, %Y')
             row["buildUpdateDate"] = time.strftime('%b %d, %Y')
 
