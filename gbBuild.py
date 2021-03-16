@@ -450,7 +450,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             #To the surprise of hopefully noone, our products are not suitable for applications which require
             #sub-.1 meter accuracy (true limits will be much higher than this, due to data accuracy).
             write = ("mapshaper-xl 6gb " + workingPath + row["boundaryID"] + ".geoJSON" +
-                    " -clean gap-fill-area=0 sliver-control=0 snap-interval= .000001 rewind" +
+                    " -clean gap-fill-area=0 sliver-control=0 snap-interval=.000001 rewind" +
                     " -o format=shapefile " + shpOUT +
                     " -o format=topojson " + topoOUT +
                     " -o format=geojson " + jsonOUT)
