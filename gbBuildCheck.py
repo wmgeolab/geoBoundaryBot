@@ -2,7 +2,7 @@ import os
 import sys
 import time
 import requests
-
+import json
 
 cQuery = str(sys.argv[2])
 level = str(sys.argv[3])
@@ -88,14 +88,15 @@ print(result)
 sysExit = 0
 
 def gitAnnotation(payload):
-    jsonTxt = '[{file: "gbBuildCheck.py",'
-    jsonTxt = jsonTxt + "line: 1,"
-    jsonTxt = jsonTxt + 'title: "' + cQuery + level + buildType + '",'
-    jsonTxt = jsonTxt + 'message: "' + payload + '",'
-    jsonTxt = jsonTxt + 'annotation_level: "warning"}]' 
-
+    jsonLib = {}
+    jsonLib["file"] = "gbBuildCheck.py"
+    jsonLib["line"] = 1
+    jsonLib["title"] = cQuery + level + buildType 
+    jsonLib["message"] = payload
+    jsonLib["annotation_level"] = "warning"
+    
     with open(os.environ['GITHUB_WORKSPACE'] + "/annotation.json", "w+") as f:
-        f.write(jsonTxt)
+        json.dump(jsonLib, f)
 
 annotationPayload = ""
 try:
