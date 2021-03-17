@@ -84,6 +84,18 @@ codeQuery = """
             """
 print(result)
 sysExit = 0
+
+def gitAnnotation(payload):
+    jsonTxt = '[{file: "gbBuildCheck.py",'
+    jsonTxt = jsonTxt + "line: 1,"
+    jsonTxt = jsonTxt + 'title: "' + cQuery + level + buildType + '",'
+    jsonTxt = jsonTxt + 'message: "' + payload + '",'
+    jsonTxt = jsonTxt + 'annotation_level: "warning"}]' 
+
+    with open(os.path.expanduser("~") + "/annotation.json", "w+") as f:
+        f.write(jsonTxt)
+
+annotationPayload = ""
 try:
     commitDate = findDate(result)
     print("Most recent source file is from " + commitDate + ".  Contrasting to build.")
@@ -97,7 +109,8 @@ try:
             codeDate = findDate(codeResult)
             print("Most recent code is from " + codeDate)
             if(buildDate > codeDate):
-                print("Build is up-to-date with most recent build script.  No further actions necessary.")
+                annotationPayload = "Build is up-to-date with most recent build script.  No further actions necessary."
+                print(annotationPayload)
                 sysExit = 1
             else:
                 print("Build script has been updated.  Re-running build.")
@@ -107,9 +120,13 @@ try:
         print("No build file for this layer currently exists in the repository.  Commencing new build.")
 
 except:
-    print("No source file for this layer currently exists in the repository. Skipping any further action.")
+    annotationPayload = "No source file for this layer currently exists in the repository. Skipping any further action."
+    print(annotationPayload)
+    gitAnnotation(annotationPayload)
     sys.exit("No source file in the repository.")
 
 if(sysExit == 1):
-    sys.exit("Build is already up to date.")
+    annotationPayload = "Build is already up to date."
+    gitAnnotation(annotationPayload)
+    sys.exit(annotationPayload)
 
