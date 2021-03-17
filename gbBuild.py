@@ -441,7 +441,10 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             
             dta[["shapeGroup"]] = row["boundaryISO"]
             dta[["shapeType"]] = row["boundaryType"]
-            
+
+            #Note: Some metadata is calculated in the overall CSV build, and so is not included in the default metadata files here.
+            #We may want to revisit this at some date in the future.
+                                    
             #Output the intermediary geojson without topology corrections
             dta.to_file(workingPath + row["boundaryID"] + ".geoJSON", driver="GeoJSON")
             
