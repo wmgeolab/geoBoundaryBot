@@ -14,7 +14,7 @@ except:
     ws['logPath'] = os.path.expanduser("~") + "/tmp/log.txt"
 
 #Load in the ISO lookup table
-isoDetails = pd.read_csv("./dta/iso_3166_1_alpha_3.csv")
+isoDetails = pd.read_csv(ws['working'] + "/geoBoundaryBot/dta/iso_3166_1_alpha_3.csv")
 
 
 #Remove any old CSVs for each case
