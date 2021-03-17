@@ -87,16 +87,7 @@ codeQuery = """
 print(result)
 sysExit = 0
 
-def gitAnnotation(payload):
-    jsonLib = {}
-    jsonLib["file"] = "gbBuildCheck.py"
-    jsonLib["line"] = 1
-    jsonLib["title"] = cQuery + level + buildType 
-    jsonLib["message"] = payload
-    jsonLib["annotation_level"] = "warning"
-    
-    with open(os.environ['GITHUB_WORKSPACE'] + "/annotation.json", "w+") as f:
-        json.dump(jsonLib, f)
+
 
 annotationPayload = ""
 try:
@@ -125,11 +116,9 @@ try:
 except:
     annotationPayload = "No source file for this layer currently exists in the repository. Skipping any further action."
     print(annotationPayload)
-    gitAnnotation(annotationPayload)
     sys.exit("No source file in the repository.")
 
 if(sysExit == 1):
     annotationPayload = "Build is already up to date."
-    gitAnnotation(annotationPayload)
     sys.exit(annotationPayload)
 
