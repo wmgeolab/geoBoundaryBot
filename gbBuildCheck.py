@@ -108,8 +108,8 @@ try:
 
 except:
     print("No source file for this layer currently exists in the repository. Skipping any further action.")
-    sys.exit("1")
+    sys.exit("No source file in the repository.")
 
 if(sysExit == 1):
-    sys.exit("1")
+    sys.exit("Build is already up to date.")
 
