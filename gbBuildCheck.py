@@ -9,6 +9,8 @@ level = str(sys.argv[3])
 buildType = str(sys.argv[4])
 key = str(sys.argv[1])
 
+print(os.environ['GITHUB_WORKSPACE'])
+
 def run_query(query, key): 
     try:
         headers = {"Authorization": "Bearer %s" % key}
@@ -92,7 +94,7 @@ def gitAnnotation(payload):
     jsonTxt = jsonTxt + 'message: "' + payload + '",'
     jsonTxt = jsonTxt + 'annotation_level: "warning"}]' 
 
-    with open(os.path.expanduser("~") + "/annotation.json", "w+") as f:
+    with open(os.environ['GITHUB_WORKSPACE'] + "/annotation.json", "w+") as f:
         f.write(jsonTxt)
 
 annotationPayload = ""
