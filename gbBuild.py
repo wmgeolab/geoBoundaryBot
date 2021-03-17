@@ -502,8 +502,12 @@ try:
         try:
             os.remove(os.path.expanduser("~")+"/tmp/RESULT.TXT")
         except:
-            print("Cleanup skipped.  Proceeding with Upload.")
+            print("Cleanup skipped.")
         os.system("ls " + ws["working"])
 
 except:
     print("No changes to copy / commit")
+
+if(row["META_requiredChecksPassing"] != True or row["GEOM_requiredChecksPassing"] != True):
+    print("At least one check failed.  Stopping build.")
+    sys.exit("Either a metadata or Geometry check failed.  Exiting build.")
