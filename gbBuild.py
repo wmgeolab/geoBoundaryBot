@@ -492,6 +492,7 @@ except:
 
 
 #Copy the tmp directory over to the main repository
+#C
 try:
     os.system("ls " + ws["working"])
     copy_tree(os.path.expanduser("~") + "/tmp/", ws["working"])
