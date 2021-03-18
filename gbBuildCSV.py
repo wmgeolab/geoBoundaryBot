@@ -39,7 +39,7 @@ except:
 
 #Create headers for each CSV
 def headerWriter(f):
-    f.write("boundaryID,Country,boundaryISO,boundaryYear,boundaryType,boundaryCanonical,boundarySource-1,boundarySource-2,boundaryLicense,licenseDetail,licenseSource,boundarySourceURL,sourceDataUpdateDate,buildUpdateDate,Continent,UNSDG-region,UNSDG-subregion,worldBankIncomeGroup,apiURL,admUnitCount,meanVertices,minVertices,maxVertices\n")
+    f.write("boundaryID,Country,boundaryISO,boundaryYear,boundaryType,boundaryCanonical,boundarySource-1,boundarySource-2,boundaryLicense,licenseDetail,licenseSource,boundarySourceURL,sourceDataUpdateDate,buildUpdateDate,Continent,UNSDG-region,UNSDG-subregion,worldBankIncomeGroup,apiURL,admUnitCount,meanVertices,minVertices,maxVertices,meanPerimeterLengthKM,minPerimeterLengthKM,maxPerimeterLengthKM,meanAreaSqKM,minAreaSqKM,maxAreaSqKM,\n")
 
 with open(gbOpenCSV,'w+') as f:
     headerWriter(f)
@@ -108,9 +108,23 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
             
             vertices.append(n) ###
         
-        metaLine = metaLine + str(admCount) + '","' + str(round(sum(vertices)/len(vertices),0)) + '","' + str(min(vertices)) + '","' + str(max(vertices)) + '"\n'
+        metaLine = metaLine + str(admCount) + '","' + str(round(sum(vertices)/len(vertices),0)) + '","' + str(min(vertices)) + '","' + str(max(vertices)) + '","'
 
+        #Perimeter Using WGS 84 / World Equidistant Cylindrical (EPSG 4087)
+        lengthGeom = geom.copy()
+        lengthGeom = lengthGeom.to_crs(epsg=4087)
+        lengthGeom["length"] = lengthGeom["geometry"].length / 1000 #km
+        
+        metaLine = metaLine + str(lengthGeom["length"].mean()) + '","' + str(lengthGeom["length"].min()) + '","' + str(lengthGeom["length"].max()) + '","'
+
+        #Area #mean min max Using WGS 84 / EASE-GRID 2 (EPSG 6933)
+        areaGeom = geom.copy()
+        areaGeom = areaGeom.to_crs(epsg=6933)
+        areaGeom["area"] = areaGeom['geometry'].area / 10**6 #sqkm
+
+        metaLine = metaLine + str(areaGeom['area'].mean()) + '","' + str(areaGeom['area'].min()) + '","' + str(areaGeom['area'].max()) + '","'
         #Cleanup
+        metaLine = metaLine + '"\n'
         metaLine = metaLine.replace("nan","")
 
         with open(csvPath,'a') as f:
