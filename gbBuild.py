@@ -494,9 +494,9 @@ except:
 #Copy the tmp directory over to the main repository
 #C
 try:
-    os.system("ls " + ws["working"])
-    copy_tree(os.path.expanduser("~") + "/tmp/", ws["working"])
-    os.system("ls " + ws["working"])
+    os.system("ls -l " + ws["working"])
+    copy_tree(os.path.expanduser("~") + "/tmp/", ws["working"], update=False)
+    os.system("ls -l " + ws["working"])
 except:
     print("Nothing to copy")
 
