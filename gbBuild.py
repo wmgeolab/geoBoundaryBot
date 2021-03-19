@@ -289,26 +289,22 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 else:
                     print("I have already commented on " + filename +"+"+buildType)
         
-
-
-
-
         if(row["META_requiredChecksPassing"] == True and row["GEOM_requiredChecksPassing"] == True):
 
             #Build high level structure
-            if not os.path.exists(ws["working"] + "releaseData/"):
-                os.makedirs(ws["working"] + "releaseData/")
+            if not os.path.exists(ws["working"] + "/releaseData/"):
+                os.makedirs(ws["working"] + "/releaseData/")
 
-            if not os.path.exists(ws["working"] + "releaseData/" + str(buildType) + "/"):
-                os.makedirs(ws["working"] + "releaseData/" + str(buildType) + "/")
+            if not os.path.exists(ws["working"] + "/releaseData/" + str(buildType) + "/"):
+                os.makedirs(ws["working"] + "/releaseData/" + str(buildType) + "/")
 
-            if not os.path.exists(ws["working"] + "releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
-                os.makedirs(ws["working"] + "releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/")
+            if not os.path.exists(ws["working"] + "/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
+                os.makedirs(ws["working"] + "/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/")
 
-            if not os.path.exists(ws["working"] + "releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"):
-                os.makedirs(ws["working"] + "releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/")
+            if not os.path.exists(ws["working"] + "/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"):
+                os.makedirs(ws["working"] + "/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/")
                 
-            basePath = ws["working"] + "releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"
+            basePath = ws["working"] + "/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"
             
             workingPath = os.path.expanduser("~") + "/working/"
             if not os.path.exists(workingPath):
