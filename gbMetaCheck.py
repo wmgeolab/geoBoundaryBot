@@ -38,6 +38,7 @@ def metaCheck(ws):
         gbHelpers.logWrite(ws["checkType"], "")
         ws["zipTotal"] = ws["zipTotal"] + 1
         for z in ws["zips"]:
+            gbHelpers.checkRetrieveLFSFiles(z, ws['working'])
             req = {}
             opt = {}
             req["year"] = 0

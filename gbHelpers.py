@@ -47,6 +47,26 @@ def logWrite(check, line):
     with open(os.path.expanduser("~") + "/tmp/" + str(check) + ".txt", "a") as f:
         f.write(line + "\n")
 
+def checkRetrieveLFSFiles(z, workingDir="./"):
+    with open(workingDir + "/.gitattributes") as f:
+        lfsList = list(csv.reader(f, delimiter=" "))
+    #print(lfsList)
+    #print(z)
+    lfsFiles = [i[0] for i in lfsList]
+    #print(lfsFiles)
+    if(z in lfsFiles):
+        print("")
+        print("--------------------------------")
+        print("Downloading LFS File (file > 25mb): " + z)
+        os.system('git lfs pull --include=\"' + z +'\"')
+        
+    else:
+        #print("")
+        #print("--------------------------------")
+        #print("No download from LFS required (file < 25mb): " + z)
+        #print("")
+        return(0)
+
 def gbEnvVars(varName, content,mode):
     if(mode == "w"):
         with open(os.path.expanduser("~") + "/tmp/" + varName + ".txt", "w+") as f:
