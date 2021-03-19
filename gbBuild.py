@@ -49,9 +49,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         ws['zips'].append("/sourceData/" + buildType + "/" + filename)
 
 
-        gbHelpers.checkRetrieveLFSFiles(ws['zips'][0], ws['working'])
         try:
-            
             with zipfile.ZipFile(ws["working"] + "/" + ws['zips'][0]) as zF:
                 meta = zF.read('meta.txt')
             
