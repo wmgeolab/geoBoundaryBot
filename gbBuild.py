@@ -296,19 +296,19 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         if(row["META_requiredChecksPassing"] == True and row["GEOM_requiredChecksPassing"] == True):
 
             #Build high level structure
-            if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/"):
-                os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/")
+            if not os.path.exists(ws["working"] + "releaseData/"):
+                os.makedirs(ws["working"] + "releaseData/")
 
-            if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/"):
-                os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/")
+            if not os.path.exists(ows["working"] + "releaseData/" + str(buildType) + "/"):
+                os.makedirs(ws["working"] + "releaseData/" + str(buildType) + "/")
 
-            if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
-                os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/")
+            if not os.path.exists(ws["working"] + "releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
+                os.makedirs(ws["working"] + "releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/")
 
-            if not os.path.exists(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"):
-                os.makedirs(os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/")
+            if not os.path.exists(ws["working"] + "releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"):
+                os.makedirs(ws["working"] + "releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/")
                 
-            basePath = os.path.expanduser("~") + "/tmp/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"
+            basePath = ws["working"] + "releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"
             
             workingPath = os.path.expanduser("~") + "/working/"
             if not os.path.exists(workingPath):
@@ -487,28 +487,6 @@ try:
     os.system("mv " + os.path.expanduser("~") + "/tmp/" + str(buildType) + ".txt" +" " + os.path.expanduser("~") + "/artifacts/log"+str(buildType)+".txt")
 except:
     print("No log to output.")
-
-
-#Copy the tmp directory over to the main repository
-#C
-try:
-    os.system("ls -l " + ws["working"])
-    copy_tree(os.path.expanduser("~") + "/tmp/", ws["working"], update=False)
-    os.system("ls -l " + ws["working"])
-except:
-    print("Nothing to copy")
-
-
-try:
-    if(ws["working"] != "/home/dan/git/geoBoundaries"):
-        try:
-            os.remove(os.path.expanduser("~")+"/tmp/RESULT.TXT")
-        except:
-            print("Cleanup skipped.")
-        os.system("ls " + ws["working"])
-
-except:
-    print("No changes to copy / commit")
 
 if(row["META_requiredChecksPassing"] != True or row["GEOM_requiredChecksPassing"] != True):
     print("At least one check failed.  Stopping build.")
