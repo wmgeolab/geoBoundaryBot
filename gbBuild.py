@@ -299,7 +299,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             if not os.path.exists(ws["working"] + "releaseData/"):
                 os.makedirs(ws["working"] + "releaseData/")
 
-            if not os.path.exists(ows["working"] + "releaseData/" + str(buildType) + "/"):
+            if not os.path.exists(ws["working"] + "releaseData/" + str(buildType) + "/"):
                 os.makedirs(ws["working"] + "releaseData/" + str(buildType) + "/")
 
             if not os.path.exists(ws["working"] + "releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/"):
