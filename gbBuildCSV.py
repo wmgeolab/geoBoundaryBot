@@ -20,7 +20,7 @@ isoDetails = pd.read_csv(ws['working'] + "/geoBoundaryBot/dta/iso_3166_1_alpha_3
 #Remove any old CSVs for each case
 gbOpenCSV = ws["working"] + "/releaseData/geoBoundariesOpen-meta.csv"
 gbHumCSV = ws["working"] + "/releaseData/geoBoundariesHumanitarian-meta.csv"
-gbAuthCSV = ws["working"] + "/releaseData/geoBoundariesAuthoratative-meta.csv"
+gbAuthCSV = ws["working"] + "/releaseData/geoBoundariesAuthoritative-meta.csv"
 
 try:
     os.remove(gbOpenCSV)
