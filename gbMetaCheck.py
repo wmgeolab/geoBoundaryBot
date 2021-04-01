@@ -289,6 +289,7 @@ def metaCheck(ws):
                         gbHelpers.logWrite(ws["checkType"], '%-20s%-12s' % (i, "PASSED"))
                     else:
                         gbHelpers.logWrite(ws["checkType"], '%-20s%-12s' % (i, "FAILED"))
+                        checkFail = 1
                 gbHelpers.logWrite(ws["checkType"], "==========================") 
 
             else:
