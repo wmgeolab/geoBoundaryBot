@@ -48,24 +48,27 @@ def logWrite(check, line):
         f.write(line + "\n")
 
 def checkRetrieveLFSFiles(z, workingDir="./"):
-    with open(workingDir + "/.gitattributes") as f:
-        lfsList = list(csv.reader(f, delimiter=" "))
-    #print(lfsList)
-    #print(z)
-    lfsFiles = [i[0] for i in lfsList]
-    #print(lfsFiles)
-    if(z in lfsFiles):
-        print("")
-        print("--------------------------------")
-        print("Downloading LFS File (file > 25mb): " + z)
-        os.system('git lfs pull --include=\"' + z +'\"')
-        
-    else:
-        #print("")
-        #print("--------------------------------")
-        #print("No download from LFS required (file < 25mb): " + z)
-        #print("")
-        return(0)
+    try:
+        with open(workingDir + "/.gitattributes") as f:
+            lfsList = list(csv.reader(f, delimiter=" "))
+        #print(lfsList)
+        #print(z)
+        lfsFiles = [i[0] for i in lfsList]
+        #print(lfsFiles)
+        if(z in lfsFiles):
+            print("")
+            print("--------------------------------")
+            print("Downloading LFS File (file > 25mb): " + z)
+            os.system('git lfs pull --include=\"' + z +'\"')
+            
+        else:
+            #print("")
+            #print("--------------------------------")
+            #print("No download from LFS required (file < 25mb): " + z)
+            #print("")
+            return(0)
+    except:
+        print("Skipping LFS download; should not be needed for nightly.")
 
 def gbEnvVars(varName, content,mode):
     if(mode == "w"):
