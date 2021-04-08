@@ -92,6 +92,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         #We'll use the geoJSON here, as the statistics (i.e., vertices) will be most comparable
         #to other cases.
         geojsonSearch = [x for x in filenames if re.search('.geojson', x)]
+        print(geojsonSearch)
         with open(path + "/" + geojsonSearch[0], "r") as g:
             geom = geopandas.read_file(g)
         
