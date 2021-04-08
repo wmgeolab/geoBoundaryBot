@@ -98,9 +98,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         admCount = len(geom)
         
         vertices=[]
+        print(geom)
         for i, row in geom.iterrows():
             n = 0
-            print(row.geometry.type)
             if(row.geometry.type.startswith("Multi")):
                 for seg in row.geometry:
                     n += len(seg.exterior.coords)
