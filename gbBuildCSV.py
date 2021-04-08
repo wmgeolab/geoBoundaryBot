@@ -51,6 +51,7 @@ with open(gbAuthCSV,'w+') as f:
     headerWriter(f)
 
 for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
+    print(path)
     if("gbHumanitarian" in path):
         csvPath = gbHumCSV
     elif("gbOpen" in path):
