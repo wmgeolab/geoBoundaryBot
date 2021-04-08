@@ -109,6 +109,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
             
             vertices.append(n) ###
         
+        print(admCount)
+        print(sum(vertices))
+        print(len(vertices))
         metaLine = metaLine + str(admCount) + '","' + str(round(sum(vertices)/len(vertices),0)) + '","' + str(min(vertices)) + '","' + str(max(vertices)) + '","'
 
         #Perimeter Using WGS 84 / World Equidistant Cylindrical (EPSG 4087)
