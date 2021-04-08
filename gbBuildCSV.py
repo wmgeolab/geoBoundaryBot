@@ -94,7 +94,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         geojsonSearch = [x for x in filenames if re.search('.geojson', x)]
         print(geojsonSearch)
         with open(path + "/" + geojsonSearch[0], "r") as g:
-            geom = geopandas.read_file(g)
+            geom = geopandas.read_file(g, encoding='utf-8')
         
         admCount = len(geom)
         
