@@ -14,6 +14,8 @@ def metaCheck(ws):
     for line in lines:
         data = line.split(',')
         validISO.append(data[2])
+    
+    print(validISO)
 
     #Load licenses for later checks
     with open(ws["working"] + "/geoBoundaryBot/dta/gbLicenses.csv") as lCsv:
