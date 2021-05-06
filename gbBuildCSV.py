@@ -3,6 +3,7 @@ import re
 import json
 import pandas as pd
 import geopandas
+from datetime import datetime
 
 #Initialize workspace
 ws = {}
@@ -51,7 +52,7 @@ with open(gbAuthCSV,'w+') as f:
     headerWriter(f)
 
 for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
-    print(path)
+    print(datetime.now(), path)
     if("gbHumanitarian" in path):
         csvPath = gbHumCSV
     elif("gbOpen" in path):
@@ -110,6 +111,10 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
             
             vertices.append(n) ###
         
+        # DEBUG
+        if len(vertices) == 0:
+            print('EMPTY FILE?', geom, len(geom), vertices, len(list(geom.iterrows())) )
+            dsjfklsdfjljls
         
         metaLine = metaLine + str(admCount) + '","' + str(round(sum(vertices)/len(vertices),0)) + '","' + str(min(vertices)) + '","' + str(max(vertices)) + '","'
 
