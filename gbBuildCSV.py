@@ -4,6 +4,8 @@ import json
 import pandas as pd
 import geopandas
 from datetime import datetime
+import urllib.request
+import io
 
 #Initialize workspace
 ws = {}
@@ -94,9 +96,21 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         #to other cases.
         geojsonSearch = [x for x in filenames if re.search('.geojson', x)]
         print(geojsonSearch)
-        with open(path + "/" + geojsonSearch[0], "r", encoding='utf-8') as g:
-            geom = geopandas.read_file(g)
-        
+        try:
+            # local file
+            with open(path + "/" + geojsonSearch[0], "r", encoding='utf-8') as g:
+                geom = geopandas.read_file(g)
+        except:
+            # large LFS file, need to fetch from url
+            # create url
+            relPath = path[path.find('releaseData/'):] + "/" + geojsonSearch[0]
+            url = 'https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/main/' + relPath
+            print('LFS file! Fetching from', url)
+            # download as in-memory file-like stringio
+            text = urllib.request.urlopen(url).read().decode('utf8')
+            fobj = io.StringIO(text)
+            # load from file-like stringio
+            geom = geopandas.read_file(fobj)
         admCount = len(geom)
         
         vertices=[]
