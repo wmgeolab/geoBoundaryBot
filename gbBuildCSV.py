@@ -96,6 +96,11 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         #to other cases.
         geojsonSearch = [x for x in filenames if re.search('.geojson', x)]
         print(geojsonSearch)
+        if not geojsonSearch:
+            print('Error: Missing GeoJSON file!')
+            continue
+        
+        # load as geopandas
         try:
             # local file
             with open(path + "/" + geojsonSearch[0], "r", encoding='utf-8') as g:
@@ -105,7 +110,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
             # create url
             relPath = path[path.find('releaseData/'):] + "/" + geojsonSearch[0]
             url = 'https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/main/' + relPath
-            print('LFS file! Fetching from', url)
+            print('Note: LFS file! Fetching from', url)
             # download as in-memory file-like stringio
             text = urllib.request.urlopen(url).read().decode('utf8')
             fobj = io.StringIO(text)
@@ -127,8 +132,8 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         
         # DEBUG
         if len(vertices) == 0:
-            print('EMPTY FILE?', geom, len(geom), vertices, len(list(geom.iterrows())) )
-            dsjfklsdfjljls
+            print('Error: Empty file?', geom, len(geom), vertices, len(list(geom.iterrows())) )
+            continue
         
         metaLine = metaLine + str(admCount) + '","' + str(round(sum(vertices)/len(vertices),0)) + '","' + str(min(vertices)) + '","' + str(max(vertices)) + '","'
 
