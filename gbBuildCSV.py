@@ -3,7 +3,7 @@ import re
 import json
 import pandas as pd
 import geopandas
-import datetime
+from datetime import datetime
 
 #Initialize workspace
 ws = {}
