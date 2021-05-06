@@ -69,7 +69,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         
         isoMeta = isoDetails[isoDetails["Alpha-3code"] == meta['boundaryISO']]
         #Build the metadata
-        metaLine = '"' + meta['boundaryID'] + '","' + isoMeta["Country"].values[0] + '","' + meta['boundaryISO'] + '","' + meta['boundaryYear'] + '","' + meta["boundaryType"] + '","'
+        metaLine = '"' + meta['boundaryID'] + '","' + isoMeta["Name"].values[0] + '","' + meta['boundaryISO'] + '","' + meta['boundaryYear'] + '","' + meta["boundaryType"] + '","'
 
         if("boundaryCanonical" in meta):
             if(len(meta["boundaryCanonical"])>0):
