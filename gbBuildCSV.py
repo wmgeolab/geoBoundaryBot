@@ -79,9 +79,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
             if(len(meta["boundaryCanonical"])>0):
                 metaLine = metaLine + meta["boundaryCanonical"] + '","'
             else:
-                metaLine = metaLine + 'Unkown","'
+                metaLine = metaLine + 'Unknown","'
         else:
-            metaLine = metaLine + 'Unkown","'
+            metaLine = metaLine + 'Unknown","'
 
         metaLine = metaLine + meta['boundarySource-1'] + '","' + meta['boundarySource-2'] + '","' + meta['boundaryLicense'] + '","' + meta['licenseDetail'] + '","' + meta['licenseSource'] + '","'
         metaLine = metaLine + meta['boundarySourceURL'] + '","' + meta['sourceDataUpdateDate'] + '","' + meta["buildUpdateDate"] + '","'
