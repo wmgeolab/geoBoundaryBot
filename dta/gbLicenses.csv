@@ -26,3 +26,4 @@ license_name, licenseText, gbOpen, gbAuthoritative, gbHumanitarian, lMustAttribu
 "Korea Open Government License Type 2 (Commercial Use Prohibition)", "KOGL.pdf", No, Yes, Yes, Yes, No, Yes, Yes, No
 "Korea Open Government License Type 3 (Change Prohibition)", "KOGL.pdf", No, No, No, Yes, No, Yes, Yes, Yes
 "Korea Open Government License Type 4 (Commercial Use and Change Prohibition)", "KOGL.pdf", No, No, No, Yes, No, Yes, Yes, Yes
+"Open Data Commons Public Domain Dedication and License (PDDL) v1.0", "PDDLv1.pdf", Yes, Yes, Yes, No, No, Yes, No, No
