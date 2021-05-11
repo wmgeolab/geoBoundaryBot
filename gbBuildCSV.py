@@ -21,9 +21,9 @@ isoDetails = pd.read_csv(ws['working'] + "/geoBoundaryBot/dta/iso_3166_1_alpha_3
 
 
 #Remove any old CSVs for each case
-gbOpenCSV = ws["working"] + "/geoBoundaries/releaseData/geoBoundariesOpen-meta.csv"
-gbHumCSV = ws["working"] + "/geoBoundaries/releaseData/geoBoundariesHumanitarian-meta.csv"
-gbAuthCSV = ws["working"] + "/geoBoundaries/releaseData/geoBoundariesAuthoritative-meta.csv"
+gbOpenCSV = ws["working"] + "/releaseData/geoBoundariesOpen-meta.csv"
+gbHumCSV = ws["working"] + "/releaseData/geoBoundariesHumanitarian-meta.csv"
+gbAuthCSV = ws["working"] + "/releaseData/geoBoundariesAuthoritative-meta.csv"
 
 try:
     os.remove(gbOpenCSV)
@@ -53,8 +53,13 @@ with open(gbHumCSV,'w+') as f:
 with open(gbAuthCSV,'w+') as f:
     headerWriter(f)
 
+test = 0
+
 for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
     print(datetime.now(), path)
+    test = test + 1
+    if(test > 10):
+        break
     if("gbHumanitarian" in path):
         csvPath = gbHumCSV
     elif("gbOpen" in path):
