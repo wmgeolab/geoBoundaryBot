@@ -83,6 +83,11 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         else:
             metaLine = metaLine + 'Unknown","'
 
+        #Cleanup free-form text fields
+        meta['licenseDetail'] = meta["licenseDetail"].replace(',','')
+        meta['licenseDetail'] = meta["licenseDetail"].replace('\\','')
+        meta['licenseDetail'] = meta["licenseDetail"].replace('"','')
+
         metaLine = metaLine + meta['boundarySource-1'] + '","' + meta['boundarySource-2'] + '","' + meta['boundaryLicense'] + '","' + meta['licenseDetail'] + '","' + meta['licenseSource'] + '","'
         metaLine = metaLine + meta['boundarySourceURL'] + '","' + meta['sourceDataUpdateDate'] + '","' + meta["buildUpdateDate"] + '","'
         
