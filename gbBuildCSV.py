@@ -68,7 +68,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
     
     metaSearch = [x for x in filenames if re.search('metaData.json', x)]
     if(len(metaSearch)==1):
-        with open(path + "/" + metaSearch[0], "r") as j:
+        with open(path + "/" + metaSearch[0], encoding='utf-8', "r") as j:
             meta = json.load(j)
         
         isoMeta = isoDetails[isoDetails["Alpha-3code"] == meta['boundaryISO']]
