@@ -17,7 +17,8 @@ except:
     ws['logPath'] = os.path.expanduser("~") + "/tmp/log.txt"
 
 #Load in the ISO lookup table
-isoDetails = pd.read_csv(ws['working'] + "/geoBoundaryBot/dta/iso_3166_1_alpha_3.csv")
+isoDetails = pd.read_csv(ws['working'] + "/geoBoundaryBot/dta/iso_3166_1_alpha_3.csv",
+                        encoding='utf-8')
 
 
 #Remove any old CSVs for each case
@@ -161,6 +162,6 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         metaLine = metaLine + '"\n'
         metaLine = metaLine.replace("nan","")
 
-        with open(csvPath,'a') as f:
+        with open(csvPath, mode='a', encoding='utf-8') as f:
             f.write(metaLine)
     
