@@ -42,7 +42,7 @@ except:
 
 #Create headers for each CSV
 def headerWriter(f):
-    f.write("boundaryID,Country,boundaryISO,boundaryYear,boundaryType,boundaryCanonical,boundarySource-1,boundarySource-2,boundaryLicense,licenseDetail,licenseSource,boundarySourceURL,sourceDataUpdateDate,buildUpdateDate,Continent,UNSDG-region,UNSDG-subregion,worldBankIncomeGroup,apiURL,admUnitCount,meanVertices,minVertices,maxVertices,meanPerimeterLengthKM,minPerimeterLengthKM,maxPerimeterLengthKM,meanAreaSqKM,minAreaSqKM,maxAreaSqKM,\n")
+    f.write("boundaryID,boundaryName,boundaryISO,boundaryYearRepresented,boundaryType,boundaryCanonical,boundarySource-1,boundarySource-2,boundaryLicense,licenseDetail,licenseSource,boundarySourceURL,sourceDataUpdateDate,buildUpdateDate,Continent,UNSDG-region,UNSDG-subregion,worldBankIncomeGroup,apiURL,admUnitCount,meanVertices,minVertices,maxVertices,meanPerimeterLengthKM,minPerimeterLengthKM,maxPerimeterLengthKM,meanAreaSqKM,minAreaSqKM,maxAreaSqKM\n")
 
 with open(gbOpenCSV,'w+') as f:
     headerWriter(f)
@@ -96,7 +96,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         metaLine = metaLine + isoMeta["UNSDG-subregion"].values[0] + '","' 
         metaLine = metaLine + isoMeta["worldBankIncomeGroup"].values[0] + '","'
 
-        metaLine = metaLine + "https://www.geoboundaries.org/gbRequest.html?gbID=" + meta['boundaryID'] + '","'
+        metaLine = metaLine + "https://www.geoboundaries.org/api/gbID/" + meta['boundaryID'] + '","'
 
         #Calculate geometry statistics
         #We'll use the geoJSON here, as the statistics (i.e., vertices) will be most comparable
