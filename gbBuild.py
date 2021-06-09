@@ -312,6 +312,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
 
             #Build the files if needed, and all tests are passed.
+            jsonOUT_simp = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "_simplified.geojson")
+            topoOUT_simp = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "_simplified.topojson")
+            shpOUT_simp  = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "_simplified.zip")
             jsonOUT = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + ".geojson")
             topoOUT = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + ".topojson")
             shpOUT  = (basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + ".zip")
@@ -452,7 +455,17 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                     " -o format=topojson " + topoOUT +
                     " -o format=geojson " + jsonOUT)
             
-            os.system(write)                
+            os.system(write)    
+
+            #Do a second write, this time with a small level of simplification
+            write = ("mapshaper-xl 6gb " + workingPath + row["boundaryID"] + ".geoJSON" +
+                    " -simplify interval=.00001 keep-shapes" +
+                    " -clean gap-fill-area=500m2 snap-interval=.00001" +
+                    " -o format=shapefile " + shpOUT_simp +
+                    " -o format=topojson " + topoOUT_simp +
+                    " -o format=geojson " + jsonOUT_simp)
+
+            os.system(write)  
 
             dta.boundary.plot(edgecolor="black")
             if(len(row["boundaryCanonical"]) > 1):
