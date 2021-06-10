@@ -349,9 +349,11 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             request = requests.post('https://api.github.com/graphql', json={'query': sourceQuery}, headers=headers)
             response = request.json()
             
-
+            print(sourceQuery)
             for i in range(0, len(response["data"]["repository"]["object"]["blame"]["ranges"])):
                 curDate = response["data"]["repository"]["object"]["blame"]["ranges"][i]["commit"]["committedDate"]
+                print(curDate)
+                print(i)
                 if(i == 0):
                     commitDate = curDate
                 else:
