@@ -60,10 +60,13 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
 
     if("gbHumanitarian" in path):
         csvPath = gbHumCSV
+        releaseType = "gbHumanitarian"
     elif("gbOpen" in path):
         csvPath = gbOpenCSV
+        releaseType = "gbOpen"
     elif("gbAuthoritative" in path):
         csvPath = gbAuthCSV
+        releaseType = "gbAuthoritative"
     else:
         continue
     
@@ -102,8 +105,11 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         #Calculate geometry statistics
         #We'll use the geoJSON here, as the statistics (i.e., vertices) will be most comparable
         #to other cases.
-        geojsonSearch = [x for x in filenames if re.search('.geojson', x)]
-        print(geojsonSearch)
+        #Build geoJSON link
+
+        gJLink = "https://github.com/wmgeolab/geoBoundaries/tree/main/releaseData/" + releaseType + "/" + meta['boundaryISO'] + "/" + meta["boundaryType"] + "/geoBoundaries-" + meta['boundaryISO'] + "-" + meta["boundaryType"] + ".geojson"
+        print(gjLink)
+
         if not geojsonSearch:
             print('Error: Missing GeoJSON file!')
             continue
@@ -111,7 +117,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         # load as geopandas
         try:
             # local file
-            with open(path + "/" + geojsonSearch[0], "r", encoding='utf-8') as g:
+            with open(gJLink, "r", encoding='utf-8') as g:
                 geom = geopandas.read_file(g)
         except:
             # large LFS file, need to fetch from url
