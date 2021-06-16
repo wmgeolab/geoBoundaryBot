@@ -110,26 +110,14 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         gJLink = "https://github.com/wmgeolab/geoBoundaries/tree/main/releaseData/" + releaseType + "/" + meta['boundaryISO'] + "/" + meta["boundaryType"] + "/geoBoundaries-" + meta['boundaryISO'] + "-" + meta["boundaryType"] + ".geojson"
         print(gJLink)
 
-        if not geojsonSearch:
+        if not gJLink:
             print('Error: Missing GeoJSON file!')
             continue
         
-        # load as geopandas
-        try:
-            # local file
-            with open(gJLink, "r", encoding='utf-8') as g:
-                geom = geopandas.read_file(g)
-        except:
-            # large LFS file, need to fetch from url
-            # create url
-            relPath = path[path.find('releaseData/'):] + "/" + geojsonSearch[0]
-            url = 'https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/main/' + relPath
-            print('Note: LFS file! Fetching from', url)
-            # download as in-memory file-like stringio
-            text = urllib.request.urlopen(url).read().decode('utf8')
-            fobj = io.StringIO(text)
-            # load from file-like stringio
-            geom = geopandas.read_file(fobj)
+        text = urllib.request.urlopen(gJLink).read().decode('utf8')
+        fobj = io.StringIO(text)
+        geom = geopandas.read_file(fobj)
+
         admCount = len(geom)
         
         vertices=[]
