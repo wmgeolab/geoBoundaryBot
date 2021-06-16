@@ -167,6 +167,12 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
 
         with open(csvPath, mode='a', encoding='utf-8') as f:
             f.write(metaLine)
+        
+        #Cleanup for memory
+        del metaLine
+        del geom
+        del lengthGeom
+        del areaGeom
 
     else:
         print("Error - multiple returns from metaSearch!")
