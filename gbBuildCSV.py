@@ -118,9 +118,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
             continue
         
         try:
-            text = urllib.request.urlopen(gJLink).read().decode('utf8')
-            fobj = io.StringIO(text)
-            geom = geopandas.read_file(fobj)
+            #text = urllib.request.urlopen(gJLink).read().decode('utf8')
+            #fobj = io.StringIO(text)
+            geom = geopandas.read_file(gJLink)
 
             admCount = len(geom)
             
