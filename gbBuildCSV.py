@@ -108,7 +108,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         #Build geoJSON link
 
         gJLink = "https://github.com/wmgeolab/geoBoundaries/tree/main/releaseData/" + releaseType + "/" + meta['boundaryISO'] + "/" + meta["boundaryType"] + "/geoBoundaries-" + meta['boundaryISO'] + "-" + meta["boundaryType"] + ".geojson"
-        print(gjLink)
+        print(gJLink)
 
         if not geojsonSearch:
             print('Error: Missing GeoJSON file!')
