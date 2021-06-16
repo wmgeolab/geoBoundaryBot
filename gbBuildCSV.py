@@ -113,30 +113,34 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
             print('Error: Missing GeoJSON file!')
             continue
         
-        text = urllib.request.urlopen(gJLink).read().decode('utf8')
-        fobj = io.StringIO(text)
-        geom = geopandas.read_file(fobj)
+        try:
+            text = urllib.request.urlopen(gJLink).read().decode('utf8')
+            fobj = io.StringIO(text)
+            geom = geopandas.read_file(fobj)
 
-        admCount = len(geom)
-        
-        vertices=[]
-        
-        for i, row in geom.iterrows():
-            n = 0
-            if(row.geometry.type.startswith("Multi")):
-                for seg in row.geometry:
-                    n += len(seg.exterior.coords)
-            else:
-                n = len(row.geometry.exterior.coords)
+            admCount = len(geom)
             
-            vertices.append(n) ###
-        
-        # DEBUG
-        if len(vertices) == 0:
-            print('Error: Empty file?', geom, len(geom), vertices, len(list(geom.iterrows())) )
-            continue
-        
-        metaLine = metaLine + str(admCount) + '","' + str(round(sum(vertices)/len(vertices),0)) + '","' + str(min(vertices)) + '","' + str(max(vertices)) + '","'
+            vertices=[]
+            
+            for i, row in geom.iterrows():
+                n = 0
+                if(row.geometry.type.startswith("Multi")):
+                    for seg in row.geometry:
+                        n += len(seg.exterior.coords)
+                else:
+                    n = len(row.geometry.exterior.coords)
+                
+                vertices.append(n) ###
+            
+            # DEBUG
+            if len(vertices) == 0:
+                print('Error: Empty file?', geom, len(geom), vertices, len(list(geom.iterrows())) )
+                continue
+            
+            metaLine = metaLine + str(admCount) + '","' + str(round(sum(vertices)/len(vertices),0)) + '","' + str(min(vertices)) + '","' + str(max(vertices)) + '","'
+        except:
+            print("An error occured while trying to load the file.")
+            metaLine = metaLine + "Error" + "Error" + '","' + "Error" + '","' + "Error" + '","' + "Error" + '","'
 
         #Perimeter Using WGS 84 / World Equidistant Cylindrical (EPSG 4087)
         lengthGeom = geom.copy()
