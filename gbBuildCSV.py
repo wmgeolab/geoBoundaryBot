@@ -70,10 +70,13 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
     else:
         continue
     
+    print("Meta Search Commencing")
     metaSearch = [x for x in filenames if re.search('metaData.json', x)]
     if(len(metaSearch)==1):
+        print("Loading JSON")
         with open(path + "/" + metaSearch[0], encoding='utf-8', mode="r") as j:
             meta = json.load(j)
+        print("JSON loaded")
         
         isoMeta = isoDetails[isoDetails["Alpha-3code"] == meta['boundaryISO']]
         #Build the metadata
@@ -102,6 +105,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
 
         metaLine = metaLine + "https://www.geoboundaries.org/api/gbID/" + meta['boundaryID'] + '","'
 
+        print("Preparing to calculate geometry statistics.")
         #Calculate geometry statistics
         #We'll use the geoJSON here, as the statistics (i.e., vertices) will be most comparable
         #to other cases.
@@ -161,4 +165,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
 
         with open(csvPath, mode='a', encoding='utf-8') as f:
             f.write(metaLine)
+
+    else:
+        print("Error - multiple returns from metaSearch!")
     
