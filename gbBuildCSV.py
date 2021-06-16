@@ -106,8 +106,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         #We'll use the geoJSON here, as the statistics (i.e., vertices) will be most comparable
         #to other cases.
         #Build geoJSON link
-
-        gJLink = "https://github.com/wmgeolab/geoBoundaries/tree/main/releaseData/" + releaseType + "/" + meta['boundaryISO'] + "/" + meta["boundaryType"] + "/geoBoundaries-" + meta['boundaryISO'] + "-" + meta["boundaryType"] + ".geojson"
+        gJLink = "https://github.com/wmgeolab/geoBoundaries/raw/main/releaseData/" + releaseType + "/" + meta['boundaryISO'] + "/" + meta["boundaryType"] + "/geoBoundaries-" + meta['boundaryISO'] + "-" + meta["boundaryType"] + ".geojson"
         print(gJLink)
 
         if not gJLink:
