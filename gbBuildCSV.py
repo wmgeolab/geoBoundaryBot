@@ -6,7 +6,6 @@ import geopandas
 from datetime import datetime
 import urllib.request
 import io
-import psutil
 
 #Initialize workspace
 ws = {}
@@ -58,7 +57,6 @@ with open(gbAuthCSV,'w+') as f:
 
 for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
     print(datetime.now(), path)
-    print(psutil.virtual_memory().percent)
 
     if("gbHumanitarian" in path):
         csvPath = gbHumCSV
