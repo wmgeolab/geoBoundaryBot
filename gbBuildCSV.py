@@ -160,11 +160,13 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
 
         metaLine = metaLine + str(areaGeom['area'].mean()) + '","' + str(areaGeom['area'].min()) + '","' + str(areaGeom['area'].max()) + '","'
         #Cleanup
-        metaLine = metaLine + '"\n'
         metaLine = metaLine.replace("nan","")
 
-        #Strip final entry
+        #Strip final entry 
         metaLine = metaLine[:-3]
+
+        #Newline
+        metaLine = metaLine + '"\n'
 
         with open(csvPath, mode='a', encoding='utf-8') as f:
             f.write(metaLine)
