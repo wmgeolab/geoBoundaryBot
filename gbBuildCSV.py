@@ -163,6 +163,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         metaLine = metaLine + '"\n'
         metaLine = metaLine.replace("nan","")
 
+        #Strip final entry
+        metaLine = metaLine[:-3]
+
         with open(csvPath, mode='a', encoding='utf-8') as f:
             f.write(metaLine)
         
