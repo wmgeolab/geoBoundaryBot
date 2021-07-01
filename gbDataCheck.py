@@ -131,7 +131,6 @@ def geometryCheck(ws):
                 warnBuffer = 1
                 for index, row in dta.iterrows():
                     shortRow = [v for k, v in row.iteritems() if k not in ("geometry")]
-                    print(shortRow)
                     validBounds = 1
                     validGeom = 1
                     warnBuffer = 0

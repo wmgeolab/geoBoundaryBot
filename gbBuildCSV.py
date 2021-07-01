@@ -157,7 +157,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         areaGeom = geom.copy()
         areaGeom = areaGeom.to_crs(epsg=6933)
         areaGeom["area"] = areaGeom['geometry'].area / 10**6 #sqkm
-
+        
         metaLine = metaLine + str(areaGeom['area'].mean()) + '","' + str(areaGeom['area'].min()) + '","' + str(areaGeom['area'].max()) + '","'
         #Cleanup
         metaLine = metaLine.replace("nan","")
