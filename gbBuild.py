@@ -459,9 +459,10 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             
             os.system(write)    
 
-            #Do a second write, this time with a small level of simplification
+            #Do a second write, this time with simplification.
+            #Simplification attempts to keep around 100-meter resolution along boundaries.
             write = ("mapshaper-xl 6gb " + workingPath + row["boundaryID"] + ".geoJSON" +
-                    " -simplify interval=.00001 keep-shapes" +
+                    " -simplify interval=.001 keep-shapes" +
                     " -clean gap-fill-area=500m2 snap-interval=.00001" +
                     " -o format=shapefile " + shpOUT_simp +
                     " -o format=topojson " + topoOUT_simp +
