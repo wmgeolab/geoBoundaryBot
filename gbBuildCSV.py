@@ -72,6 +72,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
     
     print("Meta Search Commencing")
     metaSearch = [x for x in filenames if re.search('metaData.json', x)]
+    print(metaSearch)
     if(len(metaSearch)==1):
         print("Loading JSON")
         with open(path + "/" + metaSearch[0], encoding='utf-8', mode="r") as j:
@@ -95,8 +96,8 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         meta['licenseDetail'] = meta["licenseDetail"].replace('\\','')
         meta['licenseDetail'] = meta["licenseDetail"].replace('"','')
 
-        metaLine = metaLine + meta['boundarySource-1'] + '","' + meta['boundarySource-2'] + '","' + meta['boundaryLicense'] + '","' + meta['licenseDetail'] + '","' + meta['licenseSource'] + '","'
-        metaLine = metaLine + meta['boundarySourceURL'] + '","' + meta['sourceDataUpdateDate'] + '","' + meta["buildUpdateDate"] + '","'
+        metaLine = metaLine + meta['boundarySource-1'] + '","' + meta['boundarySource-2'] + '","' + meta['boundaryLicense'] + '","' + meta['licenseDetail'] + '","' + meta['licenseSource'].replace("https//","").replace("https://","") + '","'
+        metaLine = metaLine + meta['boundarySourceURL'].replace("https//","https://").replace("https://","") + '","' + meta['sourceDataUpdateDate'] + '","' + meta["buildUpdateDate"] + '","'
         
         
         metaLine = metaLine + isoMeta["Continent"].values[0] + '","' + isoMeta["UNSDG-region"].values[0] + '","'
