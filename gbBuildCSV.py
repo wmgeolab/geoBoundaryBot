@@ -96,8 +96,8 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         meta['licenseDetail'] = meta["licenseDetail"].replace('\\','')
         meta['licenseDetail'] = meta["licenseDetail"].replace('"','')
 
-        metaLine = metaLine + meta['boundarySource-1'] + '","' + meta['boundarySource-2'] + '","' + meta['boundaryLicense'] + '","' + meta['licenseDetail'] + '","' + meta['licenseSource'].replace("https//","").replace("https://","") + '","'
-        metaLine = metaLine + meta['boundarySourceURL'].replace("https//","https://").replace("https://","") + '","' + meta['sourceDataUpdateDate'] + '","' + meta["buildUpdateDate"] + '","'
+        metaLine = metaLine + meta['boundarySource-1'] + '","' + meta['boundarySource-2'] + '","' + meta['boundaryLicense'] + '","' + meta['licenseDetail'].replace("https//","").replace("https://","").replace("http//","").replace("http://","") + '","' + meta['licenseSource'].replace("https//","").replace("https://","").replace("http//","").replace("http://","")  + '","'
+        metaLine = metaLine + meta['boundarySourceURL'].replace("https//","https://").replace("https://","").replace("http//","").replace("http://","")  + '","' + meta['sourceDataUpdateDate'] + '","' + meta["buildUpdateDate"] + '","'
         
         
         metaLine = metaLine + isoMeta["Continent"].values[0] + '","' + isoMeta["UNSDG-region"].values[0] + '","'
