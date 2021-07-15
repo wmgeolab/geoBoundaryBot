@@ -138,11 +138,12 @@ def geometryCheck(ws):
                     ymin = row["geometry"].bounds[1]
                     xmax = row["geometry"].bounds[2]
                     ymax = row["geometry"].bounds[3]
-                    tol = 1e-12
+                    tol = 1e-5
                     valid = ((xmin >= -180-tol) and (xmax <= 180+tol) and (ymin >= -90-tol) and (ymax <= 90+tol))
                     if not valid:
                         checkFail = 1
                         validBounds = 0
+                        gbHelpers.logWrite(ws["checkType"], "CRITICAL: Something is wrong with this geometry: " + str(explain_validity(row["geometry"])))
                     if(not row["geometry"].is_valid):
                         gbHelpers.logWrite(ws["checkType"], "WARN: Something is wrong with this geometry: " + str(explain_validity(row["geometry"])))
                         
