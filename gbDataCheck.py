@@ -143,7 +143,7 @@ def geometryCheck(ws):
                     if not valid:
                         checkFail = 1
                         validBounds = 0
-                        gbHelpers.logWrite(ws["checkType"], "CRITICAL: Something is wrong with this geometry: " + str(explain_validity(row["geometry"])))
+                        gbHelpers.logWrite(ws["checkType"], "CRITICAL: This geometry seems to extend past the boundaries of the earth: " + str(explain_validity(row["geometry"])))
                     if(not row["geometry"].is_valid):
                         gbHelpers.logWrite(ws["checkType"], "WARN: Something is wrong with this geometry: " + str(explain_validity(row["geometry"])))
                         
