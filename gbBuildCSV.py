@@ -140,7 +140,14 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
             # DEBUG
             if len(vertices) == 0:
                 print('Error: Empty file?', geom, len(geom), vertices, len(list(geom.iterrows())) )
-                continue
+                print("Falling back to JSON.")
+                try:
+                    with open(gJLink) as f:
+                        geom = json.load(f)["features"]
+                    vertices = len(geom[0]["geometry"]["coordinates"])
+                except:
+                    print("JSON fallback failed.")
+                
             
             metaLine = metaLine + str(admCount) + '","' + str(round(sum(vertices)/len(vertices),0)) + '","' + str(min(vertices)) + '","' + str(max(vertices)) + '","'
         except:
