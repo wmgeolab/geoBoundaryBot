@@ -155,18 +155,24 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
             metaLine = metaLine + "Error" + "Error" + '","' + "Error" + '","' + "Error" + '","' + "Error" + '","'
 
         #Perimeter Using WGS 84 / World Equidistant Cylindrical (EPSG 4087)
-        lengthGeom = geom.copy()
-        lengthGeom = lengthGeom.to_crs(epsg=4087)
-        lengthGeom["length"] = lengthGeom["geometry"].length / 1000 #km
-        
-        metaLine = metaLine + str(lengthGeom["length"].mean()) + '","' + str(lengthGeom["length"].min()) + '","' + str(lengthGeom["length"].max()) + '","'
+        try:
+            lengthGeom = geom.copy()
+            lengthGeom = lengthGeom.to_crs(epsg=4087)
+            lengthGeom["length"] = lengthGeom["geometry"].length / 1000 #km
+            metaLine = metaLine + str(lengthGeom["length"].mean()) + '","' + str(lengthGeom["length"].min()) + '","' + str(lengthGeom["length"].max()) + '","'
+        except:
+            metaLine = metaLine + "" + '","' + "" + '","' + "" + '","'
 
         #Area #mean min max Using WGS 84 / EASE-GRID 2 (EPSG 6933)
-        areaGeom = geom.copy()
-        areaGeom = areaGeom.to_crs(epsg=6933)
-        areaGeom["area"] = areaGeom['geometry'].area / 10**6 #sqkm
-        
-        metaLine = metaLine + str(areaGeom['area'].mean()) + '","' + str(areaGeom['area'].min()) + '","' + str(areaGeom['area'].max()) + '","'
+        try:
+            areaGeom = geom.copy()
+            areaGeom = areaGeom.to_crs(epsg=6933)
+            areaGeom["area"] = areaGeom['geometry'].area / 10**6 #sqkm
+            
+            metaLine = metaLine + str(areaGeom['area'].mean()) + '","' + str(areaGeom['area'].min()) + '","' + str(areaGeom['area'].max()) + '","'
+        except:
+            metaLine = metaLine + "" + '","' + "" + '","' + "" + '","'
+            
         #Cleanup
         metaLine = metaLine.replace("nan","")
 
@@ -182,8 +188,12 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         #Cleanup for memory
         del metaLine
         del geom
-        del lengthGeom
-        del areaGeom
+
+        try:
+            del lengthGeom
+            del areaGeom
+        except:
+            pass
 
     else:
         print("Error - multiple returns from metaSearch!")
