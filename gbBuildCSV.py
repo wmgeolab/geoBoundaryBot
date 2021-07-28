@@ -148,8 +148,11 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
                 except:
                     print("JSON fallback failed.")
                 
+                metaLine = metaLine + str(admCount) + '","' + str(round(vertices,0)) + '","' + str(vertices) + '","' + str(vertices) + '","'
+            else:
+                metaLine = metaLine + str(admCount) + '","' + str(round(sum(vertices)/len(vertices),0)) + '","' + str(min(vertices)) + '","' + str(max(vertices)) + '","'
+                
             
-            metaLine = metaLine + str(admCount) + '","' + str(round(sum(vertices)/len(vertices),0)) + '","' + str(min(vertices)) + '","' + str(max(vertices)) + '","'
         except:
             print("An error occured while trying to load the file.")
             metaLine = metaLine + "Error" + "Error" + '","' + "Error" + '","' + "Error" + '","' + "Error" + '","'
