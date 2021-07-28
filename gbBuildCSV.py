@@ -4,8 +4,7 @@ import json
 import pandas as pd
 import geopandas
 from datetime import datetime
-import urllib.request
-import io
+import requests
 
 #Initialize workspace
 ws = {}
@@ -142,9 +141,10 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
                 print('Error: Empty file?', geom, len(geom), vertices, len(list(geom.iterrows())) )
                 print("Falling back to JSON.")
                 try:
-                    with open(gJLink) as f:
-                        geom = json.load(f)["features"]
-                    vertices = len(geom[0]["geometry"]["coordinates"])
+                    geom = requests.get(gJLink).json()["features"]
+                    vertices = 0
+                    for i in range(0,len(geom[0]["geometry"]["coordinates"])):
+                        vertices += len(geom[0]["geometry"]["coordinates"][i][0])
                 except:
                     print("JSON fallback failed.")
                 
