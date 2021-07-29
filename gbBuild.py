@@ -451,7 +451,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             #New in 4.0: we are now snapping to an approximately 1 meter grid.
             #To the surprise of hopefully noone, our products are not suitable for applications which require
             #sub-.1 meter accuracy (true limits will be much higher than this, due to data accuracy).
-            write = ("mapshaper-xl 5gb " + workingPath + row["boundaryID"] + ".geoJSON" +
+            write = ("mapshaper-xl 6gb " + workingPath + row["boundaryID"] + ".geoJSON" +
                     " -clean gap-fill-area=500m2 snap-interval=.00001" +
                     " -o format=shapefile " + shpOUT +
                     " -o format=topojson " + topoOUT +
@@ -461,7 +461,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
             #Do a second write, this time with simplification.
             #Simplification attempts to keep around 100-meter resolution along boundaries.
-            write = ("mapshaper-xl 5gb " + workingPath + row["boundaryID"] + ".geoJSON" +
+            write = ("mapshaper-xl 6gb " + workingPath + row["boundaryID"] + ".geoJSON" +
                     " -simplify dp interval=100 keep-shapes" +
                     " -clean gap-fill-area=500m2 snap-interval=.00001" +
                     " -o format=shapefile " + shpOUT_simp +
