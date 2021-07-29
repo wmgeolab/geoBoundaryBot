@@ -400,7 +400,8 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             print(shp)
             print(geojson)
             try:
-                dta = geopandas.read_file(workingPath + shp[0])
+                #dta = geopandas.read_file(workingPath + shp[0])
+                print("Test")
             except:
                 try:
                     dta = geopandas.read_file(workingPath + geojson[0])
