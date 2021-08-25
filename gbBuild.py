@@ -421,7 +421,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             if(len(nameCol) == 1):
                 dta = dta.rename(columns={nameCol[0]:"shapeName"})
             
-            isoC = set(['ISO', 'ISO_code', 'ISO_Code', 'iso', 'shapeISO', 'shapeiso', 'shape_iso']) 
+            isoC = set(['ISO', 'ISO_code', 'ISO_Code', 'ISO_CODE', 'iso', 'shapeISO', 'shapeiso', 'shape_iso']) 
             isoCol = list(isoC & set(dta.columns))
             if(len(isoCol) == 1):
                 dta = dta.rename(columns={isoCol[0]:"shapeISO"})
