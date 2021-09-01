@@ -42,7 +42,7 @@ except:
 
 #Create headers for each CSV
 def headerWriter(f):
-    f.write("boundaryID,boundaryName,boundaryISO,boundaryYearRepresented,boundaryType,boundaryCanonical,boundarySource-1,boundarySource-2,boundaryLicense,licenseDetail,licenseSource,boundarySourceURL,sourceDataUpdateDate,buildUpdateDate,Continent,UNSDG-region,UNSDG-subregion,worldBankIncomeGroup,apiURL,admUnitCount,meanVertices,minVertices,maxVertices,meanPerimeterLengthKM,minPerimeterLengthKM,maxPerimeterLengthKM,meanAreaSqKM,minAreaSqKM,maxAreaSqKM\n")
+    f.write("boundaryID,boundaryName,boundaryISO,boundaryYearRepresented,boundaryType,boundaryCanonical,boundarySource-1,boundarySource-2,boundaryLicense,licenseDetail,licenseSource,boundarySourceURL,sourceDataUpdateDate,buildUpdateDate,Continent,UNSDG-region,UNSDG-subregion,worldBankIncomeGroup,apiURL,admUnitCount,meanVertices,minVertices,maxVertices,sumVertices,meanPerimeterLengthKM,minPerimeterLengthKM,maxPerimeterLengthKM,sumPerimeterLengthKM,meanAreaSqKM,minAreaSqKM,maxAreaSqKM,sumAreaSqKM\n")
 
 with open(gbOpenCSV,'w+') as f:
     headerWriter(f)
@@ -148,9 +148,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
                 except:
                     print("JSON fallback failed.")
                 
-                metaLine = metaLine + str(admCount) + '","' + str(round(vertices,0)) + '","' + str(vertices) + '","' + str(vertices) + '","'
+                metaLine = metaLine + str(admCount) + '","' + str(round(vertices,0)) + '","' + str(vertices) + '","' + str(vertices) + '","' + str(vertices) + '","'
             else:
-                metaLine = metaLine + str(admCount) + '","' + str(round(sum(vertices)/len(vertices),0)) + '","' + str(min(vertices)) + '","' + str(max(vertices)) + '","'
+                metaLine = metaLine + str(admCount) + '","' + str(round(sum(vertices)/len(vertices),0)) + '","' + str(min(vertices)) + '","' + str(max(vertices)) + '","' + str(sum(vertices)) + '","'
                 
             
         except:
@@ -162,9 +162,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
             lengthGeom = geom.copy()
             lengthGeom = lengthGeom.to_crs(epsg=4087)
             lengthGeom["length"] = lengthGeom["geometry"].length / 1000 #km
-            metaLine = metaLine + str(lengthGeom["length"].mean()) + '","' + str(lengthGeom["length"].min()) + '","' + str(lengthGeom["length"].max()) + '","'
+            metaLine = metaLine + str(lengthGeom["length"].mean()) + '","' + str(lengthGeom["length"].min()) + '","' + str(lengthGeom["length"].max()) + '","' + str(lengthGeom["length"].sum()) + '","'
         except:
-            metaLine = metaLine + "" + '","' + "" + '","' + "" + '","'
+            metaLine = metaLine + "" + '","' + "" + '","' + "" + '","' + "" + '","'
 
         #Area #mean min max Using WGS 84 / EASE-GRID 2 (EPSG 6933)
         try:
@@ -172,9 +172,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
             areaGeom = areaGeom.to_crs(epsg=6933)
             areaGeom["area"] = areaGeom['geometry'].area / 10**6 #sqkm
             
-            metaLine = metaLine + str(areaGeom['area'].mean()) + '","' + str(areaGeom['area'].min()) + '","' + str(areaGeom['area'].max()) + '","'
+            metaLine = metaLine + str(areaGeom['area'].mean()) + '","' + str(areaGeom['area'].min()) + '","' + str(areaGeom['area'].max()) + '","' + str(areaGeom['area'].sum()) + '","'
         except:
-            metaLine = metaLine + "" + '","' + "" + '","' + "" + '","'
+            metaLine = metaLine + "" + '","' + "" + '","' + "" + '","' + "" + '","'
             
         #Cleanup
         metaLine = metaLine.replace("nan","")
