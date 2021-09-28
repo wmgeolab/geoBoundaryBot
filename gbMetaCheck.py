@@ -95,12 +95,12 @@ def metaCheck(ws):
                     if(("Year" in key) or "year" in key):
                         try:
                             year = int(float(val))
-                            if( (year > 1990) and (year <= datetime.datetime.now().year)):
+                            if( (year > 1950) and (year <= datetime.datetime.now().year)):
                                 gbHelpers.logWrite(ws["checkType"], "Valid year " + str(year) + " detected.")
                                 req["year"] = 1
                             else:
                                 gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The year in the meta.txt file is invalid: " + str(year))
-                                gbHelpers.logWrite(ws["checkType"], "We expect a value between 1990 and " + str(datetime.datetime.now().year))
+                                gbHelpers.logWrite(ws["checkType"], "We expect a value between 1950 and " + str(datetime.datetime.now().year))
                                 checkFail = 1
                         except:
                                 gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The year in the meta.txt file is invalid.")
