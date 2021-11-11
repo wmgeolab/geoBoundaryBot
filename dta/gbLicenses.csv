@@ -29,3 +29,4 @@ license_name, licenseText, gbOpen, gbAuthoritative, gbHumanitarian, lMustAttribu
 "Open Data Commons Public Domain Dedication and License (PDDL) v1.0", "PDDLv1.pdf", Yes, Yes, Yes, No, No, Yes, No, No
 "UN SALB Data License","SALB_DataSpecifications_v2.0.pdf", No, Yes, Yes, Yes, Yes, Yes, Yes, Yes
 "Attribution 2.5 Denmark (CC BY 2.5 DK)","Navnglvelse2_5.pdf",Yes, Yes, Yes, Yes, No, Yes, No, No
+"Creative Commons Attribution 2.5 Generic", "CCBY_2.5_Generic.pdf", Yes, Yes, Yes, Yes, No, Yes, No, No
