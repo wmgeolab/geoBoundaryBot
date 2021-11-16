@@ -12,20 +12,11 @@ from rich.traceback import install
 
 install()
 
-
 outPath = "tmp/CGAZ/"
 gBPath = "../geoBoundaries/releaseData/gbOpen/"
 
-"""
-for faster development geopackage is faster to parse
-if you need to update the file just run this GDAL library tool:
-    ogr2ogr usDoSLSIB_Mar2020.gpkg usDoSLSIB_Mar2020.geojson
-
-nb. ogr2ogr uses reverse order input/output convention for weird historical reasons
-"""
-stdGeom = "./dta/usDoSLSIB_Mar2020.gpkg"
+stdGeom = "./dta/usDoSLSIB_Mar2020.geojson"
 stdISO = "./dta/iso_3166_1_alpha_3.csv"
-
 
 # ignore warnings about using '()' in str.contains https://stackoverflow.com/a/39902267/697964
 warnings.filterwarnings("ignore", "This pattern has match groups")
