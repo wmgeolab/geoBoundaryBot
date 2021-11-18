@@ -1,366 +1,315 @@
-import json
-import pandas as pd
-import sys
-import subprocess
+import logging
 import os
+import sys
+import warnings
+from subprocess import PIPE, run
 
-outPath = "/home/dan/tmp/CGAZ/"
-gBPath = "/home/dan/git/geoBoundaries/releaseData/gbOpen/"
+import geopandas
+import pandas as pd
+from rich import inspect
+from rich.logging import RichHandler
+from rich.traceback import install
+
+install()
+
+outPath = "tmp/CGAZ/"
+gBPath = "../geoBoundaries/releaseData/gbOpen/"
 
 stdGeom = "./dta/usDoSLSIB_Mar2020.geojson"
-stdISO= "./dta/iso_3166_1_alpha_3.csv"
+stdISO = "./dta/iso_3166_1_alpha_3.csv"
 
-with open(stdGeom) as f:
-    globalDta = json.load(f)
-
-isoCSV = pd.read_csv(stdISO)
-
-disputedGeoms = {}
-disputedGeoms['type'] = globalDta['type']
-disputedGeoms['crs'] = globalDta['crs']
-disputedGeoms['features'] = []
-
-otherGeoms = {}
-otherGeoms['type'] = globalDta['type']
-otherGeoms['crs'] = globalDta['crs']
-otherGeoms['features'] = []
-
-#Iterate over the DoS cases
-for i in range(0, len(globalDta['features'])):
-    #Handle disputed regions.
-    #All disputed regions will be assigned to a "Disputed" set of regions, burned in at the end.
-    if ("(disp)" in str(globalDta['features'][i]['properties']['COUNTRY_NA'])):
-        disputedGeoms['features'].append(globalDta['features'][i])
-
-    else:
-        #For CGAZ, all territories are merged into their parent country.
-        if("(UK)" in globalDta['features'][i]['properties']['COUNTRY_NA']):
-            globalDta['features'][i]['properties']['COUNTRY_NA'] = "United Kingdom"
-
-        if("(US)" in globalDta['features'][i]['properties']['COUNTRY_NA']):
-            globalDta['features'][i]['properties']['COUNTRY_NA'] = "United States"
-
-        if("(Aus)" in globalDta['features'][i]['properties']['COUNTRY_NA']):
-            globalDta['features'][i]['properties']['COUNTRY_NA'] = "Australia"
-
-        if("Greenland (Den)" in globalDta['features'][i]['properties']['COUNTRY_NA']):
-            globalDta['features'][i]['properties']['COUNTRY_NA'] = "Greenland"
-
-        if("(Den)" in globalDta['features'][i]['properties']['COUNTRY_NA']):
-            globalDta['features'][i]['properties']['COUNTRY_NA'] = "Denmark"
-
-        if("(Fr)" in globalDta['features'][i]['properties']['COUNTRY_NA']):
-            globalDta['features'][i]['properties']['COUNTRY_NA'] = "France"
-
-        if("(Ch)" in globalDta['features'][i]['properties']['COUNTRY_NA']):
-            globalDta['features'][i]['properties']['COUNTRY_NA'] = "China"
-
-        if("(Nor)" in globalDta['features'][i]['properties']['COUNTRY_NA']):
-            globalDta['features'][i]['properties']['COUNTRY_NA'] = "Norway"
-
-        if("(NZ)" in globalDta['features'][i]['properties']['COUNTRY_NA']):
-            globalDta['features'][i]['properties']['COUNTRY_NA'] = "New Zealand"
-
-        if("Netherlands [Caribbean]" in globalDta['features'][i]['properties']['COUNTRY_NA']):
-            globalDta['features'][i]['properties']['COUNTRY_NA'] = "Netherlands"
-
-        if("(Neth)" in globalDta['features'][i]['properties']['COUNTRY_NA']):
-            globalDta['features'][i]['properties']['COUNTRY_NA'] = "Netherlands"
-
-        if("Portugal [" in globalDta['features'][i]['properties']['COUNTRY_NA']):
-            globalDta['features'][i]['properties']['COUNTRY_NA'] = "Portugal"
-
-        if("Spain [" in globalDta['features'][i]['properties']['COUNTRY_NA']):
-            globalDta['features'][i]['properties']['COUNTRY_NA'] = "Spain"   
-
-        otherGeoms['features'].append(globalDta['features'][i])
-
-#Add ISO codes
-
-#This function is ridiculous, and slowly grew by accretion.
-#Need to just do a list at some point.
-#Don't want to change the underlying data is the challenge.
-def isoLookup(country):
-    if(country == "Antigua & Barbuda"):
-        return("ATG")
-    if(country == "Bahamas, The"):
-        return("BHS")
-    if(country == "Bosnia & Herzegovina"):
-        return("BIH")
-    if(country == "Congo, Dem Rep of the"):
-        return("COD")
-    if(country == "Congo, Rep of the"):
-        return("COG")
-    if(country == "Cabo Verde"):
-        return("CPV")
-    if(country == "Cote d'Ivoire"):
-        return("CIV")
-    if(country == "Central African Rep"):
-        return("CAF")
-    if(country == "Czechia"):
-        return("CZE")
-    if(country == "Gambia, The"):
-        return("GMB")
-    if(country == "Iran"):
-        return("IRN")
-    if(country == "Korea, North"):
-        return("PRK")
-    if(country == "Korea, South"):
-        return("KOR")
-    if(country == "Laos"):
-        return("LAO")
-    if(country == "Macedonia"):
-        return("MKD")
-    if(country == "Marshall Is"):
-        return("MHL")
-    if(country == "Micronesia, Fed States of"):
-        return("FSM")
-    if(country == "Moldova"):
-        return("MDA")
-    if(country == "Sao Tome & Principe"):
-        return("STP")
-    if(country == "Solomon Is"):
-        return("SLB")
-    if(country == "St Kitts & Nevis"):
-        return("KNA")
-    if(country == "St Lucia"):
-        return("LCA")
-    if(country == "St Vincent & the Grenadines"):
-        return("VCT")
-    if(country == "Syria"):
-        return("SYR")
-    if(country == "Tanzania"):
-        return("TZA")
-    if(country == "Vatican City"):
-        return("VAT")
-    if(country == "United States"):
-        return("USA")
-    if(country == "Antarctica"):
-        return("ATA")
-    if(country == "Bolivia"):
-        return("BOL")
-    if(country == "Brunei"):
-        return("BRN")
-    if(country == "Russia"):
-        return("RUS")
-    if(country == "Trinidad & Tobago"):
-        return("TTO")
-    if(country == "Swaziland"):
-        return("SWZ")
-    if(country == "Venezuela"):
-        return("VEN")
-    if(country == "Vietnam"):
-        return("VNM")
-    if(country == "Burma"):
-        return("MMR")
-    return("No Match")
-
-for i in range(0, len(otherGeoms['features'])):
-    cName = otherGeoms['features'][i]['properties']['COUNTRY_NA']
-    match = isoCSV[isoCSV['Name'] == cName]
-    if(len(match) == 1):
-        print(match.reset_index()['Alpha-3code'][0])
-        otherGeoms['features'][i]['properties']['ISO_CODE'] = match.reset_index()['Alpha-3code'][0]
-    else:
-        if(isoLookup(cName) != "No Match"):
-            otherGeoms['features'][i]['properties']['ISO_CODE'] = isoLookup(cName)
-        else:
-            print("Error - no match.")
-            print(cName)
-            sys.exit()
-
-for i in range(0, len(disputedGeoms['features'])):
-    cName = disputedGeoms['features'][i]['properties']['COUNTRY_NA'].replace(" (disp)", "")
-    match = isoCSV[isoCSV['Name'] == cName]
-    if(len(match) == 1):
-        disputedGeoms['features'][i]['properties']['ISO_CODE'] = match.reset_index()['Alpha-3code'][0]
-    else:
-        if(isoLookup(cName) != "No Match"):
-            disputedGeoms['features'][i]['properties']['ISO_CODE'] = isoLookup(cName)
-        else:
-            disputedGeoms['features'][i]['properties']['ISO_CODE'] = "None"
-
-#Save the two geometries
-with open(outPath + "baseISO.geojson", "w") as f:
-    json.dump(otherGeoms, f)
-
-with open(outPath + "disputedISO.geojson", "w") as f:
-    json.dump(disputedGeoms, f)
+# ignore warnings about using '()' in str.contains https://stackoverflow.com/a/39902267/697964
+warnings.filterwarnings("ignore", "This pattern has match groups")
 
 
-#Dissolve based on ISO Code
-msRun = ("mapshaper-xl " + outPath + "baseISO.geojson" + 
-        " -dissolve fields='ISO_CODE' multipart"  +
-        " -o force format=geojson " + outPath + "baseISO.geojson")
-process = subprocess.Popen(
-                [msRun],
-                shell=True, 
-                stdout=subprocess.PIPE, 
-                stderr=subprocess.PIPE)
-process.wait()
-output, error = process.communicate()
-print(str(error) + msRun)
-
-msRun = ("mapshaper-xl " + outPath + "disputedISO.geojson" + 
-        " -dissolve fields='ISO_CODE' multipart" +
-        " -o format=geojson " + outPath + "disputedISO.geojson")
-process = subprocess.Popen(
-                [msRun],
-                shell=True, 
-                stdout=subprocess.PIPE, 
-                stderr=subprocess.PIPE)
-process.wait()
-output, error = process.communicate()
-print(str(error) + msRun)
-
-#reload with the dissolve applied
-with open(outPath + "baseISO.geojson") as f:
-    otherGeoms = json.load(f)
-
-#Iterate over all regions in the baseISO.
-CGAZ_ADM0 = {}
-CGAZ_ADM0['type'] = globalDta['type']
-CGAZ_ADM0['crs'] = globalDta['crs']
-CGAZ_ADM0['features'] = []
-
-CGAZ_ADM1 = {}
-CGAZ_ADM1['type'] = globalDta['type']
-CGAZ_ADM1['crs'] = globalDta['crs']
-CGAZ_ADM1['features'] = []
-
-CGAZ_ADM2 = {}
-CGAZ_ADM2['type'] = globalDta['type']
-CGAZ_ADM2['crs'] = globalDta['crs']
-CGAZ_ADM2['features'] = []
-
-adm0str = ""
-adm1str = ""
-adm2str = ""
-
-for i in range(0, len(otherGeoms['features'])):
-    A0 = {}
-    A0['type'] = globalDta['type']
-    A0['crs'] = globalDta['crs']
-    A0['features'] = []
-
-    A1 = {}
-    A1['type'] = globalDta['type']
-    A1['crs'] = globalDta['crs']
-    A1['features'] = []
-
-    A2 = {}
-    A2['type'] = globalDta['type']
-    A2['crs'] = globalDta['crs']
-    A2['features'] = []
-
-    curISO = otherGeoms['features'][i]['properties']['ISO_CODE']
-
-    A0Path = outPath + "ADM0_"+curISO+".geojson"
-    adm0str = adm0str + A0Path + " "
-    
-    #ADM0 we're working on
-    A0["features"].append(otherGeoms['features'][i])
-
-    with open(A0Path, "w") as f:
-        json.dump(A0, f)
-
-    #Get the ADM1 and ADM2 from geoBoundaries.
-    #There should be only RARE exceptions where ADM1 and ADM2 do not exist.
-    A1Path = gBPath + curISO + "/ADM1/geoBoundaries-"+curISO+"-ADM1.geojson"
-    A2Path = gBPath + curISO + "/ADM2/geoBoundaries-"+curISO+"-ADM2.geojson"
-
-    if(os.path.isfile(A1Path)):
-        msRun = ("mapshaper-xl " + A1Path + 
-                " -simplify keep-shapes percentage=0.10 "
-                " -clip " + A0Path + 
-                " -o format=topojson " + outPath + "ADM1_" + curISO + ".topojson")
-        process = subprocess.Popen(
-                        [msRun],
-                        shell=True, 
-                        stdout=subprocess.PIPE, 
-                        stderr=subprocess.PIPE)
-        process.wait()
-        output, error = process.communicate()
-        print(str(error) + msRun)
-
-        adm1str = adm1str + outPath + "ADM1_" + curISO + ".topojson "
-    
-    if(os.path.isfile(A2Path)):
-        msRun = ("mapshaper-xl " + A2Path + 
-                " -simplify keep-shapes percentage=0.10 "
-                " -clip " + A0Path + 
-                " -o format=topojson " + outPath + "ADM2_" + curISO + ".topojson")
-        process = subprocess.Popen(
-                        [msRun],
-                        shell=True, 
-                        stdout=subprocess.PIPE, 
-                        stderr=subprocess.PIPE)
-        process.wait()
-        output, error = process.communicate()
-        print(str(error) + msRun)
-
-        adm2str = adm2str + outPath + "ADM2_" + curISO + ".topojson "
-
-#Join the ADM0 / ADM1 / ADM2s together into one large geom.
-dropFields = "PROV_34_NA,DIST_34_NA,OBJECTID,Shape_Leng,Shape_Area,shapeISO,id,OBJECTID,"
-
-A0mapShaperFull = ("mapshaper-xl -i " + adm0str + " " + outPath + "disputedISO.geojson" +
-                       " combine-files -merge-layers force" +
-                       " name=globalADM0" +
-                       #" -simplify weighted " + ratio + "% keep-shapes" +
-                       " -clean gap-fill-area=10000km2 keep-shapes" +
-                       " -drop fields=" + dropFields +
-                       " -o format=topojson " + (outPath + "geoBoundariesCGAZ_ADM0.topojson") +
-                       " -o format=geojson " + (outPath + "geoBoundariesCGAZ_ADM0.geojson") +
-                       " -o format=shapefile " + (outPath + "geoBoundariesCGAZ_ADM0.shp")       
-                      )
-process = subprocess.Popen(
-                    [A0mapShaperFull],
-                    shell=True, 
-                    stdout=subprocess.PIPE, 
-                    stderr=subprocess.PIPE)
-process.wait()
-output, error = process.communicate()
-print(str(error) + msRun)
+def cmd(command, **kwargs):
+    log = logging.getLogger()
+    r = run(
+        command, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True, **kwargs
+    )
+    log.debug(r.args)
+    if r.returncode != 0:
+        log.error(f"process exited with returncode {r.returncode}")
+    log.info(r.stdout.strip())
+    log.error(r.stderr.strip())
+    return r
 
 
+def argparse_log(args):
+    print(args)
+    log_levels = [logging.WARNING, logging.INFO, logging.DEBUG]
+    logging.basicConfig(
+        level=log_levels[min(len(log_levels) - 1, args.verbose)],
+        format="%(message)s",
+        datefmt="[%X]",
+        handlers=[RichHandler()],
+    )
+    log = logging.getLogger()
+    return log
 
 
+def preprocess_dta(log):
+    globalDta = geopandas.read_file(stdGeom)
+    isoCSV = pd.read_csv(stdISO)
 
-A1mapShaperFull = ("mapshaper-xl -i " + adm1str + " " + outPath + "disputedISO.geojson" +
-                       " combine-files -merge-layers force" +
-                       " name=globalADM1" +
-                       #" -simplify weighted " + ratio + "% keep-shapes" +
-                       " -clean gap-fill-area=10000km2 keep-shapes" +
-                       " -drop fields=" + dropFields +
-                       " -o format=topojson " + (outPath + "geoBoundariesCGAZ_ADM1.topojson") +
-                       " -o format=geojson " + (outPath + "geoBoundariesCGAZ_ADM1.geojson") +
-                       " -o format=shapefile " + (outPath + "geoBoundariesCGAZ_ADM1.shp")       
-                      )
-process = subprocess.Popen(
-                    [A1mapShaperFull],
-                    shell=True, 
-                    stdout=subprocess.PIPE, 
-                    stderr=subprocess.PIPE)
-process.wait()
-output, error = process.communicate()
-print(str(error) + msRun)
+    # Separate disputedG regions.
+    # All disputedG regions will be assigned to a "Disputed" set of regions, burned in at the end.
+    disputedG = globalDta[globalDta["COUNTRY_NA"].str.contains("(disp)")].copy()
+    G = globalDta[~globalDta["COUNTRY_NA"].str.contains("(disp)")].copy()
 
-A2mapShaperFull = ("mapshaper-xl -i " + adm2str + " " + outPath + "disputedISO.geojson" +
-                       " combine-files -merge-layers force" +
-                       " name=globalADM2" +
-                       #" -simplify weighted " + ratio + "% keep-shapes" +
-                       " -clean gap-fill-area=10000km2 keep-shapes" +
-                       " -drop fields=" + dropFields +
-                       " -o format=topojson " + (outPath + "geoBoundariesCGAZ_ADM2.topojson") +
-                       " -o format=geojson " + (outPath + "geoBoundariesCGAZ_ADM2.geojson") +
-                       " -o format=shapefile " + (outPath + "geoBoundariesCGAZ_ADM2.shp")       
-                      )
-process = subprocess.Popen(
-                    [A2mapShaperFull],
-                    shell=True, 
-                    stdout=subprocess.PIPE, 
-                    stderr=subprocess.PIPE)
-process.wait()
-output, error = process.communicate()
-print(str(error) + msRun)
+    # For CGAZ, all territories are merged into their parent country.
+    # Cleanup country names in DoS cases
+    def country_renamer(country_na: str):
+        test_dict = {
+            "(US)": "United States",
+            "(UK)": "United Kingdom",
+            "(Aus)": "Australia",
+            "Greenland (Den)": "Greenland",
+            "(Den)": "Denmark",
+            "(Fr)": "France",
+            "(Ch)": "China",
+            "(Nor)": "Norway",
+            "(NZ)": "New Zealand",
+            "Netherlands [Caribbean]": "Netherlands",
+            "(Neth)": "Netherlands",
+            "Portugal [": "Portugal",
+            "Spain [": "Spain",
+        }
+
+        default = [country_na]
+        country_na = [v for k, v in test_dict.items() if k in country_na] + default
+        return country_na[0]
+
+    G.COUNTRY_NA = G.COUNTRY_NA.map(country_renamer)
+
+    # Add ISO codes
+
+    # Need to just do a list at some point.
+    # Don't want to change the underlying data is the challenge.
+    def isoLookup(country):
+        switcher = {
+            "Antigua & Barbuda": "ATG",
+            "Bahamas, The": "BHS",
+            "Bosnia & Herzegovina": "BIH",
+            "Congo, Dem Rep of the": "COD",
+            "Congo, Rep of the": "COG",
+            "Cabo Verde": "CPV",
+            "Cote d'Ivoire": "CIV",
+            "Central African Rep": "CAF",
+            "Czechia": "CZE",
+            "Gambia, The": "GMB",
+            "Iran": "IRN",
+            "Korea, North": "PRK",
+            "Korea, South": "KOR",
+            "Laos": "LAO",
+            "Macedonia": "MKD",
+            "Marshall Is": "MHL",
+            "Micronesia, Fed States of": "FSM",
+            "Moldova": "MDA",
+            "Sao Tome & Principe": "STP",
+            "Solomon Is": "SLB",
+            "St Kitts & Nevis": "KNA",
+            "St Lucia": "LCA",
+            "St Vincent & the Grenadines": "VCT",
+            "Syria": "SYR",
+            "Tanzania": "TZA",
+            "Vatican City": "VAT",
+            "United States": "USA",
+            "Antarctica": "ATA",
+            "Bolivia": "BOL",
+            "Brunei": "BRN",
+            "Russia": "RUS",
+            "Trinidad & Tobago": "TTO",
+            "Swaziland": "SWZ",
+            "Venezuela": "VEN",
+            "Vietnam": "VNM",
+            "Burma": "MMR",
+        }
+        switcher_match = switcher.get(country, None)
+
+        isoCSV_match = isoCSV[isoCSV["Name"] == country]
+        if len(isoCSV_match) == 1:
+            isoCSV_match = isoCSV[isoCSV["Name"] == country]["Alpha-3code"].values[0]
+            log.debug(f"csv {isoCSV_match} {country} {isoCSV_match}")
+            return isoCSV_match
+
+        log.debug(f"swi {switcher_match} {country}")
+        return switcher_match
+
+    G["ISO_CODE"] = G.COUNTRY_NA.map(isoLookup)
+
+    # check for nulls in ISO_CODE
+    features_without_iso_code = G[G.ISO_CODE.isna() | G.ISO_CODE == ""]
+    if len(features_without_iso_code) > 0:
+        print("Error - no match.")
+        print(features_without_iso_code)
+        sys.exit(1)
+
+    disputedG.COUNTRY_NA = disputedG.COUNTRY_NA.str.replace(" (disp)", "", regex=False)
+    disputedG["ISO_CODE"] = disputedG.COUNTRY_NA.map(isoLookup)
+    disputedG[disputedG.ISO_CODE.isna() | disputedG.ISO_CODE == ""].ISO_CODE = "None"
+
+    G.to_file("./baseISO.geojson", driver="GeoJSON")
+    disputedG.to_file("./disputedISO.geojson", driver="GeoJSON")
+
+
+def process_geometries(log, args):
+    # reload with the dissolve applied
+    G = geopandas.read_file(f"{outPath}baseISO.geojson")
+
+    adm0str = ""
+    adm1str = ""
+    adm2str = ""
+    for i in G.index:
+        g = G.loc[[i]]
+        adm0str, adm1str, adm2str = process_geometry(args, g, adm0str, adm1str, adm2str)
+
+    return adm0str, adm1str, adm2str
+
+
+def process_geometry(args, g, adm0str, adm1str, adm2str):
+
+    curISO = g["ISO_CODE"].values[0]
+
+    DTA_A0Path = outPath + "ADM0_" + curISO + ".geojson"
+    g.to_file(DTA_A0Path, driver="GeoJSON")
+
+    # Get the ADM1 and ADM2 from geoBoundaries.
+    # There should be only RARE exceptions where ADM1 and ADM2 do not exist.
+    A0Path = gBPath + curISO + "/ADM0/geoBoundaries-" + curISO + "-ADM0.geojson"
+    A1Path = gBPath + curISO + "/ADM1/geoBoundaries-" + curISO + "-ADM1.geojson"
+    A2Path = gBPath + curISO + "/ADM2/geoBoundaries-" + curISO + "-ADM2.geojson"
+    # If they do not exist use the nearest layer to not have gaps in the world
+    if not os.path.isfile(A1Path):
+        A1Path = A0Path
+    if not os.path.isfile(A2Path):
+        A2Path = A1Path
+
+    adm1out = outPath + "ADM1_" + curISO + ".topojson"
+    adm2out = outPath + "ADM2_" + curISO + ".topojson"
+
+    if not args.no_clobber or (args.no_clobber and not os.path.isfile(adm1out)):
+        adm1cmd = cmd(
+            "mapshaper-xl " + A1Path + " -simplify keep-shapes percentage=0.10 "
+            " -clip " + DTA_A0Path + " -o format=topojson " + adm1out
+        )
+        if "Error: JSON parsing error" in adm1cmd.stderr:
+            log.error(A1Path)
+
+    if not args.no_clobber or (args.no_clobber and not os.path.isfile(adm2out)):
+        adm2cmd = cmd(
+            "mapshaper-xl " + A2Path + " -simplify keep-shapes percentage=0.10 "
+            " -clip " + DTA_A0Path + " -o format=topojson " + adm2out
+        )
+        if "Error: JSON parsing error" in adm2cmd.stderr:
+            log.error(A2Path)
+
+    adm0str = adm0str + DTA_A0Path + " "
+    adm1str = adm1str + outPath + "ADM1_" + curISO + ".topojson "
+    adm2str = adm2str + outPath + "ADM2_" + curISO + ".topojson "
+
+    return adm0str, adm1str, adm2str
+
+
+def join_admins(adm0str, adm1str, adm2str):
+    # Join the ADM0 / ADM1 / ADM2s together into one large geom.
+    dropFields = "PROV_34_NA,DIST_34_NA,OBJECTID,Shape_Leng,Shape_Area,shapeISO,id,OBJECTID,id,COUNTRY_NA,Shape_Le_1,shapeName,ADM1_NAME,admin1Name,Type,'ISO Code',LEVEL_1,Shape_Length,ISO2,LEVEL2,SHAPE_Leng,SHAPE_Area,DISTRICT,admin2Name,OBJECTID_1"
+
+    A0mapShaperFull = (
+        "mapshaper-xl -i "
+        + adm0str
+        + " "
+        + outPath
+        + "disputedISO.geojson"
+        + " combine-files -merge-layers force"
+        + " name=globalADM0"
+        +
+        # " -simplify weighted " + ratio + "% keep-shapes" +
+        " -clean gap-fill-area=10000km2 keep-shapes"
+        + " -drop fields="
+        + dropFields
+        + " -o format=topojson "
+        + (outPath + "geoBoundariesCGAZ_ADM0.topojson")
+        + " -o format=geojson "
+        + (outPath + "geoBoundariesCGAZ_ADM0.geojson")
+        + " -o format=shapefile "
+        + (outPath + "geoBoundariesCGAZ_ADM0.shp")
+    )
+    A1mapShaperFull = (
+        "mapshaper-xl -i "
+        + adm1str
+        + " "
+        + outPath
+        + "disputedISO.geojson"
+        + " combine-files -merge-layers force"
+        + " name=globalADM1"
+        +
+        # " -simplify weighted " + ratio + "% keep-shapes" +
+        " -clean gap-fill-area=10000km2 keep-shapes"
+        + " -drop fields="
+        + dropFields
+        + " -o format=topojson "
+        + (outPath + "geoBoundariesCGAZ_ADM1.topojson")
+        + " -o format=geojson "
+        + (outPath + "geoBoundariesCGAZ_ADM1.geojson")
+        + " -o format=shapefile "
+        + (outPath + "geoBoundariesCGAZ_ADM1.shp")
+    )
+    A2mapShaperFull = (
+        "mapshaper-xl -i "
+        + adm2str
+        + " "
+        + outPath
+        + "disputedISO.geojson"
+        + " combine-files -merge-layers force"
+        + " name=globalADM2"
+        +
+        # " -simplify weighted " + ratio + "% keep-shapes" +
+        " -clean gap-fill-area=10000km2 keep-shapes"
+        + " -drop fields="
+        + dropFields
+        + " -o format=topojson "
+        + (outPath + "geoBoundariesCGAZ_ADM2.topojson")
+        + " -o format=geojson "
+        + (outPath + "geoBoundariesCGAZ_ADM2.geojson")
+        + " -o format=shapefile "
+        + (outPath + "geoBoundariesCGAZ_ADM2.shp")
+    )
+
+    cmd(A0mapShaperFull)
+    cmd(A1mapShaperFull)
+    cmd(A2mapShaperFull)
+
+    cmd(
+        "ogr2ogr tmp/CGAZ/geoBoundariesCGAZ_ADM0.gpkg tmp/CGAZ/geoBoundariesCGAZ_ADM0.topojson"
+    )
+    cmd(
+        "ogr2ogr tmp/CGAZ/geoBoundariesCGAZ_ADM1.gpkg tmp/CGAZ/geoBoundariesCGAZ_ADM1.topojson"
+    )
+    cmd(
+        "ogr2ogr tmp/CGAZ/geoBoundariesCGAZ_ADM2.gpkg tmp/CGAZ/geoBoundariesCGAZ_ADM2.topojson"
+    )
+
+
+def dissolve_based_on_ISO_Code(log):
+    cmd(
+        f"mapshaper-xl ./baseISO.geojson -dissolve fields='ISO_CODE' multipart -o force format=geojson {outPath}baseISO.geojson"
+    )
+    cmd(
+        f"mapshaper-xl ./disputedISO.geojson -dissolve fields='ISO_CODE' multipart -o format=geojson {outPath}disputedISO.geojson"
+    )
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--verbose", action="count", default=0)
+    parser.add_argument("-n", "--no-clobber", action="store_true")
+    args = parser.parse_args()
+    log = argparse_log(args)
+
+    preprocess_dta(log)
+    dissolve_based_on_ISO_Code(log)
+    adm0str, adm1str, adm2str = process_geometries(log, args)
+    join_admins(adm0str, adm1str, adm2str)
