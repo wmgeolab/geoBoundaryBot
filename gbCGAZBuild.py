@@ -213,7 +213,7 @@ def process_geometry(args, g, adm0str, adm1str, adm2str):
 
 def join_admins(adm0str, adm1str, adm2str):
     # Join the ADM0 / ADM1 / ADM2s together into one large geom.
-    dropFields = "PROV_34_NA,DIST_34_NA,OBJECTID,Shape_Leng,Shape_Area,shapeISO,id,OBJECTID,id,COUNTRY_NA,Shape_Le_1,shapeName,ADM1_NAME,admin1Name,Type,'ISO Code',LEVEL_1,Shape_Length,ISO2,LEVEL2,SHAPE_Leng,SHAPE_Area,DISTRICT,admin2Name,OBJECTID_1"
+    dropFields = "PROV_34_NA,DIST_34_NA,OBJECTID,Shape_Leng,Shape_Area,shapeISO,id,OBJECTID,id,COUNTRY_NA,Shape_Le_1,ADM1_NAME,admin1Name,Type,'ISO Code',LEVEL_1,Shape_Length,ISO2,LEVEL2,SHAPE_Leng,SHAPE_Area,DISTRICT,admin2Name,OBJECTID_1"
 
     A0mapShaperFull = (
         "mapshaper-xl -i "
