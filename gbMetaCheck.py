@@ -94,14 +94,21 @@ def metaCheck(ws):
                     gbHelpers.logWrite(ws["checkType"], "Detected Key / Value: " + key + " / " + val)
                     if(("Year" in key) or "year" in key):
                         try:
-                            year = int(float(val))
-                            if( (year > 1950) and (year <= datetime.datetime.now().year)):
-                                gbHelpers.logWrite(ws["checkType"], "Valid year " + str(year) + " detected.")
-                                req["year"] = 1
+                            if "to" in val:
+                                date1, date2 = val.split(" to ")
+                                date1 = datetime.datetime.strptime(date1, "%d-%m-%Y")
+                                date2 = datetime.datetime.strptime(date2, "%d-%m-%Y")
+                                gbHelpers.logWrite(ws["checkType"], "Valid date range " + str(val) + " detected.")
+                                req["year"] = 1                                
                             else:
-                                gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The year in the meta.txt file is invalid: " + str(year))
-                                gbHelpers.logWrite(ws["checkType"], "We expect a value between 1950 and " + str(datetime.datetime.now().year))
-                                checkFail = 1
+                                year = int(float(val))
+                                if( (year > 1950) and (year <= datetime.datetime.now().year)):
+                                    gbHelpers.logWrite(ws["checkType"], "Valid year " + str(year) + " detected.")
+                                    req["year"] = 1
+                                else:
+                                    gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The year in the meta.txt file is invalid: " + str(year))
+                                    gbHelpers.logWrite(ws["checkType"], "We expect a value between 1950 and " + str(datetime.datetime.now().year))
+                                    checkFail = 1
                         except:
                                 gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The year in the meta.txt file is invalid.")
                                 checkFail = 1
