@@ -20,6 +20,10 @@ isoDetails = pd.read_csv(ws['working'] + "/geoBoundaryBot/dta/iso_3166_1_alpha_3
                         encoding='utf-8')
 
 
+#Get hash for static links for each boundary
+r = requests.get("https://api.github.com/repos/wmgeolab/geoboundaries/commits/main")
+gitHash = r.json()["sha"]
+
 #Remove any old CSVs for each case
 gbOpenCSV = ws["working"] + "/releaseData/geoBoundariesOpen-meta.csv"
 gbHumCSV = ws["working"] + "/releaseData/geoBoundariesHumanitarian-meta.csv"
@@ -42,7 +46,7 @@ except:
 
 #Create headers for each CSV
 def headerWriter(f):
-    f.write("boundaryID,boundaryName,boundaryISO,boundaryYearRepresented,boundaryType,boundaryCanonical,boundarySource-1,boundarySource-2,boundaryLicense,licenseDetail,licenseSource,boundarySourceURL,sourceDataUpdateDate,buildUpdateDate,Continent,UNSDG-region,UNSDG-subregion,worldBankIncomeGroup,apiURL,admUnitCount,meanVertices,minVertices,maxVertices,meanPerimeterLengthKM,minPerimeterLengthKM,maxPerimeterLengthKM,meanAreaSqKM,minAreaSqKM,maxAreaSqKM\n")
+    f.write("boundaryID,boundaryName,boundaryISO,boundaryYearRepresented,boundaryType,boundaryCanonical,boundarySource-1,boundarySource-2,boundaryLicense,licenseDetail,licenseSource,boundarySourceURL,sourceDataUpdateDate,buildUpdateDate,Continent,UNSDG-region,UNSDG-subregion,worldBankIncomeGroup,apiURL,admUnitCount,meanVertices,minVertices,maxVertices,meanPerimeterLengthKM,minPerimeterLengthKM,maxPerimeterLengthKM,meanAreaSqKM,minAreaSqKM,maxAreaSqKM,staticDownloadLink\n")
 
 with open(gbOpenCSV,'w+') as f:
     headerWriter(f)
@@ -179,6 +183,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         #Cleanup
         metaLine = metaLine.replace("nan","")
 
+        #Add static link
+        metaLine = metaLine + "https://github.com/wmgeolab/geoBoundaries/raw/" + gitHash + "/releaseData/" + releaseType + "/" + meta['boundaryISO'] + "/" + meta["boundaryType"] + "/geoBoundaries-" + meta['boundaryISO'] + "-" + meta["boundaryType"] + "-all.zip" + '","'
+
         #Strip final entry 
         metaLine = metaLine[:-3]
 
@@ -197,6 +204,8 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
             del areaGeom
         except:
             pass
+
+
 
     else:
         print("Error - multiple returns from metaSearch!")
