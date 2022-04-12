@@ -1,21 +1,23 @@
-import os
-import sys
-import gbHelpers
-import gbDataCheck
-import zipfile
-import gbMetaCheck
 import csv
-import json
-from distutils.dir_util import copy_tree
-import time
-import geopandas
-import shutil
 import hashlib
-import matplotlib.pyplot as plt
-from shapely.geometry.polygon import Polygon
-from shapely.geometry.multipolygon import MultiPolygon
+import json
+import os
+import shutil
+import sys
+import time
+import zipfile
 from datetime import datetime
+from distutils.dir_util import copy_tree
+
+import geopandas
+import matplotlib.pyplot as plt
 import requests
+from shapely.geometry.multipolygon import MultiPolygon
+from shapely.geometry.polygon import Polygon
+
+import gbDataCheck
+import gbHelpers
+import gbMetaCheck
 
 buildType = str(sys.argv[1])
 buildVer = str(sys.argv[2])
@@ -52,7 +54,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         try:
             with zipfile.ZipFile(ws["working"] + "/" + ws['zips'][0]) as zF:
                 meta = zF.read('meta.txt')
-            
+
             m = hashlib.sha256()
             chunkSize = 8192
             with open(ws["working"] + "/" + ws['zips'][0], 'rb') as zF:
@@ -73,7 +75,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             else:
                 print("No meta.txt in at least one file.  To make a release build, all checks must pass.  Try running a nightly build first. Exiting.")
                 sys.exit(1)
-        
+
         #Check that the meta.txt is passing all checks.
         print("Processing metadata checks for " + str(filename) + " (boundary " + str(bCnt) + ")")
         metaChecks = gbMetaCheck.metaCheck(ws)
@@ -203,20 +205,21 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             row["downloadURL"] = "https://github.com/wmgeolab/geoBoundaries/raw/main/releaseData/" + str(buildType) + "/" + str(filename)
         except:
             row["downloadURL"] = "METADATA ERROR"
-        
+
         #Build status code
         if(row["status"] == ""):
             if(row["META_requiredChecksPassing"] == True and row["GEOM_requiredChecksPassing"] == True):
                 row["status"] = "PASS"
             else:
                 row["status"] = "FAIL"
-        
+
         if(row["status"] == "FAIL"):
             #Identify if an issue already exists, and if not create one.
-            import github
             import json
             import random
             import time
+
+            import github
 
             #Rate limit for github search api (max 30 requests / minute; running 3 of these scripts simultaneously = 6 sec)
             time.sleep(6)
@@ -226,7 +229,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                     token = f.read()
             except:
                 token = os.environ["GITHUB_TOKEN"]
-            
+
             g = github.Github(token)
 
             #Github has no "OR" for searching, so a bit of a messy hack here to allow for
@@ -244,12 +247,12 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 #Search by filename and type, if metadata.txt failed to open at all.
                 likelyIssues = g.search_issues(query=str(filename+"+"+str(buildType)), repo="wmgeolab/geoBoundaries", state="open")
                 issueCount = sum(not issue.pull_request for issue in likelyIssues)
-                 
-                
+
+
 
             if(issueCount > 1):
                 print("There are currently more than one active issue for this boundary.  Skipping issue creation for now.")
-            
+
             if(issueCount == 0):
                 print("Creating issue for " + str(filename)+" "+ buildType)
                 repo = g.get_repo("wmgeolab/geoBoundaries")
@@ -264,7 +267,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 responsestr = responsestr + "\n\n \n"
                 responsestr = responsestr + "====robotid-d7329e7104s40t927830R028o9327y372h87u910m197a9472n2837s649==== \n"
                 responsestr = responsestr + "\n\n"
-                
+
                 repo.create_issue(title=str(filename+" "+buildType), body=responsestr)
                 repo_create = True
 
@@ -288,7 +291,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                     comment_create = True
                 else:
                     print("I have already commented on " + filename +"+"+buildType)
-        
+
         if(row["META_requiredChecksPassing"] == True and row["GEOM_requiredChecksPassing"] == True):
 
             #Build high level structure
@@ -303,9 +306,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
             if not os.path.exists(ws["working"] + "/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"):
                 os.makedirs(ws["working"] + "/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/")
-                
+
             basePath = ws["working"] + "/releaseData/" + str(buildType) + "/" + str(row["boundaryISO"]) + "/" + str(row["boundaryType"]) + "/"
-            
+
             workingPath = os.path.expanduser("~") + "/working/"
             if not os.path.exists(workingPath):
                 os.makedirs(workingPath)
@@ -323,7 +326,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             inputDataPath = ws["working"] + "/" + ws['zips'][0]
 
             currentBuild = os.path.getmtime(inputDataPath)
-            
+
             #Get commit from most recent source file.
             sourceQuery = """
                         {
@@ -343,12 +346,12 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                         }
                         """
 
-        
+
             headers = {"Authorization": "Bearer %s" % APIkey}
-            
+
             request = requests.post('https://api.github.com/graphql', json={'query': sourceQuery}, headers=headers)
             response = request.json()
-            
+
             print(sourceQuery)
             for i in range(0, len(response["data"]["repository"]["object"]["blame"]["ranges"])):
                 curDate = response["data"]["repository"]["object"]["blame"]["ranges"][i]["commit"]["committedDate"]
@@ -360,7 +363,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                     if(commitDate < curDate):
                         commitDate = curDate
 
-           
+
             print("Building Metadata and HPSCU Geometries for: " + str(fullZip))
             humanDate = datetime.strptime(commitDate.split("T")[0], '%Y-%m-%d')
             row["sourceDataUpdateDate"] = humanDate.strftime('%b %d, %Y')
@@ -385,7 +388,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             with open(basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-metaData.txt", "w", encoding="utf-8") as textMeta:
                 for i in rowMetaOut:
                     textMeta.write(i + " : " + str(rowMetaOut[i]) + "\n")
-        
+
             #Load geometries
 
             with zipfile.ZipFile(ws["working"] + "/" + ws['zips'][0]) as zF:
@@ -406,28 +409,28 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                     dta = geopandas.read_file(workingPath + geojson[0])
                 except:
                     print("CRITICAL ERROR: Could not load geometry to build file.")
-            
+
 
             ####################
             ####################
-            #Handle casting to MultiPolygon for Consistency 
+            #Handle casting to MultiPolygon for Consistency
             dta["geometry"] = [MultiPolygon([feature]) if type(feature) == Polygon else feature for feature in dta["geometry"]]
 
             ####################
-            ####################     
+            ####################
             ####Standardize the Name and ISO columns, if they exist.
-            nameC = set(['Name', 'name', 'NAME', 'shapeName', 'shapename', 'SHAPENAME']) 
+            nameC = set(['Name', 'name', 'NAME', 'shapeName', 'shapename', 'SHAPENAME'])
             nameCol = list(nameC & set(dta.columns))
             if(len(nameCol) == 1):
                 dta = dta.rename(columns={nameCol[0]:"shapeName"})
-            
-            isoC = set(['ISO', 'ISO_code', 'ISO_Code', 'ISO_CODE', 'iso', 'shapeISO', 'shapeiso', 'shape_iso']) 
+
+            isoC = set(['ISO', 'ISO_code', 'ISO_Code', 'ISO_CODE', 'iso', 'shapeISO', 'shapeiso', 'shape_iso'])
             isoCol = list(isoC & set(dta.columns))
             if(len(isoCol) == 1):
                 dta = dta.rename(columns={isoCol[0]:"shapeISO"})
 
             ####################
-            ####################     
+            ####################
             ####Shape IDs.  ID building strategy has changed in gb 4.0.
             ####Previously, an incrementing arbitrary numeric ID was set.
             ####Now, we are hashing the geometry.  Thus, if the geometry doesn't change,
@@ -437,16 +440,16 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                 return(str(metaHash) + "B" + str(hashVal))
 
             dta[["shapeID"]] = dta.apply(lambda row: geomID(row), axis=1)
-            
+
             dta[["shapeGroup"]] = row["boundaryISO"]
             dta[["shapeType"]] = row["boundaryType"]
 
             #Note: Some metadata is calculated in the overall CSV build, and so is not included in the default metadata files here.
             #We may want to revisit this at some date in the future.
-                                    
+
             #Output the intermediary geojson without topology corrections
             dta.to_file(workingPath + row["boundaryID"] + ".geoJSON", driver="GeoJSON")
-            
+
             #Write our shapes with self-intersection corrections
             #New in 4.0: we are now snapping to an approximately 1 meter grid.
             #To the surprise of hopefully noone, our products are not suitable for applications which require
@@ -456,8 +459,8 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                     " -o format=shapefile " + shpOUT +
                     " -o format=topojson " + topoOUT +
                     " -o format=geojson " + jsonOUT)
-            
-            os.system(write)    
+
+            os.system(write)
 
             #Do a second write, this time with simplification.
             #Simplification attempts to keep around 100-meter resolution along boundaries.
@@ -468,7 +471,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
                     " -o format=topojson " + topoOUT_simp +
                     " -o format=geojson " + jsonOUT_simp)
 
-            os.system(write)  
+            os.system(write)
 
             dta.boundary.plot(edgecolor="black")
             if(len(row["boundaryCanonical"]) > 1):
@@ -479,7 +482,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
             shutil.make_archive(workingPath + row["boundaryID"], 'zip', basePath)
             shutil.move(workingPath + row["boundaryID"] + ".zip", fullZip)
-                
+
 
         csvR.append(row)
 
