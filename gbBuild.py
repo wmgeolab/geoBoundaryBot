@@ -104,7 +104,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
 
         if(geomChecks[2] != 1 and buildVer != "nightly"):
             print("At least one geometry check is failing, so you cannot make a release build.  Try a nightly build first. Here is what we know :" + str(geomChecks))
-            sys.exit()
+            sys.exit(2)
 
         if(buildVer == "nightly"):
             row["GEOM_requiredChecksPassing"] = bool(geomChecks[2])
@@ -147,6 +147,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             ###Most importantly, users can identify if what we have is the same or different than what they have
             ###based on the ID alone, and we can track changes based on ID.
 
+
             row["boundaryID"] = zipMeta['ISO-3166-1 (Alpha-3)'] + "-" + zipMeta["Boundary Type"] + "-" + str(metaHash)
         except:
             row["boundaryID"] = "METADATA ERROR"
@@ -181,6 +182,8 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         except:
             row["boundaryCanonical"] = ""
 
+            # why is this one not considered a METADATA ERROR ?
+
         try:
             row["boundaryLicense"] = zipMeta["License"]
         except:
@@ -205,6 +208,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             row["downloadURL"] = "https://github.com/wmgeolab/geoBoundaries/raw/main/releaseData/" + str(buildType) + "/" + str(filename)
         except:
             row["downloadURL"] = "METADATA ERROR"
+
+        # while I don't think "METADATA ERROR" is a bad strategy, how do you use this data to inform you? Do you check the outputs manually ?
+        # what is the business process if an output file ends up with "METADATA ERROR" in one of the fields?
 
         #Build status code
         if(row["status"] == ""):
@@ -424,10 +430,16 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             if(len(nameCol) == 1):
                 dta = dta.rename(columns={nameCol[0]:"shapeName"})
 
+            if "shapeName" not in dta:
+                raise Exception('shapeName not present') # or would you prefer this to be a check only for release builds?
+
+
             isoC = set(['ISO', 'ISO_code', 'ISO_Code', 'ISO_CODE', 'iso', 'shapeISO', 'shapeiso', 'shape_iso'])
             isoCol = list(isoC & set(dta.columns))
             if(len(isoCol) == 1):
                 dta = dta.rename(columns={isoCol[0]:"shapeISO"})
+
+            # what is the distinction between boundaryISO and shapeISO?
 
             ####################
             ####################
@@ -505,4 +517,4 @@ except:
 
 if(row["META_requiredChecksPassing"] != True or row["GEOM_requiredChecksPassing"] != True):
     print("At least one check failed.  Stopping build.")
-    sys.exit("Either a metadata or Geometry check failed.  Exiting build.")
+    raise Exception("Either a metadata or Geometry check failed.  Exiting build.")
