@@ -519,3 +519,5 @@ except:
 if(row["META_requiredChecksPassing"] != True or row["GEOM_requiredChecksPassing"] != True):
     print("At least one check failed.  Stopping build.")
     raise Exception("Either a metadata or Geometry check failed.  Exiting build.")
+
+print( len( map(lambda x: "shapeName" in x["presentTargetColumns"],csvR)), ” of ”, len(csvR) )
