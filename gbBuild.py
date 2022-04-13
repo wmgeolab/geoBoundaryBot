@@ -32,6 +32,7 @@ issueCreationCount = 0
 issueCommentCount = 0
 
 
+
 for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + buildType + "/"):
     selFiles = []
     for i in cQuery.split(","):
@@ -45,6 +46,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
         row["status"] = ""
         row["META_requiredChecksPassing"] = 0
         row["GEOM_requiredChecksPassing"] = 0
+        row["presentTargetColumns"] = []
         ws["zipSuccess"] = 0
 
         ws['zips'] = []
@@ -430,9 +432,8 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/sourceData/" + build
             if(len(nameCol) == 1):
                 dta = dta.rename(columns={nameCol[0]:"shapeName"})
 
-            if "shapeName" not in dta:
-                raise Exception('shapeName not present') # or would you prefer this to be a check only for release builds?
-
+            if "shapeName" in dta:
+                row["presentTargetColumns"].append("shapeName")
 
             isoC = set(['ISO', 'ISO_code', 'ISO_Code', 'ISO_CODE', 'iso', 'shapeISO', 'shapeiso', 'shape_iso'])
             isoCol = list(isoC & set(dta.columns))
