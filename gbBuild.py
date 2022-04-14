@@ -2,6 +2,7 @@ import csv
 import hashlib
 import json
 import os
+import random
 import shutil
 import sys
 import time
@@ -13,6 +14,7 @@ from pathlib import Path
 import geopandas
 import matplotlib.pyplot as plt
 import requests
+from github import github
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.polygon import Polygon
 
@@ -20,17 +22,13 @@ import gbDataCheck
 import gbHelpers
 import gbMetaCheck
 
-bCnt = 0
-issueCreationCount = 0
-issueCommentCount = 0
-
 
 def promote_to_multipolygon(geometry):
     return [MultiPolygon([feature]) if type(feature) == Polygon else feature for feature in geometry]
 
 
-def process_file(args, ws, filename):
-    bCnt = bCnt + 1
+def process_file(args, ws, rows, filename):
+    bCnt = len(rows) + 1
     print("Processing " + str(filename) + " (boundary " + str(bCnt) + ")")
     row = {}
     row["filename"] = filename
@@ -38,37 +36,14 @@ def process_file(args, ws, filename):
     row["META_requiredChecksPassing"] = 0
     row["GEOM_requiredChecksPassing"] = 0
     row["presentTargetColumns"] = []
+    row["issueCreated"] = 0
+    row["issueComment"] = 0
     ws["zipSuccess"] = 0
 
     ws["zips"] = []
     ws["zips"].append("/sourceData/" + args.buildType + "/" + filename)
 
-    try:
-        with zipfile.ZipFile(ws["working"] + "/" + ws["zips"][0]) as zF:
-            meta = zF.read("meta.txt")
-
-        m = hashlib.sha256()
-        chunkSize = 8192
-        with open(ws["working"] + "/" + ws["zips"][0], "rb") as zF:
-            while True:
-                chunk = zF.read(chunkSize)
-                if len(chunk):
-                    m.update(chunk)
-                else:
-                    break
-            # 8 digit modulo on the hash.  Won't guarantee unique,
-            # but as this is per ADM/ISO, collision is very (very) unlikely.
-            metaHash = int(m.hexdigest(), 16) % 10 ** 8
-            print(metaHash)
-
-    except:
-        if args.buildVer == "nightly":
-            row["status"] = "FAIL"
-        else:
-            print(
-                "No meta.txt in at least one file.  To make a release build, all checks must pass.  Try running a nightly build first. Exiting."
-            )
-            sys.exit(1)
+    meta, metaHash = check_for_meta_txt(args, ws, row)
 
     # Check that the meta.txt is passing all checks.
     print("Processing metadata checks for " + str(filename) + " (boundary " + str(bCnt) + ")")
@@ -138,6 +113,7 @@ def process_file(args, ws, filename):
                 sys.exit(1)
 
         zipMeta[key] = val
+
     try:
         ###New in 4.0
         ###Instead of an arbitrary incrementing ID and version in the path,
@@ -182,8 +158,6 @@ def process_file(args, ws, filename):
     except:
         row["boundaryCanonical"] = ""
 
-        # why is this one not considered a METADATA ERROR ?
-
     try:
         row["boundaryLicense"] = zipMeta["License"]
     except:
@@ -225,7 +199,8 @@ def process_file(args, ws, filename):
             row["status"] = "FAIL"
 
     if row["status"] == "FAIL":
-        json, time = github_bot(args, issueCreationCount, issueCommentCount, filename, row)
+        if not args.skip_github:
+            json, time = github_bot(args, filename, row)
 
     if row["META_requiredChecksPassing"] == True and row["GEOM_requiredChecksPassing"] == True:
 
@@ -325,12 +300,12 @@ def process_file(args, ws, filename):
             shutil.rmtree(basePath)
             os.mkdir(basePath)
 
-            # First, generate the citation and use document
+        # First, generate the citation and use document
         with open(basePath + "CITATION-AND-USE-geoBoundaries-" + str(args.buildType) + ".txt", "w") as cu:
             cu.write(gbHelpers.citationUse(str(args.buildType)))
 
-            # Metadata
-            # Clean it up by removing our geom and meta checks.
+        # Metadata
+        # Clean it up by removing our geom and meta checks.
         removeKey = [
             "status",
             "META_requiredChecksPassing",
@@ -408,14 +383,14 @@ def process_file(args, ws, filename):
         if len(isoCol) == 1:
             dta = dta.rename(columns={isoCol[0]: "shapeISO"})
 
-            # what is the distinction between boundaryISO and shapeISO?
+        # what is the distinction between boundaryISO and shapeISO?
 
-            ####################
-            ####################
-            ####Shape IDs.  ID building strategy has changed in gb 4.0.
-            ####Previously, an incrementing arbitrary numeric ID was set.
-            ####Now, we are hashing the geometry.  Thus, if the geometry doesn't change,
-            ####The ID won't either.  This will also be robust across datasets.
+        ####################
+        ####################
+        ####Shape IDs.  ID building strategy has changed in gb 4.0.
+        ####Previously, an incrementing arbitrary numeric ID was set.
+        ####Now, we are hashing the geometry.  Thus, if the geometry doesn't change,
+        ####The ID won't either.  This will also be robust across datasets.
 
         def geomID(geom, metaHash=row["boundaryID"]):
             hashVal = int(hashlib.sha256(str(geom["geometry"]).encode(encoding="UTF-8")).hexdigest(), 16) % 10 ** 8
@@ -509,14 +484,38 @@ def process_file(args, ws, filename):
     return row
 
 
-def github_bot(args, issueCreationCount, issueCommentCount, filename, row):
+def check_for_meta_txt(args, ws, row):
+    try:
+        with zipfile.ZipFile(ws["working"] + "/" + ws["zips"][0]) as zF:
+            meta = zF.read("meta.txt")
+
+        m = hashlib.sha256()
+        chunkSize = 8192
+        with open(ws["working"] + "/" + ws["zips"][0], "rb") as zF:
+            while True:
+                chunk = zF.read(chunkSize)
+                if len(chunk):
+                    m.update(chunk)
+                else:
+                    break
+            # 8 digit modulo on the hash.  Won't guarantee unique,
+            # but as this is per ADM/ISO, collision is very (very) unlikely.
+            metaHash = int(m.hexdigest(), 16) % 10 ** 8
+            print(metaHash)
+
+    except:
+        if args.buildVer == "nightly":
+            row["status"] = "FAIL"
+        else:
+            print(
+                "No meta.txt in at least one file.  To make a release build, all checks must pass.  Try running a nightly build first. Exiting."
+            )
+            sys.exit(1)
+    return meta, metaHash
+
+
+def github_bot(args, rows, row):
     # identify if an issue already exists, and if not create one.
-
-    import json
-    import random
-    import time
-
-    import github
 
     # Rate limit for github search api (max 30 requests / minute; running 3 of these scripts simultaneously = 6 sec)
     time.sleep(6)
@@ -551,7 +550,7 @@ def github_bot(args, issueCreationCount, issueCommentCount, filename, row):
     if issueCount == 0:
         # Search by filename and type, if metadata.txt failed to open at all.
         likelyIssues = g.search_issues(
-            query=str(filename + "+" + str(args.buildType)), repo="wmgeolab/geoBoundaries", state="open"
+            query=str(row["filename"] + "+" + str(args.buildType)), repo="wmgeolab/geoBoundaries", state="open"
         )
         issueCount = sum(not issue.pull_request for issue in likelyIssues)
 
@@ -559,15 +558,16 @@ def github_bot(args, issueCreationCount, issueCommentCount, filename, row):
         print("There are currently more than one active issue for this boundary.  Skipping issue creation for now.")
 
     if issueCount == 0:
-        print("Creating issue for " + str(filename) + " " + args.buildType)
+        print("Creating issue for " + str(row["filename"]) + " " + args.buildType)
         repo = g.get_repo("wmgeolab/geoBoundaries")
-        issueCreationCount = issueCreationCount + 1
-        print("issueCreation:" + str(issueCreationCount))
+        row["issueCreated"] = True
+        issues_created = len(list(filter(lambda x: x["issueCreated"], rows))) + 1
+        print("issueCreation:" + str(issues_created))
 
         wordsForHello = ["Greetings", "Hello", "Hi", "Howdy", "Bonjour", "Beep Boop Beep", "Good Day", "Hello Human"]
 
         repo.create_issue(
-            title=str(filename + " " + args.buildType),
+            title=str(row["filename"] + " " + args.buildType),
             body=random.choice(wordsForHello)
             + "!  I am the geoBoundary bot, here with a some details on what I need. \n"
             + "I'll print out my logs for you below so you know what's happening! \n"
@@ -584,9 +584,10 @@ def github_bot(args, issueCreationCount, issueCommentCount, filename, row):
         for i in range(0, likelyIssues[0].get_comments().totalCount):
             allCommentText = allCommentText + likelyIssues[0].get_comments()[i].body
         if "d7329e7104s40t927830R028o9327y372h87u910m197a9472n2837s649" not in allCommentText:
-            print("Commenting on issue for " + filename + "+" + args.buildType)
-            issueCommentCount = issueCommentCount + 1
-            print("issueComment: " + str(issueCommentCount))
+            print("Commenting on issue for " + row["filename"] + "+" + args.buildType)
+            row["issueCommented"] = True
+            issues_commented = len(list(filter(lambda x: x["issueCommented"], rows))) + 1
+            print("issueComment: " + str(issues_commented))
             wordsForHello = [
                 "Greetings",
                 "Hello",
@@ -619,7 +620,7 @@ def github_bot(args, issueCreationCount, issueCommentCount, filename, row):
             )
             comment_create = True
         else:
-            print("I have already commented on " + filename + "+" + args.buildType)
+            print("I have already commented on " + row["filename"] + "+" + args.buildType)
 
     return json, time
 
@@ -633,7 +634,7 @@ def build_data(args, ws):
         filesToProcess = [item for sublist in selFiles for item in sublist]
         print(filesToProcess)
         for filename in filesToProcess:
-            rows.append(process_file(args, ws, filename))
+            rows.append(process_file(args, ws, rows, filename))
 
     return rows
 
@@ -665,10 +666,6 @@ def main(args):
     except:
         print("No log to output.")
 
-    if row["META_requiredChecksPassing"] != True or row["GEOM_requiredChecksPassing"] != True:
-        print("At least one check failed.  Stopping build.")
-        raise Exception("Either a metadata or Geometry check failed.  Exiting build.")
-
     files_with_shapeName = list(filter(lambda x: "shapeName" in x["presentTargetColumns"], csvR))
     print(len(files_with_shapeName), " of ", len(csvR))
 
@@ -685,6 +682,7 @@ if __name__ == "__main__":
     parser.add_argument("typeQuery")
     parser.add_argument("APIkey")
     parser.add_argument("-v", "--verbose", action="count", default=0)
+    parser.add_argument("-skip-github", "--skip-github", action="store_true")
     args = parser.parse_args()
 
     main(args)

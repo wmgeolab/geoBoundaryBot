@@ -1,9 +1,8 @@
-import os
-import sys
-import zipfile
-import subprocess
 import datetime
+import zipfile
+
 import gbHelpers
+
 
 def metaCheck(ws):
     #Load ISOs for later checks
@@ -14,7 +13,7 @@ def metaCheck(ws):
     for line in lines:
         data = line.split(',')
         validISO.append(data[2])
-    
+
     print(validISO)
 
     #Load licenses for later checks
@@ -68,7 +67,7 @@ def metaCheck(ws):
                 bZip = zipfile.ZipFile(ws["working"] + "/" + z)
             except:
                 print("A zipfile didn't open.  " + str(z))
-                return [opt, req, 0]  
+                return [opt, req, 0]
             if("meta.txt" in bZip.namelist()):
                 gbHelpers.logWrite(ws["checkType"], "")
                 gbHelpers.logWrite(ws["checkType"], "============================")
@@ -76,7 +75,7 @@ def metaCheck(ws):
 
                 with zipfile.ZipFile(ws["working"] + "/" + z) as zF:
                     meta = zF.read('meta.txt')
-                
+
                 for m in meta.splitlines():
                     try:
                         gbHelpers.logWrite(ws["checkType"], "")
@@ -90,7 +89,7 @@ def metaCheck(ws):
                         gbHelpers.logWrite(ws["checkType"], "WARN: At least one line of the meta.txt failed to be read correctly: " + str(m))
                         key = "readError"
                         val = "readError"
-                    
+
                     gbHelpers.logWrite(ws["checkType"], "Detected Key / Value: " + key + " / " + val)
                     if(("Year" in key) or "year" in key):
                         try:
@@ -99,7 +98,7 @@ def metaCheck(ws):
                                 date1 = datetime.datetime.strptime(date1, "%d-%m-%Y")
                                 date2 = datetime.datetime.strptime(date2, "%d-%m-%Y")
                                 gbHelpers.logWrite(ws["checkType"], "Valid date range " + str(val) + " detected.")
-                                req["year"] = 1                                
+                                req["year"] = 1
                             else:
                                 year = int(float(val))
                                 if( (year > 1950) and (year <= datetime.datetime.now().year)):
@@ -112,7 +111,7 @@ def metaCheck(ws):
                         except:
                                 gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The year in the meta.txt file is invalid.")
                                 checkFail = 1
-                    
+
                     if("boundary type" in key.lower() and "name" not in key.lower()):
                         #May add other valid types in the future, but for now ADMs only.
                         validTypes = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
@@ -123,7 +122,7 @@ def metaCheck(ws):
                             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The boundary type in the meta.txt file is invalid: " + val)
                             gbHelpers.logWrite(ws["checkType"], "We expect one of: " + str(validTypes))
                             checkFail = 1
-                    
+
                     if("iso" in key.lower().strip()):
                         if(len(val) != 3):
                             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: ISO is invalid - we expect a 3-character ISO code following ISO-3166-1 (Alpha 3).")
@@ -134,7 +133,7 @@ def metaCheck(ws):
                         else:
                             gbHelpers.logWrite(ws["checkType"], "Valid ISO detected: " + val)
                             req["iso"] = 1
-                    
+
                     if("canonical" in key.lower()):
                         if(len(val.replace(" ","")) > 0):
                             if(val.lower() not in ["na", "nan", "null"]):
@@ -142,7 +141,7 @@ def metaCheck(ws):
                                 opt["canonical"] = 1
                         else:
                             gbHelpers.logWrite(ws["checkType"], "WARN: No canonical name detected.  This field is optional.")
-                        
+
                     if("source" in key.lower() and "license" not in key.lower() and "data" not in key.lower()):
                         if(len(val.replace(" ","")) > 0):
                             if(val.lower() not in ["na", "nan", "null"]):
@@ -175,7 +174,7 @@ def metaCheck(ws):
                             req["license"] = 1
                             req["licenseName"] = val.lower().strip()
                             gbHelpers.logWrite(ws["checkType"], "Valid license type detected: " + val)
-                            
+
 
                     if("license notes" in key.lower()):
                         if(len(val.replace(" ","")) > 0):
@@ -210,7 +209,7 @@ def metaCheck(ws):
                                     opt["licenseImage"] = 1
                                 else:
                                     gbHelpers.logWrite(ws["checkType"], "WARN: No license image found.  This is not required.  We check for license.png and license.jpg.")
-                            
+
                             else:
                                 gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: No license source detected.")
                                 checkFail = 1
@@ -225,7 +224,7 @@ def metaCheck(ws):
                             if(val.lower() not in ["na", "nan", "null"]):
                                 req["dataSource"] = 1
                                 gbHelpers.logWrite(ws["checkType"], "Data Source Found: " + val)
-                                                
+
                             else:
                                 gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: No license source detected.")
                                 checkFail = 1
@@ -253,16 +252,16 @@ def metaCheck(ws):
                         else:
                             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The license you have specified is not valid for the gbOpen product.")
                             checkFail = 1
-                    
+
                     if(req["releaseTypeName"] == "gbauthoritative"):
-                        if(('"' + req["licenseName"] + '"') in validAuthLicense): 
+                        if(('"' + req["licenseName"] + '"') in validAuthLicense):
                             gbHelpers.logWrite(ws["checkType"], "License type is a valid license for the gbAuthoritative product.")
                         else:
                             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The license you have specified is not valid for the gbAuthoritative product.")
                             checkFail = 1
 
                     if(req["releaseTypeName"] == "gbhumanitarian"):
-                        if(('"' + req["licenseName"] + '"') in validHumLicense): 
+                        if(('"' + req["licenseName"] + '"') in validHumLicense):
                             gbHelpers.logWrite(ws["checkType"], "License type is a valid license for the gbHumanitarian product.")
                         else:
                             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: The license you have specified is not valid for the gbHumanitarian product.")
@@ -276,7 +275,7 @@ def metaCheck(ws):
                     gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: No data source was provided in the metadata.")
                     checkFail = 1
 
-        
+
 
                 gbHelpers.logWrite(ws["checkType"], "")
                 gbHelpers.logWrite(ws["checkType"], "Metadata checks complete for " + z)
@@ -299,18 +298,18 @@ def metaCheck(ws):
                     else:
                         gbHelpers.logWrite(ws["checkType"], '%-20s%-12s' % (i, "FAILED"))
                         checkFail = 1
-                gbHelpers.logWrite(ws["checkType"], "==========================") 
+                gbHelpers.logWrite(ws["checkType"], "==========================")
 
             else:
                 gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: Metadata file does not exist in " + z)
                 gbHelpers.gbEnvVars("RESULT", "CRITICAL ERROR: Metadata file does not exist in " + z, "w")
                 checkFail = 1
-            
-            
-            
+
+
+
             if(checkFail == 1):
                 ws["zipFailures"] = ws["zipFailures"] + 1
-                
+
             else:
                 ws["zipSuccess"] = ws["zipSuccess"] + 1
                 gbHelpers.logWrite(ws["checkType"], "Metadata checks passed for " + z)
@@ -319,16 +318,16 @@ def metaCheck(ws):
         gbHelpers.logWrite(ws["checkType"], "====================")
         gbHelpers.logWrite(ws["checkType"], "All metadata checks complete.")
         gbHelpers.logWrite(ws["checkType"], "Successes: " + str(ws["zipSuccess"]))
-        gbHelpers.logWrite(ws["checkType"], "Failures: " + str(ws["zipFailures"]))        
+        gbHelpers.logWrite(ws["checkType"], "Failures: " + str(ws["zipFailures"]))
 
         if(ws["zipFailures"] > 0):
-            gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: At least one Metadata check failed; check the log to see what's wrong.")  
-            gbHelpers.gbEnvVars("RESULT", "It looks like your metadata has one or more errors - take a look at the logs to see what you need to fix.", "w")      
+            gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: At least one Metadata check failed; check the log to see what's wrong.")
+            gbHelpers.gbEnvVars("RESULT", "It looks like your metadata has one or more errors - take a look at the logs to see what you need to fix.", "w")
         else:
             gbHelpers.gbEnvVars("RESULT", "PASSED", "w")
-        
+
         #Return of the last element for overall build
-        return [opt, req, ws["zipSuccess"]]  
+        return [opt, req, ws["zipSuccess"]]
 
     else:
         gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: No modified zip files found.")
@@ -337,4 +336,4 @@ def metaCheck(ws):
 if __name__ == "__main__":
     ws = gbHelpers.initiateWorkspace("metaChecks")
     metaCheck(ws)
-    
+

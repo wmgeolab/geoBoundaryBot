@@ -1,7 +1,5 @@
-import os
-import sys
 import zipfile
-import subprocess
+
 import gbHelpers
 
 checkType = "fileChecks"
@@ -19,11 +17,11 @@ if(len(ws["zips"]) > 0):
     for z in ws["zips"]:
         checkFail = 0
 
-        gbHelpers.checkRetrieveLFSFiles(z, ws["working"])        
+        gbHelpers.checkRetrieveLFSFiles(z, ws["working"])
         gbHelpers.logWrite(checkType, "File Check (" + str(zipTotal) + " of " + str(len(ws["zips"])) + "): " + z)
         bZip = zipfile.ZipFile(ws["working"] + "/" + z)
 
-        
+
 
         if("meta.txt" in bZip.namelist()):
             gbHelpers.logWrite(checkType, "Metadata file exists in " + z)
@@ -31,12 +29,12 @@ if(len(ws["zips"]) > 0):
             gbHelpers.logWrite(checkType, "CRITICAL ERROR: Metadata file does not exist in " + z)
             gbHelpers.gbEnvVars("RESULT","You submitted at least one file that is missing a meta.txt, which is required.  Please make sure your meta.txt is in the root of your submitted zip file - I have not yet been programmed to look in folders for your meta.txt.","w")
             checkFail = 1
-        
+
         geojson = list(filter(lambda x: x[-8:] == '.geojson', bZip.namelist()))
         shp = list(filter(lambda x: x[-4:] == '.shp', bZip.namelist()))
         geojson = [x for x in geojson if not x.__contains__("MACOS")]
         shp = [x for x in shp if not x.__contains__("MACOS")]
-        allShps = geojson + shp 
+        allShps = geojson + shp
         if(len(allShps) == 1):
             if(len(shp) == 1):
                 gbHelpers.logWrite(checkType, "Shapefile (*.shp) found. Checking if all required files are present.")
@@ -70,7 +68,7 @@ if(len(ws["zips"]) > 0):
             gbHelpers.logWrite(checkType, "CRITICAL ERROR: More than one geometry file (*.shp, *.geojson) was found for " + z)
             gbHelpers.gbEnvVars("RESULT","At least one file you submitted had more than one geometry file in it (i.e., multiple *.shp or *.geojson).","w")
             checkFail = 1
-        
+
         if(checkFail == 1):
             zipFailures = zipFailures + 1
             gbHelpers.logWrite(checkType, "CRITICAL ERROR: Zipfile validity checks failed for " + z + ".  Check the log to see what is wrong.")

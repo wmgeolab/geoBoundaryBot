@@ -1,9 +1,10 @@
-import os
-import re 
 import json
-import pandas as pd
-import geopandas
+import os
+import re
 from datetime import datetime
+
+import geopandas
+import pandas as pd
 import requests
 
 #Initialize workspace
@@ -72,7 +73,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         releaseType = "gbAuthoritative"
     else:
         continue
-    
+
     print("Meta Search Commencing")
     metaSearch = [x for x in filenames if re.search('metaData.json', x)]
     print(metaSearch)
@@ -81,7 +82,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         with open(path + "/" + metaSearch[0], encoding='utf-8', mode="r") as j:
             meta = json.load(j)
         print("JSON loaded")
-        
+
         isoMeta = isoDetails[isoDetails["Alpha-3code"] == meta['boundaryISO']]
         #Build the metadata
         metaLine = '"' + meta['boundaryID'] + '","' + isoMeta["Name"].values[0] + '","' + meta['boundaryISO'] + '","' + meta['boundaryYear'] + '","' + meta["boundaryType"] + '","'
@@ -101,10 +102,10 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
 
         metaLine = metaLine + meta['boundarySource-1'] + '","' + meta['boundarySource-2'] + '","' + meta['boundaryLicense'] + '","' + meta['licenseDetail'].replace("https//","").replace("https://","").replace("http//","").replace("http://","") + '","' + meta['licenseSource'].replace("https//","").replace("https://","").replace("http//","").replace("http://","")  + '","'
         metaLine = metaLine + meta['boundarySourceURL'].replace("https//","https://").replace("https://","").replace("http//","").replace("http://","")  + '","' + meta['sourceDataUpdateDate'] + '","' + meta["buildUpdateDate"] + '","'
-        
-        
+
+
         metaLine = metaLine + isoMeta["Continent"].values[0] + '","' + isoMeta["UNSDG-region"].values[0] + '","'
-        metaLine = metaLine + isoMeta["UNSDG-subregion"].values[0] + '","' 
+        metaLine = metaLine + isoMeta["UNSDG-subregion"].values[0] + '","'
         metaLine = metaLine + isoMeta["worldBankIncomeGroup"].values[0] + '","'
 
         metaLine = metaLine + "https://www.geoboundaries.org/api/gbID/" + meta['boundaryID'] + '","'
@@ -120,16 +121,16 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
         if not gJLink:
             print('Error: Missing GeoJSON file!')
             continue
-        
+
         try:
             #text = urllib.request.urlopen(gJLink).read().decode('utf8')
             #fobj = io.StringIO(text)
             geom = geopandas.read_file(gJLink)
 
             admCount = len(geom)
-            
+
             vertices=[]
-            
+
             for i, row in geom.iterrows():
                 n = 0
                 if(row.geometry.type.startswith("Multi")):
@@ -137,9 +138,9 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
                         n += len(seg.exterior.coords)
                 else:
                     n = len(row.geometry.exterior.coords)
-                
+
                 vertices.append(n) ###
-            
+
             # DEBUG
             if len(vertices) == 0:
                 print('Error: Empty file?', geom, len(geom), vertices, len(list(geom.iterrows())) )
@@ -151,12 +152,12 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
                         vertices += len(geom[0]["geometry"]["coordinates"][i][0])
                 except:
                     print("JSON fallback failed.")
-                
+
                 metaLine = metaLine + str(admCount) + '","' + str(round(vertices,0)) + '","' + str(vertices) + '","' + str(vertices) + '","'
             else:
                 metaLine = metaLine + str(admCount) + '","' + str(round(sum(vertices)/len(vertices),0)) + '","' + str(min(vertices)) + '","' + str(max(vertices)) + '","'
-                
-            
+
+
         except:
             print("An error occured while trying to load the file.")
             metaLine = metaLine + "Error" + "Error" + '","' + "Error" + '","' + "Error" + '","' + "Error" + '","'
@@ -175,18 +176,18 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
             areaGeom = geom.copy()
             areaGeom = areaGeom.to_crs(epsg=6933)
             areaGeom["area"] = areaGeom['geometry'].area / 10**6 #sqkm
-            
+
             metaLine = metaLine + str(areaGeom['area'].mean()) + '","' + str(areaGeom['area'].min()) + '","' + str(areaGeom['area'].max()) + '","'
         except:
             metaLine = metaLine + "" + '","' + "" + '","' + "" + '","'
-            
+
         #Cleanup
         metaLine = metaLine.replace("nan","")
 
         #Add static link
         metaLine = metaLine + "https://github.com/wmgeolab/geoBoundaries/raw/" + gitHash + "/releaseData/" + releaseType + "/" + meta['boundaryISO'] + "/" + meta["boundaryType"] + "/geoBoundaries-" + meta['boundaryISO'] + "-" + meta["boundaryType"] + "-all.zip" + '","'
 
-        #Strip final entry 
+        #Strip final entry
         metaLine = metaLine[:-3]
 
         #Newline
@@ -194,7 +195,7 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
 
         with open(csvPath, mode='a', encoding='utf-8') as f:
             f.write(metaLine)
-        
+
         #Cleanup for memory
         del metaLine
         del geom
@@ -209,4 +210,4 @@ for (path, dirname, filenames) in os.walk(ws["working"] + "/releaseData/"):
 
     else:
         print("Error - multiple returns from metaSearch!")
-    
+

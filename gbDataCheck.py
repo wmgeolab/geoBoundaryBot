@@ -1,24 +1,20 @@
 import os
-import sys
 import zipfile
-import subprocess
-import pandas as pd
-import json
-import geopandas
-import gbHelpers
-import multiprocessing
-import time
-from matplotlib import pyplot as plt
-from shapely.validation import explain_validity
-from shapely.geometry import shape
 
+import geopandas
+import pandas as pd
+from matplotlib import pyplot as plt
+from shapely.geometry import shape
+from shapely.validation import explain_validity
+
+import gbHelpers
 
 
 def geometryCheck(ws):
     if(len(ws["zips"]) > 0):
         gbHelpers.logWrite(ws["checkType"],  "Modified zip files found.  Checking shape data validity.")
         gbHelpers.logWrite(ws["checkType"],  "")
-        
+
         for z in ws["zips"]:
             gbHelpers.checkRetrieveLFSFiles(z, ws['working'])
             req = {}
@@ -31,7 +27,7 @@ def geometryCheck(ws):
             opt["isoExample"] = ""
             opt["isoCount"] = 0
             opt["topology"] = 1
-            
+
             req["proj"] = 0
 
 
@@ -67,9 +63,9 @@ def geometryCheck(ws):
                     except:
                         gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: The geoJSON provided failed to load.")
                         checkFail = 1
-                
-                
-                nameC = set(['Name', 'name', 'NAME', 'shapeName', 'shapename', 'SHAPENAME']) 
+
+
+                nameC = set(['Name', 'name', 'NAME', 'shapeName', 'shapename', 'SHAPENAME'])
                 nameCol = list(nameC & set(dta.columns))
                 if(len(nameCol) == 1):
                     gbHelpers.logWrite(ws["checkType"],  "")
@@ -92,7 +88,7 @@ def geometryCheck(ws):
                 else:
                     gbHelpers.logWrite(ws["checkType"],  "WARN: No column for boundary names found.  This is not required.")
 
-                nameC = set(['ISO', 'ISO_code', 'ISO_Code', 'iso', 'shapeISO', 'shapeiso', 'shape_iso']) 
+                nameC = set(['ISO', 'ISO_code', 'ISO_Code', 'iso', 'shapeISO', 'shapeiso', 'shape_iso'])
                 nameCol = list(nameC & set(dta.columns))
                 if(len(nameCol) == 1):
                     gbHelpers.logWrite(ws["checkType"],  "")
@@ -113,7 +109,7 @@ def geometryCheck(ws):
 
                 else:
                     gbHelpers.logWrite(ws["checkType"],  "WARN: No column for boundary ISOs found.  This is not required.")
-                
+
                 #Create a map visualization.  Skip for full builds, as the preview images will be
                 #created in the build script for those.
                 #fig, axes = plt.subplots(nrows=1, ncols=1)
@@ -146,7 +142,7 @@ def geometryCheck(ws):
                         gbHelpers.logWrite(ws["checkType"], "CRITICAL: This geometry seems to extend past the boundaries of the earth: " + str(explain_validity(row["geometry"])))
                     if(not row["geometry"].is_valid):
                         gbHelpers.logWrite(ws["checkType"], "WARN: Something is wrong with this geometry: " + str(explain_validity(row["geometry"])))
-                        
+
                         if(not row["geometry"].buffer(0).is_valid):
                             checkFail = 1
                             validGeom = 0
@@ -184,16 +180,16 @@ def geometryCheck(ws):
                         checkFail = 1
                 except:
                     gbHelpers.logWrite(ws["checkType"],  "The projection must be EPSG 4326.  The file proposed has a projection of: " + str(dta.crs))
-                    checkFail = 1        
+                    checkFail = 1
 
             if(len(allShps) == 0):
                 gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: No *.shp or *.geojson found for " + z)
                 checkFail = 1
-                
+
             if(len(allShps) > 1):
                 gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: More than one geometry file (*.shp, *.geojson) was found for " + z)
                 checkFail = 1
-                        
+
 
             gbHelpers.logWrite(ws["checkType"],  "")
             gbHelpers.logWrite(ws["checkType"],  "Data checks complete for " + z)
@@ -216,32 +212,32 @@ def geometryCheck(ws):
                 else:
                     gbHelpers.logWrite(ws["checkType"],  '%-20s%-12s' % (i, "FAILED"))
             gbHelpers.logWrite(ws["checkType"],  "==========================")
-                
-                
-            
-            
-            
+
+
+
+
+
             if(checkFail == 1):
                 ws["zipFailures"] = ws["zipFailures"] + 1
-                
+
             else:
                 ws["zipSuccess"] = ws["zipSuccess"] + 1
                 gbHelpers.logWrite(ws["checkType"],  "Data checks passed for " + z)
-                
+
             ws["zipTotal"] = ws["zipTotal"] + 1
         gbHelpers.logWrite(ws["checkType"],  "")
         gbHelpers.logWrite(ws["checkType"],  "====================")
         gbHelpers.logWrite(ws["checkType"],  "All data checks complete.")
         gbHelpers.logWrite(ws["checkType"],  "Successes: " + str(ws["zipSuccess"]))
         gbHelpers.logWrite(ws["checkType"],  "Failures: " + str(ws["zipFailures"]))
-        
+
         if(ws["zipFailures"] > 0):
             gbHelpers.logWrite(ws["checkType"], "CRITICAL ERROR: At least one data check failed; check the log to see what's wrong.")
             gbHelpers.gbEnvVars("RESULT", "A geometry or data check failed for the file you submitted - take a look at the logs to see what happened.", "w")
         else:
             gbHelpers.logWrite(ws["checkType"], "All tests passed.")
             gbHelpers.gbEnvVars("RESULT", "PASSED", "w")
-        
+
         #Return of the last element for overall build
         return [opt, req, ws["zipSuccess"]]
 

@@ -1,5 +1,6 @@
-import gbHelpers
 import os
+
+import gbHelpers
 
 checkType = "geometryDataCheck"
 ws = os.environ['GITHUB_WORKSPACE']
@@ -24,7 +25,7 @@ checkFailed = 0
 for check in checkTypes:
     with open(in_path + check + "/RESULT.txt", "r") as f:
         checkResults[check] = f.read()
-    
+
     if(checkResults[check] != "PASSED"):
         checkFailed = checkFailed + 1
     else:
@@ -36,13 +37,13 @@ if(checkFailed > 0):
     for check in checkTypes:
         with open(in_path + check + "/RESULT.txt", "r") as f:
             checkResults[check] = f.read()
-        
+
         if(checkResults[check] != "PASSED"):
             responseText = responseText + "**" + str(check) + "**: " + checkResults[check] + "  <br />"
-            
+
         else:
             responseText = responseText + "**" + str(check) + "**: All checks PASSED.  Nothing that needs to be done here right now. <br />"
-        
+
         responseText = responseText + "[Full logs for " + str(check) + "](" + theUrl + str(check) + "/" + str(check) +".txt" + ")  <br /><br />"
 
     responseText = responseText + "----- Preview ----- <br />"
@@ -51,7 +52,7 @@ if(checkFailed > 0):
 else:
     responseText = responseText + "All checks have passed! I'll flag your boundary submission for a manual review by one of my humans.  <br />"
     responseText = responseText + "![Preview]("+ theUrl + "geometryDataChecks/preview.png)  <br />"
-    
+
 
 print(responseText)
 with open(os.path.expanduser("~") + "/tmp/response.txt", "w") as f:

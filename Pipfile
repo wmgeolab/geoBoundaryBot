@@ -9,6 +9,8 @@ geopandas = "*"
 shapely = "*"
 requests = "*"
 rich = "*"
+"github.py" = "*"
+matplotlib = "*"
 
 [dev-packages]
 black = "*"
