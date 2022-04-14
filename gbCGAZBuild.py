@@ -1,14 +1,12 @@
-import logging
 import os
 import sys
 import warnings
-from subprocess import PIPE, run
 
 import geopandas
 import pandas as pd
-from rich import inspect
-from rich.logging import RichHandler
 from rich.traceback import install
+
+from gbHelpers import argparse_log, cmd
 
 install()
 
@@ -21,31 +19,6 @@ stdISO = "./dta/iso_3166_1_alpha_3.csv"
 # ignore warnings about using '()' in str.contains https://stackoverflow.com/a/39902267/697964
 warnings.filterwarnings("ignore", "This pattern has match groups")
 
-
-def cmd(command, **kwargs):
-    log = logging.getLogger()
-    r = run(
-        command, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True, **kwargs
-    )
-    log.debug(r.args)
-    if r.returncode != 0:
-        log.error(f"process exited with returncode {r.returncode}")
-    log.info(r.stdout.strip())
-    log.error(r.stderr.strip())
-    return r
-
-
-def argparse_log(args):
-    print(args)
-    log_levels = [logging.WARNING, logging.INFO, logging.DEBUG]
-    logging.basicConfig(
-        level=log_levels[min(len(log_levels) - 1, args.verbose)],
-        format="%(message)s",
-        datefmt="[%X]",
-        handlers=[RichHandler()],
-    )
-    log = logging.getLogger()
-    return log
 
 
 def preprocess_dta(log):
@@ -77,8 +50,8 @@ def preprocess_dta(log):
         }
 
         default = [country_na]
-        country_na = [v for k, v in test_dict.items() if k in country_na] + default
-        return country_na[0]
+        result = [v for k, v in test_dict.items() if k in country_na] + default
+        return result[0]
 
     G.COUNTRY_NA = G.COUNTRY_NA.map(country_renamer)
 
