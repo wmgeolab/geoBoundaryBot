@@ -274,7 +274,7 @@ def process_file(args, ws, rows, filename):
                         """
         )
 
-        headers = {"Authorization": "Bearer %s" % args.APIkey}
+        headers = {"Authorization": "Bearer %s" % args.github_api_key}
 
         request = requests.post("https://api.github.com/graphql", json={"query": sourceQuery}, headers=headers)
         response = request.json()
@@ -674,10 +674,8 @@ if __name__ == "__main__":
     parser.add_argument("buildVer")
     parser.add_argument("cQuery")
     parser.add_argument("typeQuery")
-    if not '-skip-github' in str(sys.argv):
-        parser.add_argument("APIkey")
+    parser.add_argument("-github", "--github-api-key")
     parser.add_argument("-v", "--verbose", action="count", default=0)
-    parser.add_argument("-skip-github", "--skip-github", action="store_true")
     args = parser.parse_args()
 
     main(args)
