@@ -23,14 +23,12 @@ def initiateWorkspace(check, build=None):
         try:
             ws["working"] = os.environ["GITHUB_WORKSPACE"]
             ws["changedFiles"] = os.environ["changes"].strip("][").split(",")
-            ws["logPath"] = os.path.expanduser("~") + "/tmp/" + str(check) + ".txt"
-            ws["zips"] = list(filter(lambda x: x[-4:] == ".zip", ws["changedFiles"]))
         except:
             ws["working"] = "/home/dan/git/geoBoundaries"
             ws["changedFiles"] = ["sourceData/gbOpen/ARE_ADM1.zip", "sourceData/gbOpen/QAT_ADM0.zip"]
-            ws["logPath"] = os.path.expanduser("~") + "/tmp/" + str(check) + ".txt"
-            ws["zips"] = list(filter(lambda x: x[-4:] == ".zip", ws["changedFiles"]))
 
+        ws["logPath"] = os.path.expanduser("~") + "/tmp/" + str(check) + ".txt"
+        ws["zips"] = list(filter(lambda x: x[-4:] == ".zip", ws["changedFiles"]))
         print("Python changedFiles: " + str(ws["changedFiles"]))
         print("Changed Zips Detected: " + str(ws["zips"]))
 
@@ -44,10 +42,10 @@ def initiateWorkspace(check, build=None):
     return ws
 
 
-def logWrite(check, line):
+def logWrite(ws, line):
     # if(check != "gbAuthoritative" and check != "gbHumanitarian" and check != "gbOpen"):
     print(line)
-    with open(os.path.expanduser("~") + "/tmp/" + str(check) + ".txt", "a") as f:
+    with open(ws["logPath"], "a") as f:
         f.write(line + "\n")
 
 
