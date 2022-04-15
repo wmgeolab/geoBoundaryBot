@@ -14,7 +14,7 @@ def initiateWorkspace(check, build=None):
     ws = {}
     if build != None:
         ws["working"] = (
-            os.environ["GITHUB_WORKSPACE"] or os.environ["GEOBOUNDARIES_DIR"] or "/home/dan/git/geoBoundaries"
+            os.environ.get("GITHUB_WORKSPACE") or os.environ.get("GEOBOUNDARIES_DIR") or "/home/dan/git/geoBoundaries"
         )
         ws["logPath"] = os.path.expanduser("~") + "/tmp/" + str(check) + "_buildStatus.csv"
         ws["zips"] = []

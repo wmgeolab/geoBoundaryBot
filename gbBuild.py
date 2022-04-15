@@ -648,23 +648,17 @@ def main(args):
     csvR = build_data(args, ws)
 
     # Saved CSV as an artifact - TBD if this code stays here, or just log.
-    try:
-        keys = csvR[0].keys()
-        with open(os.path.expanduser("~") + "/artifacts/results" + str(args.buildType) + ".csv", "w") as f:
-            writer = csv.DictWriter(f, keys)
-            writer.writeheader()
-            writer.writerows(csvR)
-    except:
-        print("No CSV log to output.")
+    keys = csvR[0].keys()
+    with open(os.path.expanduser("~") + "/artifacts/results" + str(args.buildType) + ".csv", "w") as f:
+        writer = csv.DictWriter(f, keys)
+        writer.writeheader()
+        writer.writerows(csvR)
 
-    try:
-        # Copy the log over for an artifact
-        shutil.move(
-            os.path.expanduser("~") + "/tmp/" + str(args.buildType) + ".txt",
-            os.path.expanduser("~") + "/artifacts/log" + str(args.buildType) + ".txt",
-        )
-    except:
-        print("No log to output.")
+    # Copy the log as an artifact
+    shutil.move(
+        os.path.expanduser("~") + "/tmp/" + str(args.buildType) + ".txt",
+        os.path.expanduser("~") + "/artifacts/log" + str(args.buildType) + ".txt",
+    )
 
     files_with_shapeName = list(filter(lambda x: "shapeName" in x["presentTargetColumns"], csvR))
     print(len(files_with_shapeName), " of ", len(csvR))
@@ -680,7 +674,8 @@ if __name__ == "__main__":
     parser.add_argument("buildVer")
     parser.add_argument("cQuery")
     parser.add_argument("typeQuery")
-    parser.add_argument("APIkey")
+    if not '-skip-github' in str(sys.argv):
+        parser.add_argument("APIkey")
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-skip-github", "--skip-github", action="store_true")
     args = parser.parse_args()
