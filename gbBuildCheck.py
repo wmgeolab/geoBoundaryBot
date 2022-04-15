@@ -134,8 +134,8 @@ try:
 except:
     annotationPayload = "No source file for this layer currently exists in the repository. Skipping any further action."
     print(annotationPayload)
-    sys.exit("No source file in the repository.")
+    raise Exception("No source file in the repository.")
 
 if sysExit == 1:
     annotationPayload = "Build is already up to date."
-    sys.exit(annotationPayload)
+    raise Exception(annotationPayload)

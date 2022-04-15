@@ -2,9 +2,12 @@ import csv
 import logging
 import os
 import shutil
+import sys
 from subprocess import PIPE, run
 
 import geopandas as gpd
+from IPython.core import ultratb
+from IPython.terminal.debugger import TerminalPdb
 from rich import inspect
 from rich.logging import RichHandler
 from shapely.geometry import MultiPolygon, Polygon
@@ -197,6 +200,14 @@ def cmd(command, **kwargs):
 
 def argparse_log(args):
     print(args)
+
+    sys.excepthook = ultratb.FormattedTB(
+        mode="Verbose" if args.verbose > 0 else "Context",
+        color_scheme="Neutral",
+        call_pdb=1,
+        debugger_cls=TerminalPdb,
+    )
+
     log_levels = [logging.WARNING, logging.INFO, logging.DEBUG]
     logging.basicConfig(
         level=log_levels[min(len(log_levels) - 1, args.verbose)],
