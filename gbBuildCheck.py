@@ -25,9 +25,6 @@ def findDate(queryResponse):
         curDate = queryResponse["data"]["repository"]["object"]["blame"]["ranges"][i]["commit"]["committedDate"]
         if i == 0:
             recentDate = curDate
-        else:
-            if recentDate < curDate:
-                recentDate = curDate
 
     return recentDate
 

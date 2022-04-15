@@ -222,7 +222,7 @@ def geometryCheck(ws):
 
             else:
                 ws["zipSuccess"] = ws["zipSuccess"] + 1
-                gbHelpers.logWrite(ws,  "Data checks passed for " + z)
+                gbHelpers.logWrite(ws,  "Data checks passed for :" + z)
 
             ws["zipTotal"] = ws["zipTotal"] + 1
         gbHelpers.logWrite(ws,  "")

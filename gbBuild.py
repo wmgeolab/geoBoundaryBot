@@ -27,6 +27,55 @@ def promote_to_multipolygon(geometry):
     return [MultiPolygon([feature]) if type(feature) == Polygon else feature for feature in geometry]
 
 
+def getCommitDate(ws):
+    inputDataPath = ws["working"] + "/" + ws["zips"][0]
+    currentBuild = os.path.getmtime(inputDataPath)
+
+    # Get commit from most recent source file
+    sourceQuery = (
+        """
+                    {
+                        repository(owner: \"wmgeolab\", name: \"geoBoundaries\") {
+                        object(expression: \"main\") {
+                            ... on Commit {
+                            blame(path: \"sourceData/"""
+        + args.buildType
+        + """/"""
+        + args.cQuery
+        + """_"""
+        + args.typeQuery
+        + """.zip\") {
+                                ranges {
+                                commit {
+                                    committedDate
+                                }
+                                }
+                            }
+                            }
+                        }
+                        }
+                    }
+                    """
+    )
+
+    headers = {"Authorization": "Bearer %s" % args.APIkey}
+
+    request = requests.post("https://api.github.com/graphql", json={"query": sourceQuery}, headers=headers)
+    response = request.json()
+
+    print(sourceQuery)
+    for i in range(0, len(response["data"]["repository"]["object"]["blame"]["ranges"])):
+        curDate = response["data"]["repository"]["object"]["blame"]["ranges"][i]["commit"]["committedDate"]
+        print(curDate)
+        print(i)
+        if i == 0:
+            return curDate
+
+    raise
+
+    return currentBuild
+
+
 def process_file(args, ws, rows, filename):
     bCnt = len(rows) + 1
     print("Processing " + str(filename) + " (boundary " + str(bCnt) + ")")
@@ -243,52 +292,8 @@ def process_file(args, ws, rows, filename):
         shpOUT = basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + ".zip"
         imgOUT = basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-PREVIEW.png"
         fullZip = basePath + "geoBoundaries-" + str(row["boundaryISO"]) + "-" + str(row["boundaryType"]) + "-all.zip"
-        inputDataPath = ws["working"] + "/" + ws["zips"][0]
 
-        currentBuild = os.path.getmtime(inputDataPath)
-
-        # Get commit from most recent source file.
-        sourceQuery = (
-            """
-                        {
-                            repository(owner: \"wmgeolab\", name: \"geoBoundaries\") {
-                            object(expression: \"main\") {
-                                ... on Commit {
-                                blame(path: \"sourceData/"""
-            + args.buildType
-            + """/"""
-            + args.cQuery
-            + """_"""
-            + args.typeQuery
-            + """.zip\") {
-                                    ranges {
-                                    commit {
-                                        committedDate
-                                    }
-                                    }
-                                }
-                                }
-                            }
-                            }
-                        }
-                        """
-        )
-
-        headers = {"Authorization": "Bearer %s" % args.github_api_key}
-
-        request = requests.post("https://api.github.com/graphql", json={"query": sourceQuery}, headers=headers)
-        response = request.json()
-
-        print(sourceQuery)
-        for i in range(0, len(response["data"]["repository"]["object"]["blame"]["ranges"])):
-            curDate = response["data"]["repository"]["object"]["blame"]["ranges"][i]["commit"]["committedDate"]
-            print(curDate)
-            print(i)
-            if i == 0:
-                commitDate = curDate
-            else:
-                if commitDate < curDate:
-                    commitDate = curDate
+        commitDate = getCommitDate(ws)
 
         print("Building Metadata and HPSCU Geometries for: " + str(fullZip))
         humanDate = datetime.strptime(commitDate.split("T")[0], "%Y-%m-%d")
@@ -674,7 +679,9 @@ if __name__ == "__main__":
     parser.add_argument("buildVer", help="nightly or release")
     parser.add_argument("cQuery", help="comma deliminated list of countries to build")
     parser.add_argument("typeQuery", help="ADM0, ADM1, ADM2, etc")
-    parser.add_argument("-github", "--github-api-key")
+    if not "-skip-github" in str(sys.argv):
+        parser.add_argument("APIkey")
+    parser.add_argument("-skip-github", "--skip-github", action="store_true")
     parser.add_argument("-v", "--verbose", action="count", default=0)
     args = parser.parse_args()
 
