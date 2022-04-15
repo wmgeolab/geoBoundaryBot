@@ -192,7 +192,7 @@ def geometryCheck(ws):
 
 
             gbHelpers.logWrite(ws,  "")
-            gbHelpers.logWrite(ws,  "Data checks complete for " + z)
+            gbHelpers.logWrite(ws,  "Data checks complete for :" + z)
             gbHelpers.logWrite(ws,  "")
             gbHelpers.logWrite(ws,  "----------------------------")
             gbHelpers.logWrite(ws,  "      OPTIONAL TESTS        ")

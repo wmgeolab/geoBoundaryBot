@@ -393,7 +393,7 @@ def process_file(args, ws, rows, filename):
         ####The ID won't either.  This will also be robust across datasets.
 
         def geomID(geom, metaHash=row["boundaryID"]):
-            hashVal = int(hashlib.sha256(str(geom["geometry"]).encode(encoding="UTF-8")).hexdigest(), 16) % 10 ** 8
+            hashVal = int(hashlib.sha256(str(geom["geometry"]).encode(encoding="UTF-8")).hexdigest(), 16) % 10**8
             return str(metaHash) + "B" + str(hashVal)
 
         dta[["shapeID"]] = dta.apply(lambda row: geomID(row), axis=1)
@@ -500,7 +500,7 @@ def check_for_meta_txt(args, ws, row):
                     break
             # 8 digit modulo on the hash.  Won't guarantee unique,
             # but as this is per ADM/ISO, collision is very (very) unlikely.
-            metaHash = int(m.hexdigest(), 16) % 10 ** 8
+            metaHash = int(m.hexdigest(), 16) % 10**8
             print(metaHash)
 
     except:
@@ -670,10 +670,10 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("buildType")
-    parser.add_argument("buildVer")
-    parser.add_argument("cQuery")
-    parser.add_argument("typeQuery")
+    parser.add_argument("buildType", help="gbOpen, gbHumanitarian, or gbAuthoritative")
+    parser.add_argument("buildVer", help="nightly or release")
+    parser.add_argument("cQuery", help="comma deliminated list of countries to build")
+    parser.add_argument("typeQuery", help="ADM0, ADM1, ADM2, etc")
     parser.add_argument("-github", "--github-api-key")
     parser.add_argument("-v", "--verbose", action="count", default=0)
     args = parser.parse_args()

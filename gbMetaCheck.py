@@ -278,7 +278,7 @@ def metaCheck(ws):
 
 
                 gbHelpers.logWrite(ws, "")
-                gbHelpers.logWrite(ws, "Metadata checks complete for " + z)
+                gbHelpers.logWrite(ws, "Metadata checks complete for :" + z)
                 gbHelpers.logWrite(ws, "")
                 gbHelpers.logWrite(ws, "----------------------------")
                 gbHelpers.logWrite(ws, "      OPTIONAL TESTS        ")

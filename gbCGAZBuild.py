@@ -20,7 +20,6 @@ stdISO = "./dta/iso_3166_1_alpha_3.csv"
 warnings.filterwarnings("ignore", "This pattern has match groups")
 
 
-
 def preprocess_dta(log):
     globalDta = geopandas.read_file(stdGeom)
     isoCSV = pd.read_csv(stdISO)
@@ -253,15 +252,9 @@ def join_admins(adm0str, adm1str, adm2str):
     cmd(A1mapShaperFull)
     cmd(A2mapShaperFull)
 
-    cmd(
-        "ogr2ogr tmp/CGAZ/geoBoundariesCGAZ_ADM0.gpkg tmp/CGAZ/geoBoundariesCGAZ_ADM0.topojson"
-    )
-    cmd(
-        "ogr2ogr tmp/CGAZ/geoBoundariesCGAZ_ADM1.gpkg tmp/CGAZ/geoBoundariesCGAZ_ADM1.topojson"
-    )
-    cmd(
-        "ogr2ogr tmp/CGAZ/geoBoundariesCGAZ_ADM2.gpkg tmp/CGAZ/geoBoundariesCGAZ_ADM2.topojson"
-    )
+    cmd("ogr2ogr tmp/CGAZ/geoBoundariesCGAZ_ADM0.gpkg tmp/CGAZ/geoBoundariesCGAZ_ADM0.topojson")
+    cmd("ogr2ogr tmp/CGAZ/geoBoundariesCGAZ_ADM1.gpkg tmp/CGAZ/geoBoundariesCGAZ_ADM1.topojson")
+    cmd("ogr2ogr tmp/CGAZ/geoBoundariesCGAZ_ADM2.gpkg tmp/CGAZ/geoBoundariesCGAZ_ADM2.topojson")
 
 
 def dissolve_based_on_ISO_Code(log):
