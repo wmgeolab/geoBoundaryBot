@@ -26,7 +26,7 @@ def initiateWorkspace(check, build = None):
             ws['zips'] = list(filter(lambda x: x[-4:] == '.zip', ws["changedFiles"]))
         except:
             ws['working'] = "/home/dan/git/geoBoundaries"
-            ws['changedFiles'] = ['sourceData/gbOpen/ARE_ADM1.zip', 'sourceData/gbOpen/QAT_ADM0.zip']
+            ws['changedFiles'] = ['sourceData/PCN_ADM0.zip']
             ws['logPath'] = os.path.expanduser("~") + "/tmp/" + str(check) + ".txt"
             ws['zips'] = list(filter(lambda x: x[-4:] == '.zip', ws["changedFiles"]))
 
