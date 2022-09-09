@@ -55,8 +55,9 @@ def geometryCheck(ws):
                     gbHelpers.logWrite(ws["checkType"],  "Shapefile (*.shp) found. Attempting to load.")
                     try:
                         dta = geopandas.read_file("tmp/" + shp[0])
-                    except:
+                    except Exception as e:
                         gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: The shape file provided failed to load. Make sure all required files are included (i.e., *.shx).")
+                        gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: " + str(e))
                         checkFail = 1
                         break
 
