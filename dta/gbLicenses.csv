@@ -32,3 +32,4 @@ license_name, licenseText, gbOpen, gbAuthoritative, gbHumanitarian, lMustAttribu
 "Creative Commons Attribution 2.5 Generic", "CCBY_2.5_Generic.pdf", Yes, Yes, Yes, Yes, No, Yes, No, No
 "Pixabay License for Content", "pixabay_license.pdf", Yes, Yes, Yes, No, No, Yes, No, Yes
 "Etalab Open License 2.0", "etalab-20.pdf", Yes, Yes, Yes, Yes, No, Yes, Yes, No
+"Federal Office of Topography swisstopo License", "swisstopo.pdf", Yes, Yes, Yes, Yes, No, Yes, No, Yes
