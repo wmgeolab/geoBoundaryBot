@@ -1,0 +1,11 @@
+Total Jobs: 2
+Traceback (most recent call last):
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/test.py", line 50, in <module>
+    result = [A.result() for A in futures]
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/test.py", line 50, in <listcomp>
+    result = [A.result() for A in futures]
+  File "/sciclone/home20/dsmillerrunfol/.conda/envs/geoBoundaries/lib/python3.10/site-packages/distributed/client.py", line 280, in result
+    raise exc.with_traceback(tb)
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/test.py", line 42, in build
+    bnd = builder(ISO, ADM, product, "/sciclone/home20/dsmillerrunfol/geoBoundariesDev/", "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/logs/")
+TypeError: builder.__init__() missing 1 required positional argument: 'tmpPath'
