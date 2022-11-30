@@ -10,7 +10,7 @@ module load python/usermodules
 
 unsetenv PYTHONPATH
 
-conda activate geoBoundaries
+conda activate gB
 
 cd /sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder
 python build.py >& buildLog
