@@ -1,5 +1,5 @@
 
-Thu Dec 01 2022 13:36:13 EST: /usr/local/seoul/linux-centos7-piledriver/intel-18.0.5/mvapich2-2.3.1-m2no/bin/mpirun_rsh -rsh -np 24 -hostfile /tmp/mvp2run.hosts.12974  MV2_ENABLE_AFFINITY=1 MV2_SMP_USE_LIMIC2=0 MV2_SMP_USE_CMA=0 /sciclone/home20/dsmillerrunfol/.conda/envs/geoBoundariesBuild/bin/python build.py
+Thu Dec 01 2022 13:58:10 EST: /usr/local/seoul/linux-centos7-piledriver/intel-18.0.5/mvapich2-2.3.1-m2no/bin/mpirun_rsh -rsh -np 24 -hostfile /tmp/mvp2run.hosts.15223  MV2_ENABLE_AFFINITY=1 MV2_SMP_USE_LIMIC2=0 MV2_SMP_USE_CMA=0 /sciclone/home20/dsmillerrunfol/.conda/envs/geoBoundariesBuild/bin/python build.py
 
 PYTHONPATH: Undefined variable.
 PYTHONPATH: Undefined variable.
@@ -8,7 +8,16 @@ WARNING: Error in initializing MVAPICH2 ptmalloc library.Continuing without Infi
 Total Jobs: 32
 2
 24
+I (20) have received [] layers to build.
+[]
+24
 I (21) have received [] layers to build.
+[]
+24
+I (18) have received [] layers to build.
+[]
+24
+I (17) have received [] layers to build.
 []
 24
 I (22) have received [] layers to build.
@@ -17,59 +26,149 @@ I (22) have received [] layers to build.
 I (19) have received [] layers to build.
 []
 24
-I (20) have received [] layers to build.
-[]
-24
-I (17) have received [] layers to build.
-[]
-24
-I (18) have received [] layers to build.
-[]
+I (13) have received [['USA', 'ADM3', 'geoBoundaries'], ['MEX', 'ADM3', 'geoBoundaries']] layers to build.
+[['USA', 'ADM3', 'geoBoundaries', 'No source data for boundary exists.  Skipping.'], ['MEX', 'ADM3', 'geoBoundaries', 'No source data for boundary exists.  Skipping.']]
 24
 I (15) have received [['AUS', 'ADM3', 'geoBoundaries'], ['BRA', 'ADM3', 'geoBoundaries']] layers to build.
 [['AUS', 'ADM3', 'geoBoundaries', 'No source data for boundary exists.  Skipping.'], ['BRA', 'ADM3', 'geoBoundaries', 'No source data for boundary exists.  Skipping.']]
 24
-I (13) have received [['USA', 'ADM3', 'geoBoundaries'], ['MEX', 'ADM3', 'geoBoundaries']] layers to build.
-[['USA', 'ADM3', 'geoBoundaries', 'No source data for boundary exists.  Skipping.'], ['MEX', 'ADM3', 'geoBoundaries', 'No source data for boundary exists.  Skipping.']]
-24
 I (12) have received [['UKR', 'ADM2', 'geoBoundaries'], ['NOR', 'ADM2', 'geoBoundaries']] layers to build.
-[['UKR', 'ADM2', 'geoBoundaries', 'Succesfully built.'], ['NOR', 'ADM2', 'geoBoundaries', 'Succesfully built.']]
-24
-I (1) have received [['USA', 'ADM0', 'geoBoundaries'], ['MEX', 'ADM0', 'geoBoundaries']] layers to build.
-[['USA', 'ADM0', 'geoBoundaries', 'Succesfully built.'], ['MEX', 'ADM0', 'geoBoundaries', 'Succesfully built.']]
-24
-I (16) have received [['UKR', 'ADM3', 'geoBoundaries'], ['NOR', 'ADM3', 'geoBoundaries']] layers to build.
-[['UKR', 'ADM3', 'geoBoundaries', 'Succesfully built.'], ['NOR', 'ADM3', 'geoBoundaries', 'No source data for boundary exists.  Skipping.']]
-24
-I (5) have received [['USA', 'ADM1', 'geoBoundaries'], ['MEX', 'ADM1', 'geoBoundaries']] layers to build.
-[['USA', 'ADM1', 'geoBoundaries', 'Succesfully built.'], ['MEX', 'ADM1', 'geoBoundaries', 'Succesfully built.']]
-24
-I (9) have received [['USA', 'ADM2', 'geoBoundaries'], ['MEX', 'ADM2', 'geoBoundaries']] layers to build.
-[['USA', 'ADM2', 'geoBoundaries', 'Succesfully built.'], ['MEX', 'ADM2', 'geoBoundaries', 'Succesfully built.']]
-24
-I (8) have received [['UKR', 'ADM1', 'geoBoundaries'], ['NOR', 'ADM1', 'geoBoundaries']] layers to build.
-[['UKR', 'ADM1', 'geoBoundaries', 'Succesfully built.'], ['NOR', 'ADM1', 'geoBoundaries', 'Succesfully built.']]
-24
-I (11) have received [['AUS', 'ADM2', 'geoBoundaries'], ['BRA', 'ADM2', 'geoBoundaries']] layers to build.
-[['AUS', 'ADM2', 'geoBoundaries', 'Succesfully built.'], ['BRA', 'ADM2', 'geoBoundaries', 'Succesfully built.']]
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
 24
 I (4) have received [['UKR', 'ADM0', 'geoBoundaries'], ['NOR', 'ADM0', 'geoBoundaries']] layers to build.
-[['UKR', 'ADM0', 'geoBoundaries', 'Succesfully built.'], ['NOR', 'ADM0', 'geoBoundaries', 'Succesfully built.']]
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
+24
+I (1) have received [['USA', 'ADM0', 'geoBoundaries'], ['MEX', 'ADM0', 'geoBoundaries']] layers to build.
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
+24
+I (8) have received [['UKR', 'ADM1', 'geoBoundaries'], ['NOR', 'ADM1', 'geoBoundaries']] layers to build.
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
+24
+I (5) have received [['USA', 'ADM1', 'geoBoundaries'], ['MEX', 'ADM1', 'geoBoundaries']] layers to build.
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
+24
+I (9) have received [['USA', 'ADM2', 'geoBoundaries'], ['MEX', 'ADM2', 'geoBoundaries']] layers to build.
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
+24
+I (16) have received [['UKR', 'ADM3', 'geoBoundaries'], ['NOR', 'ADM3', 'geoBoundaries']] layers to build.
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
+24
+I (11) have received [['AUS', 'ADM2', 'geoBoundaries'], ['BRA', 'ADM2', 'geoBoundaries']] layers to build.
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
 24
 I (6) have received [['CAN', 'ADM1', 'geoBoundaries'], ['FRA', 'ADM1', 'geoBoundaries']] layers to build.
-[['CAN', 'ADM1', 'geoBoundaries', 'Succesfully built.'], ['FRA', 'ADM1', 'geoBoundaries', 'Succesfully built.']]
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
 24
 I (7) have received [['AUS', 'ADM1', 'geoBoundaries'], ['BRA', 'ADM1', 'geoBoundaries']] layers to build.
-[['AUS', 'ADM1', 'geoBoundaries', 'Succesfully built.'], ['BRA', 'ADM1', 'geoBoundaries', 'Succesfully built.']]
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
 24
 I (2) have received [['CAN', 'ADM0', 'geoBoundaries'], ['FRA', 'ADM0', 'geoBoundaries']] layers to build.
-[['CAN', 'ADM0', 'geoBoundaries', 'Succesfully built.'], ['FRA', 'ADM0', 'geoBoundaries', 'Succesfully built.']]
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
 24
 I (14) have received [['CAN', 'ADM3', 'geoBoundaries'], ['FRA', 'ADM3', 'geoBoundaries']] layers to build.
-[['CAN', 'ADM3', 'geoBoundaries', 'Succesfully built.'], ['FRA', 'ADM3', 'geoBoundaries', 'Succesfully built.']]
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
 24
 I (3) have received [['AUS', 'ADM0', 'geoBoundaries'], ['BRA', 'ADM0', 'geoBoundaries']] layers to build.
-[['AUS', 'ADM0', 'geoBoundaries', 'Succesfully built.'], ['BRA', 'ADM0', 'geoBoundaries', 'Succesfully built.']]
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
 24
 I (10) have received [['CAN', 'ADM2', 'geoBoundaries'], ['FRA', 'ADM2', 'geoBoundaries']] layers to build.
-[['CAN', 'ADM2', 'geoBoundaries', 'Succesfully built.'], ['FRA', 'ADM2', 'geoBoundaries', 'Succesfully built.']]
+Traceback (most recent call last):
+  File "build.py", line 93, in <module>
+    ret.append(build(ISO=l[0], ADM=l[1], product=l[2]))
+  File "build.py", line 82, in build
+    saveFiles = bnd.constructFiles()
+  File "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/builderClass.py", line 506, in constructFiles
+    os.makedir(tmpFold)
+AttributeError: module 'os' has no attribute 'makedir'
+[vx12.sciclone.wm.edu:mpirun_rsh][signal_processor] Caught signal 15, killing job

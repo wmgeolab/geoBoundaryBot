@@ -499,7 +499,7 @@ class builder:
         else:
             self.logger("CRITICAL", "At least one geometry check failed.")
             return(retMes)
-    def constructFiles():
+    def constructFiles(self):
         #Create temp working folder
         tmpFold = self.tmpPath + self.ISO + self.ADM + self.product + "/"
         if not os.path.exists(tmpFold):
@@ -508,5 +508,5 @@ class builder:
         #Save intermediary geoJSON
         self.geomDta.to_file(self.tmpPath + self.ISO + self.ADM + self.product + ".geoJSON", driver="GeoJSON")
 
-        
+
         
