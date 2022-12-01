@@ -8,4 +8,5 @@ module load git-lfs/3.2.0
 
 cd /sciclone/home20/dsmillerrunfol/geoBoundaries/
 git pull
-git lfs fetch --all
+git lfs install
+git lfs pull
