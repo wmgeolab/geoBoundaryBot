@@ -71,12 +71,20 @@ else:
         if("ERROR" in validSource):
             return([ISO,ADM,product,validSource])
 
-        metaBuild = bnd.buildTabularMetaData()
+        metaBuild = bnd.checkBuildTabularMetaData()
         if("ERROR" in metaBuild):
             return([ISO,ADM,product,metaBuild])
+
+        geomChecks = bnd.checkBuildGeometryFiles()
+        if("ERROR" in geomChecks):
+            return([ISO,ADM,product,geomChecks])
+
+        saveFiles = bnd.constructFiles()
+        if("ERROR" in saveFiles):
+            return([ISO, ADM, product, saveFiles])
+
         
         return([ISO,ADM,product,"Succesfully built."])
-
 
     layers = comm.recv(source=0, tag=1)
     print("I (" + str(MPI.COMM_WORLD.Get_rank()) + ") have received " + str(layers) + " layers to build.")

@@ -5,6 +5,9 @@ import geopandas as gpd
 import datetime
 from shapely.validation import explain_validity
 from shapely.geometry import shape
+from shapely.geometry.polygon import Polygon
+from shapely.geometry.multipolygon import MultiPolygon
+import time
 
 class builder:
     def __init__(self, ISO, ADM, product, basePath, logPath, tmpPath, validISO, validLicense):
@@ -49,6 +52,9 @@ class builder:
         self.geomReq["iso"] = "NONE"
         self.geomReq["bounds"] = "NONE"
         self.geomReq["valid"] = "NONE"
+
+        #Library for metadata
+        self.metaData = {}
     
     def logger(self, type, message):
         with open(self.logPath + str(self.ISO)+str(self.ADM)+str(self.product)+".log", "a") as f:
@@ -64,7 +70,7 @@ class builder:
     def metaLoad(self):
         try:
             with zipfile.ZipFile(self.sourcePath) as zF:
-                self.metaData = zF.read('meta.txt')
+                self.metaData = zF.read('meta.txt').decode("utf-8")
                 self.metaExistsFail = 0
         except Exception as e:
             self.logger("CRITICAL","Metadata failed to load: " + str(e))
@@ -121,9 +127,8 @@ class builder:
                     m.update(chunk)
                 else:
                     break
-            #14 digit modulo on the hash of the zipfile.  Won't guarantee unique,
-            #up from 8 based on gB 4.0 overlap concerns.
-            self.metaHash = int(m.hexdigest(), 16) % 10**14
+                    
+            self.metaHash = str(int(m.hexdigest(), 16) % 10**8)
             self.logger("INFO", "Hash Calculated: " + str(self.metaHash))
             self.hashCalcFail = 0
     
@@ -146,7 +151,7 @@ class builder:
         
         return("SUCCESS: Source zipfile is valid.")
     
-    def buildTabularMetaData(self):
+    def checkBuildTabularMetaData(self):
         self.metaExistsFail = 1
         self.metaLoad()
 
@@ -232,7 +237,10 @@ class builder:
                 if(len(val.replace(" ","")) > 0):
                     if(val.lower() not in ["na", "nan", "null"]):
                         self.logger("INFO", "Source detected: " + str(val))
-                        self.metaReq["source"] = val
+                        if(self.metaReq["source"] == "NONE"):
+                            self.metaReq["source"] = val
+                        else:
+                            self.metaReq["source"] = self.metaReq["source"] + ", " + val
 
 
             if("release type" in key.lower()):
@@ -349,13 +357,27 @@ class builder:
                 allValid = 0
         
         if(allValid == 1):
-            self.logger("INFO", "All metadata checks passed.")
-            return("Metadata checks successful")
+            self.logger("INFO", "All metadata checks passed, commencing build stage.")
+            self.hashCalc()
+            self.metaData["boundaryID"] = str(str(self.ISO) + "-" + str(self.ADM) + "-" + str(self.metaHash))
+            self.metaData["boundaryISO"] = self.ISO
+            self.metaData["boundaryYear"] = self.metaReq["year"]
+            self.metaData["boundaryType"] = self.metaReq["bType"]
+            self.metaData["boundarySource"] = self.metaReq["source"]
+            self.metaData["boundaryCanonical"] = self.metaReq["canonical"]
+            self.metaData["boundaryLicense"] = self.metaReq["license"]
+            self.metaData["licenseDetail"] = self.metaReq["licenseNotes"]
+            self.metaData["licenseSource"] = self.metaReq["licenseSource"]
+            self.metaData["boundarySourceURL"] = self.metaReq["dataSource"]
+            self.metaData["sourceDataUpdateDate"] = os.popen("git log -1 --format=%cd -p -- " + self.sourcePath).read().split("-")[0].strip()
+            self.metaData["buildDate"] = time.strftime('%b %d, %Y')
+            return("Metadata checks successful, metadata built in self.metaData.")
+        
         else:
-            self.logger("CRITICAL", "At least one metadata check failed.")
+            self.logger("CRITICAL", "At least one metadata check failed, build halted..")
             return(retMes)
     
-    def checkGeometryFiles(self):
+    def checkBuildGeometryFiles(self):
         self.dataLoad()
         
         nameC = set(['Name', 'name', 'NAME', 'shapeName', 'shapename', 'SHAPENAME']) 
@@ -368,8 +390,8 @@ class builder:
                 self.geomReq["names"] = str(nameCol[0])
                 self.logger("INFO", "Names: " + str(nameValues) + " | Example: " + str(nameExample))
             except Exception as e:
-                self.logger("CRITICAL", "ERROR: The file provided failed to load - it doesn't look like you have a working attribute table: " + str(e))
-                self.geomReq["names"] = "ERROR: The file provided failed to load - it doesn't look like you have a working attribute table. Check the log for the specific error."
+                self.logger("WARN", "No name values were found, even though a column was present.")
+                self.geomReq["names"] = str(nameCol[0])
 
         nameIC = set(['ISO', 'ISO_code', 'ISO_Code', 'iso', 'shapeISO', 'shapeiso', 'shape_iso']) 
         nameICol = list(nameIC & set(self.geomDta.columns))
@@ -381,8 +403,8 @@ class builder:
                 self.geomReq["iso"] = str(nameICol[0])
                 self.logger("INFO", "ISOs: " + str(nameValues) + " | Example: " + str(nameExample))
             except Exception as e:
-                self.logger("CRITICAL", "ERROR: The file provided failed to load - it doesn't look like you have a working attribute table: " + str(e))
-                self.geomReq["iso"] = "ERROR: The file provided failed to load - it doesn't look like you have a working attribute table. Check the log for the specific error."
+                self.logger("WARN", "No ISO values were found, even though a column was present.")
+                self.geomReq["iso"] = str(nameICol[0])
         else:
             self.logger("WARN","No column for boundary ISOs found.  This is not required.")
 
@@ -415,11 +437,11 @@ class builder:
         
         try:
             if(self.geomDta.crs == "epsg:4326"):
-                self.logger("INFO",  "Projection confirmed as " + str(dta.crs))
-                self.geomReq["projection"] = "Projection confirmed as " + str(dta.crs)
+                self.logger("INFO",  "Projection confirmed as " + str(self.geomDta.crs))
+                self.geomReq["projection"] = "Projection confirmed as " + str(self.geomDta.crs)
             else:
-                self.logger("CRITICAL",  "The projection must be EPSG 4326.  The file proposed has a projection of: " + str(dta.crs))
-                self.geomReq["projection"] = "ERROR: The projection must be EPSG 4326.  The file proposed has a projection of: " + str(dta.crs)
+                self.logger("CRITICAL",  "The projection must be EPSG 4326.  The file proposed has a projection of: " + str(self.geomDta.crs))
+                self.geomReq["projection"] = "ERROR: The projection must be EPSG 4326.  The file proposed has a projection of: " + str(self.geomDta.crs)
         except:
             self.logger("CRITICAL",  "The projection must be EPSG 4326.")
             self.geomReq["projection"] = "ERROR: The projection must be EPSG 4326."
@@ -438,8 +460,53 @@ class builder:
                 allValid = 0
         
         if(allValid == 1):
-            self.logger("INFO", "All geometry checks passed.")
-            return("Geometry checks successful")
+            self.logger("INFO", "All geometry checks passed, commencing build.")
+            try:
+                #Cast to multipolygons
+                self.geomDta["geometry"] = [MultiPolygon([feature]) if type(feature) == Polygon else feature for feature in self.geomDta["geometry"]]
+
+                #Standardize name and ISO columns, if they exist; otherwise create blank columns.
+                if(self.geomReq["iso"] != "NONE"):
+                    self.geomDta = self.geomDta.rename(columns={self.geomReq["iso"]:"shapeISO"})
+                else:
+                    self.geomDta["shapeISO"] = ""
+                if(self.geomReq["names"] != "NONE"):
+                    self.geomDta = self.geomDta.rename(columns={self.geomReq["names"]:"shapeName"})
+                else:
+                    self.geomDta["shapeName"] = ""
+                
+                #Build shape IDs
+                self.hashCalc()
+                def geomID(geom, metaHash = self.metaHash):
+                    hashVal = int(hashlib.sha256(str(geom["geometry"]).encode(encoding='UTF-8')).hexdigest(), 16) % 10**14
+                    return(str(metaHash) + "B" + str(hashVal))
+
+                self.geomDta["shapeID"] = self.geomDta.apply(lambda row: geomID(row), axis=1)
+                self.logger("INFO", "ADMISO assignment")
+                self.geomDta[["shapeGroup"]] = self.ISO
+                self.geomDta[["shapeType"]] = self.ADM
+
+                #Cleanup by removing columns not on our list
+                keepCols = ["shapeGroup","shapeID","shapeType","shapeISO","geometry"]
+                self.logger("INFO", "Keeping Cols")
+                self.geomDta = self.geomDta.drop(columns=[c for c in self.geomDta if c not in keepCols])
+                return("Geometry checks and build successful.")
+
+            except Exception as e:
+                self.logger("CRITICAL","Building the geometries failed: " + str(e))
+                return("ERROR: Geometry build failed, check the log.")
+            
         else:
             self.logger("CRITICAL", "At least one geometry check failed.")
             return(retMes)
+    def constructFiles():
+        #Create temp working folder
+        tmpFold = self.tmpPath + self.ISO + self.ADM + self.product + "/"
+        if not os.path.exists(tmpFold):
+            os.makedir(tmpFold)
+        
+        #Save intermediary geoJSON
+        self.geomDta.to_file(self.tmpPath + self.ISO + self.ADM + self.product + ".geoJSON", driver="GeoJSON")
+
+        
+        
