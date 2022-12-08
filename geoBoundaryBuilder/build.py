@@ -34,7 +34,7 @@ licenses = pd.read_csv("../dta/gbLicenses.csv")
 licenseList = licenses["license_name"].values
 
 if(TEST == True):
-    admTypes = ["ADM0"]
+    admTypes = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
     productTypes = ["gbOpen"]
     countries = pd.read_csv("../dta/iso_3166_1_alpha_3.csv")
     isoList = countries["Alpha-3code"].values
