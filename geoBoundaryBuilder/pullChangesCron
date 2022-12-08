@@ -7,5 +7,5 @@
 module load git-lfs/3.2.0
 
 cd /sciclone/home20/dsmillerrunfol/geoBoundaries/
-git pull
-git lfs pull
+git pull &> /sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/logs/gitPullLog.log
+git lfs pull &> /sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/logs/gitLFSLog.log

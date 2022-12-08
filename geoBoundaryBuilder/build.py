@@ -32,9 +32,9 @@ licenses = pd.read_csv("../dta/gbLicenses.csv")
 licenseList = licenses["license_name"].values
 
 if(TEST == True):
-    admTypes = ["ADM0","ADM1","ADM2","ADM3"]
-    productTypes = ["geoBoundaries"]
-    isoList = ["USA", "MEX", "CAN", "FRA","AUS","BRA","UKR","NOR"]
+    admTypes = ["ADM2"]
+    productTypes = ["gbOpen"]
+    isoList = ["NOR"]
 
 if(MPI.COMM_WORLD.Get_rank() == 0):
 
@@ -61,7 +61,7 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
 else:
     def build(ISO, ADM, product, validISO=isoList, validLicense=licenseList):
         bnd = builder(ISO, ADM, product, GB_DIR, LOG_DIR, TMP_DIR, validISO, licenseList)
-        bnd.logger("\n\n\nLAYER BUILD COMMENCE TIMESTAMP", str(time.time()))   
+        bnd.logger("\n\n\nLAYER BUILD COMMENCE TIMESTAMP", str(time.ctime()))   
 
         bnd.checkExistence()
         if(bnd.existFail == 1):

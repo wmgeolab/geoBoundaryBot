@@ -11,6 +11,7 @@ import time
 import subprocess
 import json
 import matplotlib.pyplot as plt
+import shutil
 
 class builder:
     def __init__(self, ISO, ADM, product, basePath, logPath, tmpPath, validISO, validLicense):
@@ -20,7 +21,9 @@ class builder:
         self.basePath = basePath
         self.logPath = logPath
         self.tmpPath = tmpPath
+        self.sourceFolder = self.basePath + "sourceData/" + self.product + "/"
         self.sourcePath = self.basePath + "sourceData/" + self.product + "/" + self.ISO + "_" + self.ADM + ".zip"
+        self.targetPath = self.basePath + "releaseData/" + self.product + "/" + self.ISO + "/" + self.ADM + "/"
         self.zipExtractPath = self.tmpPath + self.product + "/" + self.ISO + "_" + self.ADM + "/"
         self.validISO = validISO
         self.validLicense = [x.lower().strip() for x in validLicense]        
@@ -374,12 +377,14 @@ class builder:
             self.metaDataLib["boundarySourceURL"] = self.metaReq["dataSource"]
 
             try:
-                gitLookup = str("git --git-dir " + self.basePath + ".git log -1 --format=%cd -p -- " + self.sourcePath)
+                gitLookup = str("cd " + str(self.sourceFolder) + "; git log -1 --format=%cd -p -- " + self.sourcePath)
                 sourceDataDate = os.popen(gitLookup).read()
                 self.metaDataLib["sourceDataUpdateDate"] = sourceDataDate.split("-")[0].strip()
                 if(len(self.metaDataLib["sourceDataUpdateDate"]) < 2):
-                    self.logger("CRITICAL", "GIT LOCAL API - Source Data Update Date: " + str(sourceDataDate) + " | " + str(self.metaDataLib["sourceDataUpdateDate"]) + " | " + self.basePath + " | " + self.sourcePath)
-                    return("ERROR: The source data date was unable to be calculated during build (blank result).  See log.")
+                    self.logger("CRITICAL", "GIT LOCAL API - Source Data Update Date: " + str(gitLookup) + " | " + str(sourceDataDate))
+                    return("ERROR: The source data date was unable to be calculated during build (blank result).  See log." + str(gitLookup))
+                else:
+                    self.logger("INFO", "GIT source date found: " + str(self.metaDataLib["sourceDataUpdateDate"]))
 
             except subprocess.CalledProcessError as e:
                 self.logger("CRITICAL", "GIT LOCAL API - Source Data Update Date Subprocess Response: " + str(e))
@@ -423,6 +428,8 @@ class builder:
                 self.geomReq["iso"] = str(nameICol[0])
         else:
             self.logger("WARN","No column for boundary ISOs found.  This is not required.")
+            self.geomDta["shapeISO"] = ""
+            self.geomReq["iso"] = "shapeISO"
 
         for index, row in self.geomDta.iterrows():
             xmin = row["geometry"].bounds[0]
@@ -591,6 +598,7 @@ class builder:
         return(citUse)
 
     def constructFiles(self):
+        self.logger("INFO","Constructing files for release.")
         tmpJson = self.tmpPath + self.ISO + self.ADM + self.product + ".geoJSON"
         tmpFold = self.tmpPath + self.ISO + self.ADM + self.product + "/"
 
@@ -610,7 +618,11 @@ class builder:
         if not os.path.exists(tmpFold):
             os.makedirs(tmpFold)
         
+        if not os.path.exists(self.targetPath):
+            os.makedirs(self.targetPath)
+        
         #Write the metadata file out
+        self.logger("INFO","Writing metadata files.")
         with open(metaJSON, "w", encoding="utf-8") as jsonMeta:
             json.dump(self.metaDataLib, jsonMeta)
         
@@ -654,6 +666,7 @@ class builder:
             cu.write(self.citationUseConstructor())
 
         #Save intermediary geoJSON
+        self.logger("INFO","Building shapefiles, geojson, topojson (Full).")
         self.geomDta.to_file(tmpJson, driver="GeoJSON")
 
         writeRet = []
@@ -666,6 +679,7 @@ class builder:
         
         writeRet.append(subprocess.Popen(write, shell=True).wait())
 
+        self.logger("INFO","Building shapefiles, geojson, topojson (Simplified).")
         writeSimplify = ("/usr/local/mapshaper-0.6.7/bin/mapshaper-xl 6gb " + tmpJson +
                 " -simplify dp interval=100 keep-shapes" +
                 " -clean gap-fill-area=500m2 snap-interval=.00001" +
@@ -677,12 +691,34 @@ class builder:
 
 
         #Create the plot for the boundary to be used in display
+        self.logger("INFO","Plotting preview image.")
         self.geomDta.boundary.plot(edgecolor="black")
         if(len(self.metaReq["canonical"]) > 1):
             plt.title("geoBoundaries.org - " + self.product + "\n" + str(self.ISO) + " " + str(self.ADM) + "(" + self.metaReq["canonical"] +")" + "\nLast Source Data Update: " + str(self.metaDataLib["sourceDataUpdateDate"]) + "\nSource: " + str(self.metaReq["source"]))
         else:
             plt.title("geoBoundaries.org - " + self.product + "\n" + str(self.ISO) + " " + str(self.ADM) + "\nLast Source Data Update: " + str(self.metaDataLib["sourceDataUpdateDate"]) + "\nSource: " + str(self.metaReq["source"]))
         plt.savefig(imgOUT)
+
+        self.logger("INFO","Building zip files.")
+        shutil.make_archive(self.tmpPath + "geoBoundaries-" + self.ISO + "-" + self.ADM + "-all", 'zip', tmpFold)
+        shutil.move(self.tmpPath + "geoBoundaries-" + self.ISO + "-" + self.ADM + "-all.zip", fullZip)
+
+        #Finally, we copy the files over to the core geoBoundaries release folder.
+        self.logger("INFO","Copying outputs into release folder.")
+        srcFiles = os.listdir(tmpFold)
+
+        for f in srcFiles:
+            sourcePath = os.path.join(tmpFold, f)
+            destPath = os.path.join(self.targetPath, f)
+            shutil.copy(sourcePath, destPath)
+
+        #Cleanup for depricated files
+        removeNames = ["CITATION-AND-USE-geoBoundaries-gbOpen.txt", "CITATION-AND-USE-geoBoundaries-gbAuthoritative.txt", "CITATION-AND-USE-geoBoundaries-gbOpen.txt"]
+        destFiles = os.listdir(self.targetPath)
+
+        for e in destFiles:
+            if(e in removeNames):
+                os.unlink(os.path.join(self.targetPath, e))
 
         return(str(writeRet))
 
