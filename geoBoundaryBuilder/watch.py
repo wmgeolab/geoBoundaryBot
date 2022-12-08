@@ -55,7 +55,7 @@ while True:
 
     headers = ["LAYER", "A0","A1","A2","A3","A4","A5","LAYER", "A0","A1","A2","A3","A4","A5","LAYER", "A0","A1","A2","A3","A4","A5","LAYER", "A0","A1","A2","A3","A4","A5","LAYER", "A0","A1","A2","A3","A4","A5"]
     count = 0
-    
+    print()
     for h in headers:
         if (count == 0 or count == 7 or count == 14 or count == 21 or count == 28):
             print('{0:<12}'.format(h), end='')
@@ -76,6 +76,10 @@ while True:
                 elif(adm == "|"):
                     print(bcolors.OKBLUE + '{0:<3}'.format(adm), end='')
                 elif(adm == "P"):
+                    print(bcolors.OKBLUE + '{0:<3}'.format(adm), end='')
+                elif(adm == "S"):
+                    print(bcolors.OKCYAN + '{0:<3}'.format(adm), end='')
+                elif(adm == "L" or adm == "V" or adm == "M" or adm=="M" or adm=="G"):
                     print(bcolors.WARNING + '{0:<3}'.format(adm), end='')
                 else:
                     print(bcolors.FAIL + '{0:<3}'.format(adm), end='')
@@ -84,5 +88,6 @@ while True:
             rowCount = rowCount + 1
         else:
             rowCount = 0
-            print("\n")
-    time.sleep(5)
+            print()
+    print()
+    time.sleep(30)

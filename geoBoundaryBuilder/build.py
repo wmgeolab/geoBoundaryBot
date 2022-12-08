@@ -82,25 +82,36 @@ else:
         bnd = builder(ISO, ADM, product, GB_DIR, LOG_DIR, TMP_DIR, validISO, licenseList)
         bnd.logger("\n\n\nLAYER BUILD COMMENCE TIMESTAMP", str(time.ctime()))   
 
+        def statusUpdate(ISO, ADM, product, code):
+            with open(STAT_DIR + "_" + ISO + "_" + ADM + "_" + product, 'w') as f:
+                f.write(code)
+
+        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="L")
+
         bnd.checkExistence()
         if(bnd.existFail == 1):
-            return([ISO,ADM,product,"No source data for boundary exists.  Skipping.","D"])
-            
+            return([ISO,ADM,product,"No source data for boundary exists.  Skipping.","S"])
+
+        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="L")    
         validSource = bnd.checkSourceValidity()
         if("ERROR" in validSource):
-            return([ISO,ADM,product,validSource,"V"])
+            return([ISO,ADM,product,validSource,"EV"])
+        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="V") 
 
         metaBuild = bnd.checkBuildTabularMetaData()
         if("ERROR" in metaBuild):
-            return([ISO,ADM,product,metaBuild,"M"])
+            return([ISO,ADM,product,metaBuild,"EM"])
+        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="M") 
 
         geomChecks = bnd.checkBuildGeometryFiles()
         if("ERROR" in geomChecks):
-            return([ISO,ADM,product,geomChecks,"G"])
+            return([ISO,ADM,product,geomChecks,"EG"])
+        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="G") 
 
         saveFiles = bnd.constructFiles()
         if("ERROR" in saveFiles):
-            return([ISO, ADM, product, saveFiles,"C"])
+            return([ISO, ADM, product, saveFiles,"EC"])
+        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="D") 
 
         
         return([ISO,ADM,product,"Succesfully built.","D"])
