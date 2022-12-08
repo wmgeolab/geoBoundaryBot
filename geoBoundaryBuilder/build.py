@@ -15,7 +15,7 @@ print(comm_size)
 
 
 #Run Variables
-GB_DIR = "/sciclone/home20/dsmillerrunfol/geoBoundariesDev/geoBoundaries/"
+GB_DIR = "/sciclone/home20/dsmillerrunfol/geoBoundariesDev/"
 LOG_DIR = "/sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder/logs/"
 TMP_DIR = "/sciclone/home20/dsmillerrunfol/geoBoundariesTmp/"
 #Limits total number of ADM units & resources requested.
@@ -23,7 +23,7 @@ TEST = True
 
 #===============
 admTypes = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
-productTypes = ["geoBoundaries", "UN_SALB", "UN_OCHA"]
+productTypes = ["gbOpen", "gbAuthoritative", "gbHumanitarian"]
 #Load in ISOs from master ISO list
 countries = pd.read_csv("../dta/iso_3166_1_alpha_3.csv")
 isoList = countries["Alpha-3code"].values

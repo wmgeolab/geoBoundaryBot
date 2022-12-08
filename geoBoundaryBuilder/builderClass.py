@@ -8,6 +8,9 @@ from shapely.geometry import shape
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.multipolygon import MultiPolygon
 import time
+import subprocess
+import json
+import matplotlib.pyplot as plt
 
 class builder:
     def __init__(self, ISO, ADM, product, basePath, logPath, tmpPath, validISO, validLicense):
@@ -54,7 +57,7 @@ class builder:
         self.geomReq["valid"] = "NONE"
 
         #Library for metadata
-        self.metaData = {}
+        self.metaDataLib = {}
     
     def logger(self, type, message):
         with open(self.logPath + str(self.ISO)+str(self.ADM)+str(self.product)+".log", "a") as f:
@@ -163,13 +166,13 @@ class builder:
 
         for m in self.metaData.splitlines():
             try:
-                e = m.decode("utf-8").split(":")
+                e = m.split(":")
                 if(len(e) > 2):
                     e[1] = e[1] + e[2]
                 key = e[0].strip()
                 val = e[1].strip()
-            except:
-                self.logger("WARN", "At least one line of meta.txt failed to be read correctly: " + str(m))
+            except Exception as e:
+                self.logger("WARN", "At least one line of meta.txt failed to be read correctly: " + str(m) + " | " + str(e))
                 key = "readError"
                 val = "readError"
             
@@ -359,19 +362,32 @@ class builder:
         if(allValid == 1):
             self.logger("INFO", "All metadata checks passed, commencing build stage.")
             self.hashCalc()
-            self.metaData["boundaryID"] = str(str(self.ISO) + "-" + str(self.ADM) + "-" + str(self.metaHash))
-            self.metaData["boundaryISO"] = self.ISO
-            self.metaData["boundaryYear"] = self.metaReq["year"]
-            self.metaData["boundaryType"] = self.metaReq["bType"]
-            self.metaData["boundarySource"] = self.metaReq["source"]
-            self.metaData["boundaryCanonical"] = self.metaReq["canonical"]
-            self.metaData["boundaryLicense"] = self.metaReq["license"]
-            self.metaData["licenseDetail"] = self.metaReq["licenseNotes"]
-            self.metaData["licenseSource"] = self.metaReq["licenseSource"]
-            self.metaData["boundarySourceURL"] = self.metaReq["dataSource"]
-            self.metaData["sourceDataUpdateDate"] = os.popen("git log -1 --format=%cd -p -- " + self.sourcePath).read().split("-")[0].strip()
-            self.metaData["buildDate"] = time.strftime('%b %d, %Y')
-            return("Metadata checks successful, metadata built in self.metaData.")
+            self.metaDataLib["boundaryID"] = str(str(self.ISO) + "-" + str(self.ADM) + "-" + str(self.metaHash))
+            self.metaDataLib["boundaryISO"] = self.ISO
+            self.metaDataLib["boundaryYear"] = self.metaReq["year"]
+            self.metaDataLib["boundaryType"] = self.metaReq["bType"]
+            self.metaDataLib["boundarySource"] = self.metaReq["source"]
+            self.metaDataLib["boundaryCanonical"] = self.metaReq["canonical"]
+            self.metaDataLib["boundaryLicense"] = self.metaReq["license"]
+            self.metaDataLib["licenseDetail"] = self.metaReq["licenseNotes"]
+            self.metaDataLib["licenseSource"] = self.metaReq["licenseSource"]
+            self.metaDataLib["boundarySourceURL"] = self.metaReq["dataSource"]
+
+            try:
+                gitLookup = str("git --git-dir " + self.basePath + ".git log -1 --format=%cd -p -- " + self.sourcePath)
+                sourceDataDate = os.popen(gitLookup).read()
+                self.metaDataLib["sourceDataUpdateDate"] = sourceDataDate.split("-")[0].strip()
+                if(len(self.metaDataLib["sourceDataUpdateDate"]) < 2):
+                    self.logger("CRITICAL", "GIT LOCAL API - Source Data Update Date: " + str(sourceDataDate) + " | " + str(self.metaDataLib["sourceDataUpdateDate"]) + " | " + self.basePath + " | " + self.sourcePath)
+                    return("ERROR: The source data date was unable to be calculated during build (blank result).  See log.")
+
+            except subprocess.CalledProcessError as e:
+                self.logger("CRITICAL", "GIT LOCAL API - Source Data Update Date Subprocess Response: " + str(e))
+                return("ERROR: The source data date was unable to be calculated during build.")
+
+            
+            self.metaDataLib["buildDate"] = time.strftime('%b %d, %Y')
+            return("Metadata checks successful, metadata built in self.metaDataLib.")
         
         else:
             self.logger("CRITICAL", "At least one metadata check failed, build halted..")
@@ -499,14 +515,176 @@ class builder:
         else:
             self.logger("CRITICAL", "At least one geometry check failed.")
             return(retMes)
-    def constructFiles(self):
-        #Create temp working folder
-        tmpFold = self.tmpPath + self.ISO + self.ADM + self.product + "/"
-        if not os.path.exists(tmpFold):
-            os.makedir(tmpFold)
+    
+    def citationUseConstructor(self):
+        citUse = "====================================================\n"
+        citUse = citUse + "Citation of the geoBoundaries Data Product\n"
+        citUse = citUse + "====================================================\n"
+        citUse = citUse + "www.geoboundaries.org \n"
+        citUse = citUse + "geolab.wm.edu \n"
+        citUse = citUse + "Computer code and derivative works generated by the geoBoundaries \n"
+        citUse = citUse + "project are released under the Attribution 4.0 International (CC BY 4.0) license. \n"
+        citUse = citUse + "Attribution is required for use of this product.\n"
         
+        citUse = citUse + "Example citations for geoBoundaries are:  \n"
+        citUse = citUse + " \n"
+        citUse = citUse + "+++++ General Use Citation +++++\n"
+        citUse = citUse + "Please include the term 'geoBoundaries' with a link to \n"
+        citUse = citUse + "https://www.geoboundaries.org\n"
+        citUse = citUse + " \n"
+        citUse = citUse + "+++++ Academic Use Citation +++++++++++\n"
+        citUse = citUse + "Runfola D, Anderson A, Baier H, Crittenden M, Dowker E, Fuhrig S, et al. (2020) \n"
+        citUse = citUse + "geoBoundaries: A global database of political administrative boundaries. \n"
+        citUse = citUse + "PLoS ONE 15(4): e0231866. https://doi.org/10.1371/journal.pone.0231866. \n"
+        citUse = citUse + "\n"
+        citUse = citUse + "Users using individual boundary files from geoBoundaries should additionally\n"
+        citUse = citUse + "ensure that they are citing the sources provided in the metadata for each file.\n"
+        citUse = citUse + " \n"
+
+        citUse = citUse + "====================================================\n"
+        citUse = citUse + "Column Definitions\n"
+        citUse = citUse + "====================================================\n"
+        citUse = citUse + "boundaryID - A unique ID created for every boundary in the geoBoundaries database by concatenating ISO 3166-1 3 letter country code, boundary level, geoBoundaries version, and an ID based on the geometry.\n"
+        citUse = citUse + "boundaryISO -  The ISO 3166-1 3-letter country codes for each boundary.\n"
+        citUse = citUse + "boundaryYear - The year(s) for which a boundary is representative. In cases where this is a range, the format is 'DATE-START TO DATE-END'.\n"
+        citUse = citUse + "boundaryType - The type of boundary defined (i.e., ADM0 is equivalent to a country border; ADM1 a state.  Levels below ADM1 can vary in definition by country.)\n"
+        citUse = citUse + "boundarySource - The name of the sources for the boundary definition used (with most boundaries having two identified sources).\n"
+        citUse = citUse + "boundaryLicense - The specific license the data is released under.\n"
+        citUse = citUse + "licenseDetail - Any details necessary for the interpretation or use of the license noted.\n"
+        citUse = citUse + "licenseSource - A URL declaring the license under which a data product is made available.\n"
+        citUse = citUse + "boundarySourceURL -  A URL from which source data was retrieved.\n"
+        citUse = citUse + "sourceDataUpdateDate - A date encoded following ISO 8601 (Year-Month-Date) describing the last date this boundary was updated, for use in programmatic updating based on new releases.\n"
+        citUse = citUse + "buildDate - The date the geoBoundary files were generated.\n"
+        citUse = citUse + "downloadURL - A URL from which the geoBoundary can be downloaded.\n"
+        citUse = citUse + "shapeID - The boundary ID, followed by the letter `B' and a unique integer for each shape which is a member of that boundary.\n"
+        citUse = citUse + "shapeName - The identified name for a given shape.  '' if not identified.\n"
+        citUse = citUse + "shapeGroup - The country or similar organizational group that a shape belongs to, in ISO 3166-1 where relevant.\n"
+        citUse = citUse + "shapeType - The type of boundary represented by the shape.\n"
+        citUse = citUse + "shapeISO - ISO codes for individual administrative districts, where available.  Where possible, these conform to ISO 3166-2, but this is not guaranteed in all cases. 'None' if not identified.\n"
+        citUse = citUse + "boundaryCanonical - Canonical name(s) for the administrative hierarchy represented.  Present where available.\n"
+        citUse = citUse + " \n"
+        citUse = citUse + "====================================================\n"
+        citUse = citUse + "Reporting Issues or Errors\n"
+        citUse = citUse + "====================================================\n"
+        citUse = citUse + "We track issues associated with the geoBoundaries dataset publically,\n"
+        citUse = citUse + "and any individual can contribute comments through our github repository:\n"
+        citUse = citUse + "https://github.com/wmgeolab/geoBoundaries\n"
+        citUse = citUse + " \n"
+        citUse = citUse + " \n"
+        citUse = citUse + "====================================================\n"
+        citUse = citUse + "Disclaimer\n"
+        citUse = citUse + "====================================================\n"
+        citUse = citUse + "With respect to the works on or made available\n"
+        citUse = citUse + "through download from www.geoboundaries.org,\n"
+        citUse = citUse + "we make no representations or warranties—express, implied, or statutory—as\n"
+        citUse = citUse + "to the validity, accuracy, completeness, or fitness for a particular purpose;\n" 
+        citUse = citUse + "nor represent that use of such works would not infringe privately owned rights;\n"
+        citUse = citUse + "nor assume any liability resulting from use of such works; and shall in no way\n"
+        citUse = citUse + "be liable for any costs, expenses, claims, or demands arising out of use of such works.\n"
+        citUse = citUse + "====================================================\n"
+        citUse = citUse + " \n"
+        citUse = citUse + " \n"
+        citUse = citUse + "Thank you for citing your use of geoBoundaries and reporting any issues you find -\n"
+        citUse = citUse + "as a non-profit academic project, your citations are what keeps geoBoundaries alive.\n"
+        citUse = citUse + "-Dan Runfola (github.com/DanRunfola ; danr@wm.edu)\n"
+
+        return(citUse)
+
+    def constructFiles(self):
+        tmpJson = self.tmpPath + self.ISO + self.ADM + self.product + ".geoJSON"
+        tmpFold = self.tmpPath + self.ISO + self.ADM + self.product + "/"
+
+        jsonOUT_simp = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "_simplified.geojson")
+        topoOUT_simp = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "_simplified.topojson")
+        shpOUT_simp  = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "_simplified.zip")
+        jsonOUT = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".geojson")
+        topoOUT = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".topojson")
+        shpOUT  = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".zip")
+        imgOUT  = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "-PREVIEW.png")
+        fullZip = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "-all.zip")
+        metaJSON = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "-metaData.json")
+        metaTXT = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "-metaData.txt")
+        citeUse = (tmpFold + "CITATION-AND-USE-geoBoundaries.txt")
+
+
+        if not os.path.exists(tmpFold):
+            os.makedirs(tmpFold)
+        
+        #Write the metadata file out
+        with open(metaJSON, "w", encoding="utf-8") as jsonMeta:
+            json.dump(self.metaDataLib, jsonMeta)
+        
+        with open(metaTXT, "w", encoding="utf-8") as textMeta:
+            for i in self.metaDataLib:
+                if(i == "boundaryID"):
+                    out = "Usage of the geoBoundaries Database requires citation.:\n"
+                    out = out + "This can be satisfied by either:\n"
+                    out = out + "   1. (Preferred) - Citing our academic work: Runfola, D. et al. (2020)\n"
+                    out = out + "      geoBoundaries: A global database of political administrative boundaries.\n"
+                    out = out + "      PLoS ONE 15(4): e0231866. https://doi.org/10.1371/journal.pone.0231866\n"
+                    out = out + "   2. Providing a link to geoboundaries.org - i.e., 'Administrative boundaries courtesy \n"
+                    out = out + "      of geoBoundaries.org'\n"
+                    out = out + "Additionally, we recommend citation of the source(s) noted in this metadata file.\n\n"
+                if(i == "boundaryISO"):
+                    out = "ISO-3166-1 (Alpha-3): " + str(self.metaDataLib["boundaryISO"])
+                if(i == "boundaryYear"):
+                    out = "Boundary Representative of Year: " + str(self.metaDataLib["boundaryYear"])
+                if(i == "boundaryType"):
+                    out = "Boundary Type: " + str(self.metaDataLib["boundaryType"])
+                if(i == "boundarySource"):
+                    out = "Boundary Source(s): " + str(self.metaDataLib["boundarySource"])
+                if(i == "boundaryCanonical"):
+                    out = "Canonical Boundary Type Name: " + str(self.metaDataLib["boundaryCanonical"])
+                if(i == "boundaryLicense"):
+                    out = "License: " + str(self.metaDataLib["boundaryLicense"])
+                if(i == "licenseDetail"):
+                    out = "License Notes: " + str(self.metaDataLib["licenseDetail"])
+                if(i == "licenseSource"):
+                    out = "License Source: " + str(self.metaDataLib["licenseSource"])
+                if(i == "boundarySourceURL"):
+                    out = "Data Source: " + str(self.metaDataLib["boundarySourceURL"])
+                if(i == "sourceDataUpdateDate"):
+                    out = "Source Data Updated On: " + str(self.metaDataLib["sourceDataUpdateDate"])
+                if(i == "buildDate"):
+                    out = "File Built On: " + str(self.metaDataLib["buildDate"])
+                
+                textMeta.write(out + "\n")
+        
+        with open(citeUse, "w", encoding="utf-8") as cu:
+            cu.write(self.citationUseConstructor())
+
         #Save intermediary geoJSON
-        self.geomDta.to_file(self.tmpPath + self.ISO + self.ADM + self.product + ".geoJSON", driver="GeoJSON")
+        self.geomDta.to_file(tmpJson, driver="GeoJSON")
+
+        writeRet = []
+
+        write = ("/usr/local/mapshaper-0.6.7/bin/mapshaper-xl 6gb " + tmpJson +
+                " -clean gap-fill-area=500m2 snap-interval=.00001" +
+                " -o format=shapefile " + shpOUT +
+                " -o format=topojson " + topoOUT +
+                " -o format=geojson " + jsonOUT)
+        
+        writeRet.append(subprocess.Popen(write, shell=True).wait())
+
+        writeSimplify = ("/usr/local/mapshaper-0.6.7/bin/mapshaper-xl 6gb " + tmpJson +
+                " -simplify dp interval=100 keep-shapes" +
+                " -clean gap-fill-area=500m2 snap-interval=.00001" +
+                " -o format=shapefile " + shpOUT_simp +
+                " -o format=topojson " + topoOUT_simp +
+                " -o format=geojson " + jsonOUT_simp)
+
+        writeRet.append(subprocess.Popen(writeSimplify, shell=True).wait())
+
+
+        #Create the plot for the boundary to be used in display
+        self.geomDta.boundary.plot(edgecolor="black")
+        if(len(self.metaReq["canonical"]) > 1):
+            plt.title("geoBoundaries.org - " + self.product + "\n" + str(self.ISO) + " " + str(self.ADM) + "(" + self.metaReq["canonical"] +")" + "\nLast Source Data Update: " + str(self.metaDataLib["sourceDataUpdateDate"]) + "\nSource: " + str(self.metaReq["source"]))
+        else:
+            plt.title("geoBoundaries.org - " + self.product + "\n" + str(self.ISO) + " " + str(self.ADM) + "\nLast Source Data Update: " + str(self.metaDataLib["sourceDataUpdateDate"]) + "\nSource: " + str(self.metaReq["source"]))
+        plt.savefig(imgOUT)
+
+        return(str(writeRet))
 
 
         
