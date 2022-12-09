@@ -135,7 +135,7 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
             checkExit = True
         else:
             with open(STAGE_DIR + "buildStatus", 'w') as f:
-                f.write(str(round(percentDone,2)) + " percent complete (" + str(allOutcomes.count("D")-skipCount) + " of " + str(len(allOutcomes)-skipCount) + ", " + str(skipCount) + " skipped, "+ str(allOutcomes.count("D")-skipCount) +" processed) | BUILD ERRORS: " + str(errorCount))
+                f.write(str(round(percentDone,2)) + " percent complete (" + str(allOutcomes.count("D")-skipCount) + " of " + str(len(allOutcomes)-skipCount) + ", " + str(skipCount) + " skipped) | BUILD ERRORS: " + str(errorCount))
                     
         time.sleep(15)
 

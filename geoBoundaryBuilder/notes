@@ -1,0 +1,6 @@
+Stages:
+1) Build - build.py
+2) Git LFS - uploadPrep.py
+3) Push - git (required to get Sha for CSV production)
+4) Build metadata CSV - csvBuild.py
+5) Build API - TBD.
