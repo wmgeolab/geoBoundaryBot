@@ -15,5 +15,5 @@ unsetenv PYTHONPATH
 
 conda activate geoBoundariesBuild
 
-cd /sciclone/home20/dsmillerrunfol/geoBoundaryBot/geoBoundaryBuilder
+cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
 mvp2run python build.py >& buildLog

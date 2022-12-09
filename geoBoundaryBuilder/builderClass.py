@@ -254,16 +254,8 @@ class builder:
                     self.logger("CRITICAL", "Invalid release type detected: " + str(val))
                     self.metaReq["releaseType"] = "ERROR: Invalid release type detected."
                 else:
-                    #Legacy fixes for gb 4.0 and earlier.
-                    if(val.lower() == "gbauthoritative"):
-                        val = "UN_SALB"
-                    if(val.lower() == "gbhumanitarian"):
-                        val = "UN_OCHA"
-                    if(val.lower() == "gbopen"):
-                        val = "geoBoundaries"
-                    
                     if(val.lower() not in self.sourcePath.lower()):
-                        self.logger("CRITICAL", "ERROR: Mismatch between release type and the folder the source zip file was located in.")
+                        self.logger("CRITICAL", "ERROR: Mismatch between release type and the folder the source zip file was located in." +  str(val.lower()) + " | " + str(self.sourcePath.lower()))
                         self.metaReq["releaseType"] = "ERROR: Mismatch between release type and the folder the source zip file was located in: " + str(val.lower()) + " | " + str(self.sourcePath.lower())
                     else:
                         self.metaReq["releaseType"]  = val.lower().strip()
