@@ -103,6 +103,7 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
     
     while(checkExit == False):
         errorCount = 0
+        skipCount = 0
         STAT_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderWatch/"
         statusFiles = glob.glob(STAT_DIR+"*")
 
@@ -116,6 +117,7 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
                 watchList[adm][iso][product] = v
                 if(v == "S"):
                     allOutcomes.append("D")
+                    skipCount = skipCount + 1
                 elif("E" in v):
                     allOutcomes.append("D")
                     errorCount = errorCount + 1
@@ -124,15 +126,16 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
                 else:
                     allOutcomes.append(v)
             
-        percentDone = allOutcomes.count("D") / len(allOutcomes)*100
+        percentDone = (allOutcomes.count("D")-skipCount) / (len(allOutcomes)-skipCount)*100
 
         if(allOutcomes.count("D") == len(allOutcomes)):
             with open(STAGE_DIR + "buildStatus", 'w') as f:
                 f.write("BUILD IS COMPLETE.")
+                MPI.Finalize()
             checkExit = True
         else:
             with open(STAGE_DIR + "buildStatus", 'w') as f:
-                f.write(str(round(percentDone,2)) + " percent complete (" + str(allOutcomes.count("D")) + " of " + str(len(allOutcomes)) + ", "+str(allOutcomes.count("S")) + " skipped) | BUILD ERRORS: " + str(errorCount))
+                f.write(str(round(percentDone,2)) + " percent complete (" + str(allOutcomes.count("D")-skipCount) + " of " + str(len(allOutcomes)-skipCount) + ", " + str(skipCount) + " skipped, "+ str(allOutcomes.count("D")-skipCount) +" processed) | BUILD ERRORS: " + str(errorCount))
                     
         time.sleep(15)
 
