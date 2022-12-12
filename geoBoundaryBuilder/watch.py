@@ -21,6 +21,7 @@ while True:
     os.system('clear')
     STAT_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderWatch/"
     STAGE_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderStage/"
+    CORE_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderCore/"
     
     try: 
         with open(STAGE_DIR + "buildStatus", 'r') as f:
@@ -114,7 +115,7 @@ while True:
         print()
         print()
         #Check the precent of a build, if one is ongoing.
-        print(bcolors.HEADER +'{0:<15}'.format("BUILD STATUS: "), end='')
+        print(bcolors.HEADER +'{0:<20}'.format(str(time.ctime() + ":")), end='')
         if(bStat == "No Ongoing Build"):
             print(bcolors.WARNING +'{0:<100}'.format(bStat), end='')
         elif("CRITICAL" in bStat):
@@ -124,5 +125,25 @@ while True:
         else:
             print(bcolors.OKBLUE +'{0:<100}'.format(bStat), end='')
         print()
+        print()
+        #Parse CPU activity.
+        coreFiles = glob.glob(CORE_DIR+"*")
+        print(bcolors.HEADER + "Core Activity:")
+        coreCounter = 0
+        for f in coreFiles:
+            with open(f,"r") as cHandler:
+                v = cHandler.read()
+            core = str(f).split("/")[-1]
+            if(coreCounter < 4):
+                print(bcolors.ENDC + '{0:35}'.format(core + "-" + str(v)), end='')
+                coreCounter = coreCounter + 1
+            else:
+                coreCounter = 0
+                print()
+                print(bcolors.ENDC + '{0:35}'.format(core + "-" + str(v)), end='')
+        
+        print()
+        print()
 
-    time.sleep(10)
+        
+    time.sleep(15)
