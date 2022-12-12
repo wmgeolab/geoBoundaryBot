@@ -134,13 +134,13 @@ while True:
             with open(f,"r") as cHandler:
                 v = cHandler.read()
             core = str(f).split("/")[-1]
-            if(coreCounter < 4):
-                print(bcolors.ENDC + '{0:35}'.format(core + "-" + str(v)), end='')
+            if(coreCounter < 3):
+                print(bcolors.ENDC + '{0:50}'.format(core + "-" + str(v)), end='')
                 coreCounter = coreCounter + 1
             else:
                 coreCounter = 0
                 print()
-                print(bcolors.ENDC + '{0:35}'.format(core + "-" + str(v)), end='')
+                print(bcolors.ENDC + '{0:50}'.format(core + "-" + str(v)), end='')
         
         print()
         print()
