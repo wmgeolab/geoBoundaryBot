@@ -93,7 +93,7 @@ while True:
                         print(bcolors.OKBLUE + '{0:<3}'.format(adm), end='')
                     elif(adm == "S"):
                         print(bcolors.OKCYAN + '{0:<3}'.format(adm), end='')
-                    elif(adm == "L" or adm == "V" or adm == "M" or adm=="M" or adm=="G"):
+                    elif(adm == "L" or adm == "V" or adm == "M" or adm=="M" or adm=="G" or adm=="B"):
                         print(bcolors.WARNING + '{0:<3}'.format(adm), end='')
                     else:
                         print(bcolors.FAIL + '{0:<3}'.format(adm), end='')

@@ -26,7 +26,7 @@ STAT_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderWatch/"
 STAGE_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderStage/"
 CORE_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderCore/"
 #Limits total number of ADM units & resources requested.
-TEST = False
+TEST = True
 
 
 with open(STAGE_DIR + "buildStatus", 'w') as f:
@@ -46,7 +46,7 @@ licenseList = licenses["license_name"].values
 if(TEST == True):
     admTypes = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
     productTypes = ["gbOpen"]
-    isoList = ["NOR", "USA", "MEX", "IND", "CAN", "RUS"]
+    isoList = ["NOR"]
 
 if(MPI.COMM_WORLD.Get_rank() == 0):
 
@@ -144,7 +144,6 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
         if(allOutcomes.count("D") == len(allOutcomes)):
             with open(STAGE_DIR + "buildStatus", 'w') as f:
                 f.write("BUILD IS COMPLETE.")
-                MPI.Finalize()
             checkExit = True
         else:
             with open(STAGE_DIR + "buildStatus", 'w') as f:
@@ -182,6 +181,11 @@ else:
         if("ERROR" in geomChecks):
             return([ISO,ADM,product,geomChecks,"EG"])
         statusUpdate(ISO=ISO, ADM=ADM, product=product, code="G") 
+
+        geomMetaBuild = bnd.calculateGeomMeta()
+        if("ERROR" in geomMetaBuild):
+            return([ISO, ADM, product, geomMetaBuild, "EB"])
+        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="B") 
 
         saveFiles = bnd.constructFiles()
         if("ERROR" in saveFiles):

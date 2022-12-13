@@ -1,6 +1,6 @@
 #!/bin/tcsh
 #PBS -N gbBuilder
-#PBS -l nodes=20:vortex:ppn=12
+#PBS -l nodes=10:vortex:ppn=12
 #PBS -l walltime=24:00:00
 #PBS -j oe
 

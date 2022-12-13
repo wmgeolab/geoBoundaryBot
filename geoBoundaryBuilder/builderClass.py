@@ -589,6 +589,68 @@ class builder:
 
         return(citUse)
 
+    def calculateGeomMeta(self):
+        
+        #Load file and count administrative units
+        try:
+            geom = self.geomDta
+            admCount = len(geom)
+            self.metaDataLib["admUnitCount"] = str(admCount)
+            self.logger("INFO", "Count of ADM units: " + str(admCount))
+        except Exception as e:
+            self.logger("CRITICAL", "Failed to calculate number of administrative units: " + str(e))
+            return("ERROR: Failed to calculate number of administrative units: " + str(e))
+
+        #Vertices stats
+        try:
+            vertices=[]
+            for i, row in geom.iterrows():
+                n = 0
+                if(row.geometry.type.startswith("Multi")):
+                    for seg in row.geometry:
+                        n += len(seg.exterior.coords)
+                else:
+                    n = len(row.geometry.exterior.coords)
+                vertices.append(n) 
+            
+            self.metaDataLib["meanVertices"] = str(round(sum(vertices)/len(vertices),0))
+            self.metaDataLib["minVertices"] = str(min(vertices))
+            self.metaDataLib["maxVertices"] = str(max(vertices))
+            self.logger("INFO", "Mean Vertices: " + str(self.metaDataLib["meanVertices"]))
+
+        except Exception as e:
+            self.logger("CRITICAL", "Geometry statistics calculation error during vertices calculations: " + str(e))
+            return("ERROR: Something went wrong calculating the geometric statistics (vertices) for the metadata: " + str(e))
+        
+        #Perimeter Using WGS 84 / World Equidistant Cylindrical (EPSG 4087)
+        try:
+            lengthGeom = geom.copy()
+            lengthGeom = lengthGeom.to_crs(epsg=4087)
+            lengthGeom["length"] = lengthGeom["geometry"].length / 1000 #km
+            self.metaDataLib["meanPerimeterLengthKM"] = str(lengthGeom["length"].mean())
+            self.metaDataLib["maxPerimeterLengthKM"] = str(lengthGeom["length"].max())
+            self.metaDataLib["minPerimeterLengthKM"] = str(lengthGeom["length"].min())
+            self.logger("INFO", "Mean Perimeter: " + str(self.metaDataLib["meanPerimeterLengthKM"]))
+
+        except Exception as e:
+            self.logger("CRITICAL", "Geometry statistics calculation error during perimeter calculations: " + str(e))
+            return("ERROR: Something went wrong calculating the geometric statistics (perimeter) for the metadata: " + str(e))
+            
+        #Area #mean min max Using WGS 84 / EASE-GRID 2 (EPSG 6933)
+        try:
+            areaGeom = geom.copy()
+            areaGeom = areaGeom.to_crs(epsg=6933)
+            areaGeom["area"] = areaGeom['geometry'].area / 10**6 #sqkm
+            self.metaDataLib["meanAreaSqKM"] = str(areaGeom['area'].mean())
+            self.metaDataLib["minAreaSqKM"] = str(areaGeom['area'].min())
+            self.metaDataLib["maxAreaSqKM"] = str(areaGeom['area'].max())
+            self.logger("INFO", "Mean Area: " + str(self.metaDataLib["meanAreaSqKM"]))
+        except Exception as e:
+            self.logger("CRITICAL", "Geometry statistics calculation error during area calculations: " + str(e))
+            return("ERROR: Something went wrong calculating the geometric statistics (area) for the metadata: " + str(e))
+        
+        return("Geometry Statistics Succesfully Built.")
+
     def constructFiles(self):
         self.logger("INFO","Constructing files for release.")
         tmpJson = self.tmpPath + self.ISO + self.ADM + self.product + ".geoJSON"
@@ -651,6 +713,8 @@ class builder:
                     out = "Source Data Updated On: " + str(self.metaDataLib["sourceDataUpdateDate"])
                 if(i == "buildDate"):
                     out = "File Built On: " + str(self.metaDataLib["buildDate"])
+                if(i == "admUnitCount"):
+                    out = "Number of Administrative Units: " + str(self.metaDataLib["admUnitCount"])
                 
                 textMeta.write(out + "\n")
         
