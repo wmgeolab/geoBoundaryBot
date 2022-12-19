@@ -1,6 +1,3 @@
-import pandas as pd
-import os
-import time
 import mpi4py
 from mpi4py import MPI
 import itertools
@@ -17,36 +14,30 @@ comm_size = comm.Get_size()
 comm_rank = comm.Get_rank()
 print(comm_size)
 
-
-#Run Variables
-GB_DIR = "/sciclone/geograd/geoBoundaries/database/geoBoundaries/"
-LOG_DIR = "/sciclone/geograd/geoBoundaries/logs/gbBuilder/"
-TMP_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilder/"
-STAT_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderWatch/"
-STAGE_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderStage/"
-CORE_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderCore/"
-#Limits total number of ADM units & resources requested.
-TEST = True
-
-
-with open(STAGE_DIR + "buildStatus", 'w') as f:
-    f.write("BUILD HAS COMMENCED.")
+#Limits total number of layers to build according to the below parameters if enabled.
+limitAdmTypes = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
+limitProductTypes = ["gbHumanitarian"]
+limitISO = False
 
 
 #===============
-admTypes = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
-productTypes = ["gbOpen", "gbAuthoritative", "gbHumanitarian"]
-#Load in ISOs from master ISO list
-countries = pd.read_csv("../dta/iso_3166_1_alpha_3.csv")
-isoList = countries["Alpha-3code"].values
+with open(STAGE_DIR + "buildStatus", 'w') as f:
+    f.write("BUILD HAS COMMENCED.")
 
-licenses = pd.read_csv("../dta/gbLicenses.csv")
-licenseList = licenses["license_name"].values
+if(limitAdmTypes == False):
+    pass
+else:
+    admTypes = limitAdmTypes
 
-if(TEST == True):
-    admTypes = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
-    productTypes = ["gbOpen"]
-    isoList = ["NOR"]
+if(limitProductTypes == False):
+    pass
+else:
+    productTypes = limitProductTypes
+
+if(limitISO == False):
+    pass
+else:
+    isoList = limitISO
 
 if(MPI.COMM_WORLD.Get_rank() == 0):
 
@@ -144,7 +135,9 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
         if(allOutcomes.count("D") == len(allOutcomes)):
             with open(STAGE_DIR + "buildStatus", 'w') as f:
                 f.write("BUILD IS COMPLETE.")
-            checkExit = True
+            nxtStr = "cd " + str(SCRIPT_DIR) + "; qsub csvBuild"
+            os.system(nxtStr)
+            sys.exit()
         else:
             with open(STAGE_DIR + "buildStatus", 'w') as f:
                 f.write(str(round(percentDone,2)) + " percent complete (" + str(allOutcomes.count("D")-skipCount) + " of " + str(len(allOutcomes)-skipCount) + ", " + str(skipCount) + " skipped) | BUILD ERRORS: " + str(errorCount))
@@ -152,48 +145,7 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
         time.sleep(1)
 
 else:
-    def build(ISO, ADM, product, validISO=isoList, validLicense=licenseList):
-        bnd = builder(ISO, ADM, product, GB_DIR, LOG_DIR, TMP_DIR, validISO, licenseList)
-        bnd.logger("\n\n\nLAYER BUILD COMMENCE TIMESTAMP", str(time.ctime()))   
 
-        def statusUpdate(ISO, ADM, product, code):
-            with open(STAT_DIR + "_" + ISO + "_" + ADM + "_" + product, 'w') as f:
-                f.write(code)
-
-        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="L")
-
-        bnd.checkExistence()
-        if(bnd.existFail == 1):
-            return([ISO,ADM,product,"No source data for boundary exists.  Skipping.","S"])
-
-        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="L")    
-        validSource = bnd.checkSourceValidity()
-        if("ERROR" in validSource):
-            return([ISO,ADM,product,validSource,"EV"])
-        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="V") 
-
-        metaBuild = bnd.checkBuildTabularMetaData()
-        if("ERROR" in metaBuild):
-            return([ISO,ADM,product,metaBuild,"EM"])
-        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="M") 
-
-        geomChecks = bnd.checkBuildGeometryFiles()
-        if("ERROR" in geomChecks):
-            return([ISO,ADM,product,geomChecks,"EG"])
-        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="G") 
-
-        geomMetaBuild = bnd.calculateGeomMeta()
-        if("ERROR" in geomMetaBuild):
-            return([ISO, ADM, product, geomMetaBuild, "EB"])
-        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="B") 
-
-        saveFiles = bnd.constructFiles()
-        if("ERROR" in saveFiles):
-            return([ISO, ADM, product, saveFiles,"EC"])
-        statusUpdate(ISO=ISO, ADM=ADM, product=product, code="D") 
-
-        
-        return([ISO,ADM,product,"Succesfully built.","D"])
 
     while True:
         layers = comm.recv(source=0, tag=1)

@@ -12,6 +12,68 @@ import subprocess
 import json
 import matplotlib.pyplot as plt
 import shutil
+import pandas as pd
+
+#Run Variables
+GB_DIR = "/sciclone/geograd/geoBoundaries/database/geoBoundaries/"
+LOG_DIR = "/sciclone/geograd/geoBoundaries/logs/gbBuilder/"
+TMP_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilder/"
+STAT_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderWatch/"
+STAGE_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderStage/"
+CORE_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderCore/"
+SCRIPT_DIR = "/sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder"
+
+admTypes = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
+productTypes = ["gbOpen", "gbAuthoritative", "gbHumanitarian"]
+
+countries = pd.read_csv("../dta/iso_3166_1_alpha_3.csv")
+isoList = countries["Alpha-3code"].values
+
+licenses = pd.read_csv("../dta/gbLicenses.csv")
+licenseList = licenses["license_name"].values
+
+def build(ISO, ADM, product, validISO=isoList, validLicense=licenseList):
+    bnd = builder(ISO, ADM, product, GB_DIR, LOG_DIR, TMP_DIR, validISO, licenseList)
+    bnd.logger("\n\n\nLAYER BUILD COMMENCE TIMESTAMP", str(time.ctime()))   
+
+    def statusUpdate(ISO, ADM, product, code):
+        with open(STAT_DIR + "_" + ISO + "_" + ADM + "_" + product, 'w') as f:
+            f.write(code)
+
+    statusUpdate(ISO=ISO, ADM=ADM, product=product, code="L")
+
+    bnd.checkExistence()
+    if(bnd.existFail == 1):
+        return([ISO,ADM,product,"No source data for boundary exists.  Skipping.","S"])
+
+    statusUpdate(ISO=ISO, ADM=ADM, product=product, code="L")    
+    validSource = bnd.checkSourceValidity()
+    if("ERROR" in validSource):
+        return([ISO,ADM,product,validSource,"EV"])
+    statusUpdate(ISO=ISO, ADM=ADM, product=product, code="V") 
+
+    metaBuild = bnd.checkBuildTabularMetaData()
+    if("ERROR" in metaBuild):
+        return([ISO,ADM,product,metaBuild,"EM"])
+    statusUpdate(ISO=ISO, ADM=ADM, product=product, code="M") 
+
+    geomChecks = bnd.checkBuildGeometryFiles()
+    if("ERROR" in geomChecks):
+        return([ISO,ADM,product,geomChecks,"EG"])
+    statusUpdate(ISO=ISO, ADM=ADM, product=product, code="G") 
+
+    geomMetaBuild = bnd.calculateGeomMeta()
+    if("ERROR" in geomMetaBuild):
+        return([ISO, ADM, product, geomMetaBuild, "EB"])
+    statusUpdate(ISO=ISO, ADM=ADM, product=product, code="B") 
+
+    saveFiles = bnd.constructFiles()
+    if("ERROR" in saveFiles):
+        return([ISO, ADM, product, saveFiles,"EC"])
+    statusUpdate(ISO=ISO, ADM=ADM, product=product, code="D") 
+
+    
+    return([ISO,ADM,product,"Succesfully built.","D"])
 
 class builder:
     def __init__(self, ISO, ADM, product, basePath, logPath, tmpPath, validISO, validLicense):
@@ -263,6 +325,10 @@ class builder:
 
 
             if("license" == key.lower()):
+                #Clean up shorthand license names to long form (i.e., CC-BY --> CC Attribution)
+                #Only implementing for very common mass-import issues (i.e., Intergovernmental from HDX)
+                if(val == "Creative Commons Attribution for Intergovernmental Organisations"):
+                    val = "Creative Commons Attribution 3.0 Intergovernmental Organisations (CC BY 3.0 IGO)"
                 if(val.lower().strip() not in self.validLicense):
                     self.logger("CRITICAL", "Invalid license detected: " + str(val))
                     self.metaReq["license"] = "ERROR: Invalid license detected: " + str(val)
@@ -371,7 +437,7 @@ class builder:
             try:
                 gitLookup = str("cd " + str(self.sourceFolder) + "; git log -1 --format=%cd -p -- " + self.sourcePath)
                 sourceDataDate = os.popen(gitLookup).read()
-                self.metaDataLib["sourceDataUpdateDate"] = sourceDataDate.split("-")[0].strip()
+                self.metaDataLib["sourceDataUpdateDate"] = sourceDataDate.split("-")[0].strip().replace("\n","").replace("diff","")
                 if(len(self.metaDataLib["sourceDataUpdateDate"]) < 2):
                     self.logger("CRITICAL", "GIT LOCAL API - Source Data Update Date: " + str(gitLookup) + " | " + str(sourceDataDate))
                     return("ERROR: The source data date was unable to be calculated during build (blank result).  See log." + str(gitLookup))
