@@ -85,15 +85,15 @@ while True:
                 if (count == 0 or count == 7 or count == 14 or count == 21 or count == 28):
                     print(bcolors.HEADER + '{0:<12}'.format(adm[0:10]), end='')
                 else:
-                    if(adm == "D"):
+                    if(adm == "D" or adm == "+D"):
                         print(bcolors.OKGREEN + '{0:<3}'.format(adm), end='')
                     elif(adm == "|"):
                         print(bcolors.OKBLUE + '{0:<3}'.format(adm), end='')
                     elif(adm == "P"):
                         print(bcolors.OKBLUE + '{0:<3}'.format(adm), end='')
-                    elif(adm == "S"):
+                    elif(adm == "S" or adm == "+S"):
                         print(bcolors.OKCYAN + '{0:<3}'.format(adm), end='')
-                    elif(adm == "L" or adm == "V" or adm == "M" or adm=="M" or adm=="G" or adm=="B"):
+                    elif(adm == "L" or adm == "V" or adm == "M" or adm=="M" or adm=="G" or adm=="B" or ("+" in adm)):
                         print(bcolors.WARNING + '{0:<3}'.format(adm), end='')
                     else:
                         print(bcolors.FAIL + '{0:<3}'.format(adm), end='')
@@ -115,7 +115,7 @@ while True:
         print()
         print()
         #Check the precent of a build, if one is ongoing.
-        print(bcolors.HEADER +'{0:<20}'.format(str(time.ctime() + ":")), end='')
+        print(bcolors.HEADER +'{0:<20}'.format(str(time.ctime() + ": ")), end='')
         if(bStat == "No Ongoing Build"):
             print(bcolors.WARNING +'{0:<100}'.format(bStat), end='')
         elif("CRITICAL" in bStat):

@@ -1,6 +1,12 @@
 Stages:
-1) Build - build.py
-2) Git LFS + commit + csv build - gitCommitMetaBuild.py
-5) CGAZ Build
+1) Build - build.py (qsub buildRun)
+2) Git LFS + commit + csv build - gitCommitMetaBuild.py (qsub commitBuild)
+5) CGAZ Build (python cgazBuild.py)
+6) git add -A . / git commit (manual right now) <- capture deletions, add in the metadata / CGAZ
 6) git Push
-7) Build API - TBD.
+7) Build API
+8) Build downloads table - currently github action (will likely leave that way until 6.0)
+8) Push to website - currently on github (will likely leave that way until 6.0)
+
+git config --global ssh.postBuffer 2048M
+git config --global ssh.maxRequestBuffer 1024M

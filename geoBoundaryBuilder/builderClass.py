@@ -748,6 +748,7 @@ class builder:
         
         with open(metaTXT, "w", encoding="utf-8") as textMeta:
             for i in self.metaDataLib:
+                out = ""
                 if(i == "boundaryID"):
                     out = "Usage of the geoBoundaries Database requires citation.:\n"
                     out = out + "This can be satisfied by either:\n"
@@ -782,7 +783,8 @@ class builder:
                 if(i == "admUnitCount"):
                     out = "Number of Administrative Units: " + str(self.metaDataLib["admUnitCount"])
                 
-                textMeta.write(out + "\n")
+                if(len(out)>1):
+                    textMeta.write(out + "\n")
         
         with open(citeUse, "w", encoding="utf-8") as cu:
             cu.write(self.citationUseConstructor())

@@ -16,7 +16,7 @@ print(comm_size)
 
 #Limits total number of layers to build according to the below parameters if enabled.
 limitAdmTypes = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
-limitProductTypes = ["gbHumanitarian"]
+limitProductTypes = False#["gbAuthoritative", "gbOpen"]
 limitISO = False
 
 
@@ -25,12 +25,12 @@ with open(STAGE_DIR + "buildStatus", 'w') as f:
     f.write("BUILD HAS COMMENCED.")
 
 if(limitAdmTypes == False):
-    pass
+    admTypes = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
 else:
     admTypes = limitAdmTypes
 
 if(limitProductTypes == False):
-    pass
+    productTypes = ["gbOpen", "gbAuthoritative", "gbHumanitarian"]
 else:
     productTypes = limitProductTypes
 
@@ -67,22 +67,22 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
     
 
     print("Total Jobs: " + str(len(jobList)))
+    
+    jobsPerNode = 4
+    
+    #IF VORTEX:
     #Running on 32GB machines with 10 cores each
-    #Want to ensure we have 16GB available for any single process.
-    #(2 jobs per node)
-    
     nodeCount = comm_size/10
-    coresToAllocate = nodeCount * 2
     
-    #tasks_per_core = math.ceil(len(jobList)/ (coresToAllocate-1))
-    #print(tasks_per_core)
-       
-    #taskStart = 0
-    #taskEnd = tasks_per_core
-
+    #IF BORA:
+    #Running on 128GB machines with 20 cores each.
+    #nodeCount = comm_size/20
+    
+    coresToAllocate = nodeCount * jobsPerNode
+    
     #INITIALIZE CHECK FILES
     for core in range(1,(comm_size-1)):
-        if((str(core)[-1:] == '4') or (str(core)[-1:] == '5')):
+        if(str(core)[-1:] in list(map(str, range(1,jobsPerNode)))):
             with open(CORE_DIR + str(core), 'w') as f:
                 f.write("D")
 
@@ -97,13 +97,10 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
         statusFiles = glob.glob(STAT_DIR+"*")
 
         for core in range(1,(comm_size-1)):
-            if((str(core)[-1:] == '4') or (str(core)[-1:] == '5')):
+            if(str(core)[-1:] in list(map(str, range(1,jobsPerNode)))):
                 with open(CORE_DIR + str(core), 'r') as f:
                     stat = f.read()
                 if((stat == "D") and (currentJob <= (maxJob-1))):
-                    print(jobList)
-                    print(currentJob)
-                    print(core)
                     chunk = [jobList[currentJob],core]
                     print(chunk)
                     with open(CORE_DIR + str(core), "w") as f:
@@ -125,8 +122,6 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
                 elif("E" in v):
                     allOutcomes.append("D")
                     errorCount = errorCount + 1
-                    with open(STAGE_DIR + "buildStatus", 'w') as f:
-                        f.write("BUILD ERROR.")
                 else:
                     allOutcomes.append(v)
             
@@ -135,9 +130,6 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
         if(allOutcomes.count("D") == len(allOutcomes)):
             with open(STAGE_DIR + "buildStatus", 'w') as f:
                 f.write("BUILD IS COMPLETE.")
-            nxtStr = "cd " + str(SCRIPT_DIR) + "; qsub csvBuild"
-            os.system(nxtStr)
-            sys.exit()
         else:
             with open(STAGE_DIR + "buildStatus", 'w') as f:
                 f.write(str(round(percentDone,2)) + " percent complete (" + str(allOutcomes.count("D")-skipCount) + " of " + str(len(allOutcomes)-skipCount) + ", " + str(skipCount) + " skipped) | BUILD ERRORS: " + str(errorCount))
