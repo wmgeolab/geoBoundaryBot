@@ -15,9 +15,9 @@ comm_rank = comm.Get_rank()
 print(comm_size)
 
 #Limits total number of layers to build according to the below parameters if enabled.
-limitAdmTypes = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
+limitAdmTypes = ["ADM0","ADM1","ADM2"]
 limitProductTypes = False#["gbAuthoritative", "gbOpen"]
-limitISO = False
+limitISO = ["USA", "MEX", "RUS", "IND"]#False
 
 
 #===============
@@ -130,6 +130,7 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
         if(allOutcomes.count("D") == len(allOutcomes)):
             with open(STAGE_DIR + "buildStatus", 'w') as f:
                 f.write("BUILD IS COMPLETE.")
+            sys.exit()
         else:
             with open(STAGE_DIR + "buildStatus", 'w') as f:
                 f.write(str(round(percentDone,2)) + " percent complete (" + str(allOutcomes.count("D")-skipCount) + " of " + str(len(allOutcomes)-skipCount) + ", " + str(skipCount) + " skipped) | BUILD ERRORS: " + str(errorCount))

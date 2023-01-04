@@ -1,8 +1,7 @@
 #!/bin/tcsh
 
 qstat | grep gbCronJob > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullJobStat
-echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullStat
-echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/lfsStat
+
 
 until grep "R" /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullJobStat
 do
