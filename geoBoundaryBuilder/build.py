@@ -15,9 +15,9 @@ comm_rank = comm.Get_rank()
 print(comm_size)
 
 #Limits total number of layers to build according to the below parameters if enabled.
-limitAdmTypes = ["ADM0","ADM1","ADM2"]
+limitAdmTypes = False#["ADM0","ADM1","ADM2"]
 limitProductTypes = False#["gbAuthoritative", "gbOpen"]
-limitISO = ["USA"]#False
+limitISO = False#["USA"]#False
 
 
 #===============
