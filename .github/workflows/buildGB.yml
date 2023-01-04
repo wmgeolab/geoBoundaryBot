@@ -103,7 +103,7 @@ jobs:
     name: Push Changes
     runs-on: ubuntu-latest
     steps:
-    - name: Add CGAZ
+    - name: Push Changes
       uses: appleboy/ssh-action@v0.1.6
       with:
         command_timeout: 360m
