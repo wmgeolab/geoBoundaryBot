@@ -823,9 +823,9 @@ class builder:
             plt.title("geoBoundaries.org - " + self.product + "\n" + str(self.ISO) + " " + str(self.ADM) + "\nLast Source Data Update: " + str(self.metaDataLib["sourceDataUpdateDate"]) + "\nSource: " + str(self.metaReq["source"]))
         plt.savefig(imgOUT)
 
-        self.logger("INFO","Building zip files.")
-        shutil.make_archive(self.tmpPath + "geoBoundaries-" + self.ISO + "-" + self.ADM + "-all", 'zip', tmpFold)
-        shutil.move(self.tmpPath + "geoBoundaries-" + self.ISO + "-" + self.ADM + "-all.zip", fullZip)
+        self.logger("INFO","Building zip files.") 
+        shutil.make_archive(self.tmpPath + "zipInterim/" + self.product + "/geoBoundaries-" + self.ISO + "-" + self.ADM + "-all", 'zip', tmpFold)
+        shutil.move(self.tmpPath + "zipInterim/" + self.product + "/geoBoundaries-" + self.ISO + "-" + self.ADM + "-all.zip", fullZip)
 
         #Finally, we copy the files over to the core geoBoundaries release folder.
         self.logger("INFO","Copying outputs into release folder.")

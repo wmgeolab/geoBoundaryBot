@@ -1,6 +1,6 @@
 #!/bin/tcsh
 #PBS -N gbBuilder
-#PBS -l nodes=5:bora:ppn=20
+#PBS -l nodes=10:bora:ppn=20
 #PBS -l walltime=6:00:00
 #PBS -j oe
 
