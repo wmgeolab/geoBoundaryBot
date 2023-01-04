@@ -7,5 +7,11 @@
 module load git-lfs/3.2.0
 
 cd /sciclone/geograd/geoBoundaries/database/geoBoundaries
+
+echo "STATUS: GIT PULL PROCESSING" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullStat
 git pull >& /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/gitPullLog.log
+echo "DONE" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullStat
+
+echo "STATUS: GIT LFS PULL PROCESSING" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/lfsStat
 git lfs pull >& /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/gitLFSLog.log
+echo "DONE" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/lfsStat
