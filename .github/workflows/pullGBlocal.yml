@@ -18,5 +18,11 @@ jobs:
         proxy_port: 22
         script: |
                 cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
+                
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullStat
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/lfsStat
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullJobStat
+
                 qsub pullRun
+                
                 bash workflow/pullWatch.sh
