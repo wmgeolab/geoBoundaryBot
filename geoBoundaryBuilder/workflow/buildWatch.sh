@@ -15,7 +15,7 @@ do
 	echo ""
 	echo "----CORE BUILD UNDERWAY----"
 	date
-	cat sciclone/geograd/geoBoundaries/tmp/gbBuilderStage/buildStatus
+	cat /sciclone/geograd/geoBoundaries/tmp/gbBuilderStage/buildStatus
 	sleep 30
 done
 
