@@ -1,0 +1,23 @@
+#!/bin/tcsh
+#PBS -N gbAPIBuild
+#PBS -l nodes=1:vortex:ppn=12
+#PBS -l walltime=00:30:00
+#PBS -j oe
+
+source "/usr/local/anaconda3-2021.05/etc/profile.d/conda.csh"
+module load anaconda3/2021.05
+module load git-lfs/3.2.0
+unsetenv PYTHONPATH
+conda activate geoBoundariesBuild
+
+cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
+
+echo "STATUS: API BUILD PROCESSING" > /sciclone/geograd/geoBoundaries/logs/gbWeb/apiStat
+python buildAPI.py >& /sciclone/geograd/geoBoundaries/logs/gbWeb/apiBuild.log
+echo "STATUS: API BUILD COMPLETE, PUSHING TO GIT" > /sciclone/geograd/geoBoundaries/logs/gbWeb/apiStat
+
+cd /sciclone/geograd/geoBoundaries/scripts/gbWeb/api
+git add -A .
+git commit -m "Nightly API update"
+git push >& /sciclone/geograd/geoBoundaries/logs/gbWeb/gitPush.log
+echo "STATUS: GIT PUSH COMPLETE" > /sciclone/geograd/geoBoundaries/logs/gbWeb/apiStat
