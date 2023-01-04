@@ -57,7 +57,7 @@ jobs:
     name: Commit Core Files
     runs-on: ubuntu-latest
     steps:
-    - name: Commence the build
+    - name: Commit Core Files (LFS) + Build Metadata
       uses: appleboy/ssh-action@v0.1.6
       with:
         command_timeout: 360m
@@ -75,3 +75,26 @@ jobs:
                 echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilder/commitJobStat
                 qsub commitBuild             
                 bash workflow/commitWatch.sh
+  buildCGAZ:
+    needs: commitCoreFiles
+    name: Build CGAZ
+    runs-on: ubuntu-latest
+    steps:
+    - name: Build CGAZ
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        command_timeout: 360m
+        host: ${{ secrets.SCHOST }}
+        username: ${{ secrets.SCUSERNAME }}
+        password: ${{ secrets.SCPASSWORD }}
+        port: 22
+        proxy_host: ${{ secrets.STATHOST }}
+        proxy_username: ${{ secrets.SCUSERNAME }}
+        proxy_password: ${{ secrets.SCPASSWORD }}
+        proxy_port: 22
+        script: |
+                cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbCGAZ/cgazJobStat
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbCGAZ/cgazStat
+                qsub cgazBuild          
+                bash workflow/cgazWatch.sh

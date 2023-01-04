@@ -13,10 +13,11 @@ done
 until grep -Fxq "CORE COMMIT IS COMPLETE." /sciclone/geograd/geoBoundaries/logs/gbBuilder/commitJobStat
 do
 	echo ""
-	echo "----CORE COMMIT UNDERWAY----"
+	echo "----CORE COMMIT & METADATA BUILD UNDERWAY----"
 	date
 	cat /sciclone/geograd/geoBoundaries/logs/gbBuilder/commitJobStat
+    cat /sciclone/geograd/geoBoundaries/tmp/gbBuilderStage/buildStatus
 	sleep 30
 done
 
-echo "CORE COMMIT COMPLETE."
+echo "CORE COMMIT & METADATA BUILD COMPLETE."

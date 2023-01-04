@@ -1,0 +1,18 @@
+#!/bin/tcsh
+#PBS -N gbCGAZ
+#PBS -l nodes=1:bora:ppn=20
+#PBS -l walltime=6:00:00
+#PBS -j oe
+
+source "/usr/local/anaconda3-2021.05/etc/profile.d/conda.csh"
+module load anaconda3/2021.05
+module load git-lfs/3.2.0
+unsetenv PYTHONPATH
+conda activate geoBoundariesBuild
+
+cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
+
+echo "STATUS: CGAZ BUILD UNDERWAY" > /sciclone/geograd/geoBoundaries/logs/gbCGAZ/cgazStat
+python cgazBuild.py >& /sciclone/geograd/geoBoundaries/logs/gbCGAZ/cgazLog.log
+echo "CGAZ BUILD IS COMPLETE." > /sciclone/geograd/geoBoundaries/logs/gbCGAZ/cgazStat
+cat /sciclone/geograd/geoBoundaries/logs/gbCGAZ/cgazLog.log
