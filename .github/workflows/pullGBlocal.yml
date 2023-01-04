@@ -8,12 +8,12 @@ jobs:
     - name: executing remote ssh commands using password
       uses: appleboy/ssh-action@v0.1.6
       with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
+        host: ${{ secrets.SCHOST }}
+        username: ${{ secrets.SCUSERNAME }}
+        password: ${{ secrets.SCPASSWORD }}
         port: 22
-        proxy_host: ${{ secrets.PROXY_HOST }}
-        proxy_username: ${{ secrets.PROXY_USERNAME }}
-        proxy_key: ${{ secrets.PROXY_KEY }}
+        proxy_host: ${{ secrets.STATHOST }}
+        proxy_username: ${{ secrets.SCUSERNAME }}
+        proxy_key: ${{ secrets.SCPASSWORD }}
         proxy_port: 22
         script: whoami
