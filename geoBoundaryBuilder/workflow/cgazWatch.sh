@@ -15,7 +15,7 @@ do
 	echo ""
 	echo "----CGAZ BUILD UNDERWAY----"
 	date
-	cat /sciclone/geograd/geoBoundaries/logs/gbCGAZ/cgazStat
+	tail /sciclone/geograd/geoBoundaries/logs/gbCGAZ/cgazLog.log
 	sleep 30
 done
 
