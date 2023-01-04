@@ -2,7 +2,7 @@ name: Build geoBoundaries
 on: workflow_dispatch
 jobs:
   gbPull:
-    name: Build
+    name: Pull Files
     runs-on: ubuntu-latest
     steps:
     - name: Pull most recent files to local
@@ -27,7 +27,8 @@ jobs:
                 
                 bash workflow/pullWatch.sh
   buildFiles:
-    name: Build
+    needs: gbPull
+    name: Build Core Files
     runs-on: ubuntu-latest
     steps:
     - name: Commence the build
