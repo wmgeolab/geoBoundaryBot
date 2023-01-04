@@ -5,7 +5,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - name: executing remote ssh commands using password
+    - name: executing remote ssh commands
       uses: appleboy/ssh-action@v0.1.6
       with:
         host: ${{ secrets.SCHOST }}
@@ -14,6 +14,6 @@ jobs:
         port: 22
         proxy_host: ${{ secrets.STATHOST }}
         proxy_username: ${{ secrets.SCUSERNAME }}
-        proxy_key: ${{ secrets.SCPASSWORD }}
+        proxy_password: ${{ secrets.SCPASSWORD }}
         proxy_port: 22
         script: whoami
