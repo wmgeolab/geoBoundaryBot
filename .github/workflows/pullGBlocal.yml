@@ -1,0 +1,19 @@
+name: Build geoBoundaries
+on: workflow_dispatch
+jobs:
+  gbPull:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: executing remote ssh commands using password
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        port: 22
+        proxy_host: ${{ secrets.PROXY_HOST }}
+        proxy_username: ${{ secrets.PROXY_USERNAME }}
+        proxy_key: ${{ secrets.PROXY_KEY }}
+        proxy_port: 22
+        script: whoami

@@ -1,5 +1,6 @@
 tmp
 __pycache__
+geoBoundaryBuilder/buildLog
 
 *.swp
 *.gpkg

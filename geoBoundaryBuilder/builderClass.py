@@ -568,7 +568,7 @@ class builder:
                 self.geomDta[["shapeType"]] = self.ADM
 
                 #Cleanup by removing columns not on our list
-                keepCols = ["shapeGroup","shapeID","shapeType","shapeISO","geometry"]
+                keepCols = ["shapeGroup","shapeID","shapeType","shapeISO","shapeName","geometry"]
                 self.logger("INFO", "Keeping Cols")
                 self.geomDta = self.geomDta.drop(columns=[c for c in self.geomDta if c not in keepCols])
                 return("Geometry checks and build successful.")
