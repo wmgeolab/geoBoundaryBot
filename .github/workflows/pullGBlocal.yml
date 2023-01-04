@@ -16,4 +16,6 @@ jobs:
         proxy_username: ${{ secrets.SCUSERNAME }}
         proxy_password: ${{ secrets.SCPASSWORD }}
         proxy_port: 22
-        script: whoami
+        script: |
+                whoami
+                ls
