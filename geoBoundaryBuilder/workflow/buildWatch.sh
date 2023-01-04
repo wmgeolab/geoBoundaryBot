@@ -19,6 +19,6 @@ do
 	sleep 30
 done
 
+echo ""
 echo "CORE FILE BUILD COMPLETE."
-set gbid=`qstat -ru dsmillerrunfol | grep "gbBuilder" | awk '{print $1}'`
-qdel $gbid
+

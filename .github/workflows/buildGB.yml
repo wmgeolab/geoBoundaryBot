@@ -49,6 +49,9 @@ jobs:
                 echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilder/buildJobStat
                 qsub buildRun               
                 bash workflow/buildWatch.sh
+                set gbid=`qstat -ru dsmillerrunfol | grep "gbBuilder" | awk '{print $1}'`
+                echo $gbid
+                qdel $gbid
   commitCoreFiles:
     needs: buildFiles
     name: Commit Core Files
