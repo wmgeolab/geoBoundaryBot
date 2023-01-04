@@ -17,7 +17,7 @@ print(comm_size)
 #Limits total number of layers to build according to the below parameters if enabled.
 limitAdmTypes = ["ADM0","ADM1","ADM2"]
 limitProductTypes = False#["gbAuthoritative", "gbOpen"]
-limitISO = ["USA", "MEX", "RUS", "IND"]#False
+limitISO = ["USA"]#False
 
 
 #===============
@@ -49,6 +49,11 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
     for f in statusFiles:
         os.remove(f)
 
+    coreFiles = glob.glob(CORE_DIR+"*")
+    for f in coreFiles:
+        os.remove(f)
+    
+
     with open(STAGE_DIR + "buildStatus", 'w') as f:
             f.write("GENERATING NEW STATUS FILES & JOB LIST")
     jobList = []
@@ -68,15 +73,15 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
 
     print("Total Jobs: " + str(len(jobList)))
     
-    jobsPerNode = 4
+    jobsPerNode = 8
     
     #IF VORTEX:
     #Running on 32GB machines with 10 cores each
-    nodeCount = comm_size/10
+    #nodeCount = comm_size/10
     
     #IF BORA:
     #Running on 128GB machines with 20 cores each.
-    #nodeCount = comm_size/20
+    nodeCount = comm_size/20
     
     coresToAllocate = nodeCount * jobsPerNode
     

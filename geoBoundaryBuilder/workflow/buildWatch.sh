@@ -20,3 +20,5 @@ do
 done
 
 echo "CORE FILE BUILD COMPLETE."
+set gbid=`qstat -ru dsmillerrunfol | grep "gbBuilder" | awk '{print $1}'`
+qdel $gbid

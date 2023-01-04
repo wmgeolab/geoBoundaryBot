@@ -11,4 +11,8 @@ unsetenv PYTHONPATH
 conda activate geoBoundariesBuild
 
 cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
+
+echo "STATUS: GIT COMMIT PROCESSING" > /sciclone/geograd/geoBoundaries/logs/gbBuilder/commitJobStat
 python gitCommitMetaBuild.py
+echo "CORE COMMIT IS COMPLETE." > /sciclone/geograd/geoBoundaries/logs/gbBuilder/commitJobStat
+cat /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/status
