@@ -17,5 +17,9 @@ jobs:
         proxy_password: ${{ secrets.SCPASSWORD }}
         proxy_port: 22
         script: |
-                whoami
-                ls
+                qsub -I -l nodes=1:vortex:ppn=12,walltime=02:00:00
+                module load git-lfs/3.2.0
+                cd /sciclone/geograd/geoBoundaries/database/geoBoundaries
+                git pull >& /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/gitPullLog.log
+                git lfs pull >& /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/gitLFSLog.log
+                logout
