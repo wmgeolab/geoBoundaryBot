@@ -8,7 +8,7 @@ do
 	echo "----WAITING FOR JOB TO COMMENCE----"
 	qstat | grep gbCronJob > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullJobStat
 	date
-	sleep 5
+	sleep 1
 done
 
 until grep -Fxq "DONE" /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullStat
