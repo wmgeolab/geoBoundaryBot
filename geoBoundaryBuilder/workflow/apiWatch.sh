@@ -7,7 +7,7 @@ do
 	echo "----WAITING FOR API BUILD JOB TO COMMENCE----"
 	qstat | grep gbAPIBuild > /sciclone/geograd/geoBoundaries/logs/gbWeb/apiJobStat
 	date
-	sleep 5
+	sleep 1
 done
 
 
@@ -18,7 +18,7 @@ do
 	date
 	cat /sciclone/geograd/geoBoundaries/logs/gbWeb/apiStat
     cat /sciclone/geograd/geoBoundaries/logs/gbWeb/apiBuild.log
-	sleep 30
+	sleep 1
 done
 
 until grep -Fxq "STATUS: GIT PUSH COMPLETE" /sciclone/geograd/geoBoundaries/logs/gbWeb/apiStat
