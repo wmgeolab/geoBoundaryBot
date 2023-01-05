@@ -1,4 +1,4 @@
-name: Pull Source Files
+name: Initialize Build
 on: workflow_dispatch
 jobs:
   gbPull:
@@ -8,6 +8,7 @@ jobs:
     - name: Pull most recent files to local
       uses: appleboy/ssh-action@v0.1.6
       with:
+        command_timeout: 360m
         host: ${{ secrets.SCHOST }}
         username: ${{ secrets.SCUSERNAME }}
         password: ${{ secrets.SCPASSWORD }}

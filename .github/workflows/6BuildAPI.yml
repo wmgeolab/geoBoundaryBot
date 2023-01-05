@@ -1,0 +1,46 @@
+name: Build and Push API
+on:
+  workflow_dispatch:
+    branches: [main]
+  workflow_run:
+    workflows: ["Push Updates"]
+    branches: [main]
+    types: 
+      - completed
+jobs:
+  buildAPI:
+    name: Build API
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+        runs-on: ubuntu-latest
+    steps:
+    - name: Build API Locally & Push to Github
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        command_timeout: 360m
+        host: ${{ secrets.SCHOST }}
+        username: ${{ secrets.SCUSERNAME }}
+        password: ${{ secrets.SCPASSWORD }}
+        port: 22
+        proxy_host: ${{ secrets.STATHOST }}
+        proxy_username: ${{ secrets.SCUSERNAME }}
+        proxy_password: ${{ secrets.SCPASSWORD }}
+        proxy_port: 22
+        script: |
+                cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbWeb/apiJobStat
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbWeb/apiStat
+                qsub apiBuild          
+                bash workflow/apiWatch.sh
+    - name: Prep Files for Upload
+      run: |
+           cd $GITHUB_WORKSPACE
+           cd ..
+           git clone https://github.com/wmgeolab/gbWeb
+    - name: Upload API to geoboundaries.org
+      uses: SamKirkland/FTP-Deploy-Action@4.1.0
+      with:
+        server: ${{ secrets.GBSERVER }}
+        username: ${{ secrets.GBUSER }}
+        password: ${{ secrets.GBPASS }}
+        server-dir: geoboundaries.org/api/
+        local-dir: api/

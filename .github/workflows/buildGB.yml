@@ -1,5 +1,7 @@
 name: Build geoBoundaries
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
+    branches: [main]
 jobs:
   gbPull:
     name: Pull Files

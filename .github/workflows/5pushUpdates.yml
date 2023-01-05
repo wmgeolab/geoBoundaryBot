@@ -1,19 +1,19 @@
-name: Build Country Release Files
+name: Push Updates
 on:
   workflow_dispatch:
     branches: [main]
   workflow_run:
-    workflows: ["Initialize Build"]
+    workflows: ["Build CGAZ Global Release"]
     branches: [main]
     types: 
       - completed
 jobs:
-  buildGBCore:
-    name: Build Core Files
+  pushUpdates:
+    name: Push Updates
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-    - name: Commence the build
+    - name: Push Changes
       uses: appleboy/ssh-action@v0.1.6
       with:
         command_timeout: 360m
@@ -26,11 +26,11 @@ jobs:
         proxy_password: ${{ secrets.SCPASSWORD }}
         proxy_port: 22
         script: |
+                cd /sciclone/geograd/geoBoundaries/database/geoBoundaries
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/pushJobStat
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/pushStat
+                git add -A .
+                git commit -m "Automated Nightly Build"
                 cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
-                echo "" > /sciclone/geograd/geoBoundaries/tmp/gbBuilderStage/buildStatus
-                echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilder/buildJobStat
-                qsub buildRun               
-                bash workflow/buildWatch.sh
-                set gbid=`qstat -ru dsmillerrunfol | grep "gbBuilder" | awk '{print $1}'`
-                echo $gbid
-                qdel $gbid
+                qsub pushBuild          
+                bash workflow/pushWatch.sh
