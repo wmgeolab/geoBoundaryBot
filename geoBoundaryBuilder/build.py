@@ -17,7 +17,7 @@ print(comm_size)
 #Limits total number of layers to build according to the below parameters if enabled.
 limitAdmTypes = False#["ADM0","ADM1","ADM2"]
 limitProductTypes = False#["gbAuthoritative", "gbOpen"]
-limitISO = False#["IDN", "LAO"]
+limitISO = ["DJI","CHL","MKD","FIN","PHL","URY","GRC","LCA","YEM"]#False#["IDN", "LAO"]
 
 
 #===============
@@ -109,7 +109,7 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
                     chunk = [jobList[currentJob],core]
                     print(chunk)
                     with open(CORE_DIR + str(core), "w") as f:
-                        f.write(str(jobList[currentJob]))
+                        f.write("SEND: " + str(jobList[currentJob]))
                     comm.send(chunk, dest=core, tag=1)
                     currentJob = currentJob + 1
                 
@@ -148,6 +148,8 @@ else:
     while True:
         layers = comm.recv(source=0, tag=1)
         print("I (" + str(MPI.COMM_WORLD.Get_rank()) + ", "+str(layers[1])+") have received " + str(layers[0]) + " layers to build.")
+        with open(CORE_DIR + str(layers[1], "w") as f:
+            f.write("RECV: " + str(layers[0]))
         ret = []
         core = layers[1]
         l = layers[0]
