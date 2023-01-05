@@ -11,7 +11,7 @@ jobs:
   buildAPI:
     name: Build API
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-        runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
     - name: Build API Locally & Push to Github
       uses: appleboy/ssh-action@v0.1.6
