@@ -10,7 +10,7 @@ on:
 jobs:
   pushUpdates:
     name: Push Updates
-    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
     - name: Push Changes
@@ -63,6 +63,7 @@ jobs:
     - name: Upload API to geoboundaries.org
       uses: SamKirkland/FTP-Deploy-Action@4.1.0
       with:
+        timeout: 120000
         server: ${{ secrets.GBSERVER }}
         username: ${{ secrets.GBUSER }}
         password: ${{ secrets.GBPASS }}
