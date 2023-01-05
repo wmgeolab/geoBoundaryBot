@@ -7,7 +7,7 @@ do
 	echo "----WAITING FOR PUSH JOB TO COMMENCE----"
 	qstat | grep gbPush > /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/pushJobStat
 	date
-	sleep 5
+	sleep 1
 done
 
 until grep -Fxq "PUSH IS COMPLETE." /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/pushStat
