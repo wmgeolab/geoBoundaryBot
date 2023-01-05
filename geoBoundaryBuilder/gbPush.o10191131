@@ -1,0 +1,15 @@
+Warning: no access to tty (Bad file descriptor).
+Thus no job control in this shell.
+[main 31211e8] Automated Nightly Build
+ 15 files changed, 18 insertions(+), 18 deletions(-)
+remote: warning: this repository is approaching its size quota        
+remote: warning: See http://git.io/iEPt8g for more information.        
+remote: warning: File releaseData/gbHumanitarian/LAO/ADM2/geoBoundaries-LAO-ADM2-all.zip is 56.79 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        
+remote: warning: File releaseData/gbOpen/LAO/ADM2/geoBoundaries-LAO-ADM2-all.zip is 94.17 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        
+remote: warning: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/wmgeolab/geoBoundaries.git
+   8116acf..31211e8  31211e8387af61a1bcd9105ad774a5cb482ecc53 -> main
+Commits to push: 2
+Pushing commit 0 of 2 (31211e8387af61a1bcd9105ad774a5cb482ecc53)
+b'Uploading LFS objects: 100% (9/9), 6.7 GB | 116 MB/s, done.\n'
+Pushing commit 1 of 2 ()

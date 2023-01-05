@@ -1,0 +1,4 @@
+Warning: no access to tty (Bad file descriptor).
+Thus no job control in this shell.
+[main 8f421e0] Nightly API update
+ 44 files changed, 44 insertions(+), 44 deletions(-)
