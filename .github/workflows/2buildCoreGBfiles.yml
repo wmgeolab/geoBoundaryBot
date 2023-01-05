@@ -1,5 +1,7 @@
 name: Build Country Release Files
 on:
+  workflow_dispatch:
+    branches: [main]
   workflow_run:
     workflows: ["Pull Source Files"]
     branches: [main]
