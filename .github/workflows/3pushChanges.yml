@@ -26,11 +26,8 @@ jobs:
         proxy_password: ${{ secrets.SCPASSWORD }}
         proxy_port: 22
         script: |
-                cd /sciclone/geograd/geoBoundaries/database/geoBoundaries
                 echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/pushJobStat
                 echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/pushStat
-                git add -A .
-                git commit -m "Automated Nightly Build"
                 cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
                 qsub pushBuild          
                 bash workflow/pushWatch.sh
@@ -75,4 +72,4 @@ jobs:
         username: ${{ secrets.GBUSER }}
         password: ${{ secrets.GBPASS }}
         server-dir: geoboundaries.org/api/
-        local-dir: gbWeb/api/
+        local-dir: /home/runner/work/geoBoundaryBot/geoBoundaryBot/gbWeb/api/

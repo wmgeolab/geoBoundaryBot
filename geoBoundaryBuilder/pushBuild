@@ -12,6 +12,10 @@ module load mapshaper/0.6.7
 unsetenv PYTHONPATH
 conda activate geoBoundariesBuild
 
+cd /sciclone/geograd/geoBoundaries/database/geoBoundaries
+git add -A .
+git commit -m "Automated Nightly Build"
+
 cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
 
 echo "STATUS: PUSHING COMMITS" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/pushStat
