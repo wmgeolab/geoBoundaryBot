@@ -121,6 +121,7 @@ jobs:
                 echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/pushStat
                 git add -A .
                 git commit -m "Automated Nightly Build"
+                cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
                 qsub pushBuild          
                 bash workflow/pushWatch.sh
   buildAPI:
@@ -141,7 +142,7 @@ jobs:
         proxy_password: ${{ secrets.SCPASSWORD }}
         proxy_port: 22
         script: |
-                cd /sciclone/geograd/geoBoundaries/database/geoBoundaries
+                cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
                 echo "" > /sciclone/geograd/geoBoundaries/logs/gbWeb/apiJobStat
                 echo "" > /sciclone/geograd/geoBoundaries/logs/gbWeb/apiStat
                 qsub apiBuild          
