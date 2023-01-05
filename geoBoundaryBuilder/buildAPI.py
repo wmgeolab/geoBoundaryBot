@@ -68,7 +68,6 @@ all["gbAuthoritative"] = []
 def LFSconversion(fPath):
     if(fPath.split("/")[10] in lfsFiles):
         newA = fPath.replace("raw.githubusercontent.com/", "media.githubusercontent.com/media/")
-        print(newA)
         return(newA)
     else:
         return(fPath)
@@ -93,8 +92,6 @@ def apiBuilder(GB_DIR, API_DIR,ISO, ADM, PRODUCT, ID, apiDict):
     apiDict["simplifiedGeometryGeoJSON"] = "https://github.com/wmgeolab/geoBoundaries/raw/"+gitHash+"/releaseData/"+PRODUCT+"/"+ISO+"/"+ADM+"/geoBoundaries-"+ISO+"-"+ADM+"_simplified.geojson"
     
     #Update "Current" API endpoint
-    print(currentPath)
-    print(apiDict)
     with open(currentPath + "index.json", "w") as f:
         json.dump(apiDict, f)
     

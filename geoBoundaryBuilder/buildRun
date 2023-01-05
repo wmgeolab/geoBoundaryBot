@@ -15,7 +15,5 @@ module load intel/mpi
 unsetenv PYTHONPATH
 
 conda activate geoBoundariesBuild
-pwd
 cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
-ls
 mvp2run python build.py >& buildLog

@@ -62,7 +62,10 @@ jobs:
            pwd
            git clone https://github.com/wmgeolab/gbWeb
            ls
-           cd /
+           cd gbWeb
+           ls
+           pwd
+           cd api
            ls
            pwd
     - name: Upload API to geoboundaries.org
