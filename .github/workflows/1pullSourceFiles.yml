@@ -1,4 +1,4 @@
-name: Initialize Build
+name: 1-Initialize Build
 on: workflow_dispatch
 jobs:
   gbPull:
