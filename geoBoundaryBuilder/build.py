@@ -148,7 +148,7 @@ else:
     while True:
         layers = comm.recv(source=0, tag=1)
         print("I (" + str(MPI.COMM_WORLD.Get_rank()) + ", "+str(layers[1])+") have received " + str(layers[0]) + " layers to build.")
-        with open(CORE_DIR + str(layers[1], "w") as f:
+        with open(CORE_DIR + str(layers[1]), "w") as f:
             f.write("RECV: " + str(layers[0]))
         ret = []
         core = layers[1]
