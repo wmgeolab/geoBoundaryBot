@@ -76,8 +76,8 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
     jobsPerNode = 4
     
     #IF VORTEX:
-    #Running on 32GB machines with 10 cores each
-    nodeCount = comm_size/10
+    #Running on 32GB machines with 12 cores each
+    nodeCount = comm_size/12
     
     #IF BORA:
     #Running on 128GB machines with 20 cores each.

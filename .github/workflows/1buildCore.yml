@@ -1,0 +1,78 @@
+name: 1-Initialize Build
+on: workflow_dispatch
+jobs:
+  gbPull:
+    name: Pull Files
+    runs-on: ubuntu-latest
+    steps:
+    - name: Pull most recent files to local
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        command_timeout: 360m
+        host: ${{ secrets.SCHOST }}
+        username: ${{ secrets.SCUSERNAME }}
+        password: ${{ secrets.SCPASSWORD }}
+        port: 22
+        proxy_host: ${{ secrets.STATHOST }}
+        proxy_username: ${{ secrets.SCUSERNAME }}
+        proxy_password: ${{ secrets.SCPASSWORD }}
+        proxy_port: 22
+        script: |
+                cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
+                
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullStat
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/lfsStat
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullJobStat
+
+                qsub pullRun
+                
+                bash workflow/pullWatch.sh
+  buildGBCore:
+    name: Build Core Files
+    needs: gbPull
+    runs-on: ubuntu-latest
+    steps:
+    - name: Commence the build
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        command_timeout: 360m
+        host: ${{ secrets.SCHOST }}
+        username: ${{ secrets.SCUSERNAME }}
+        password: ${{ secrets.SCPASSWORD }}
+        port: 22
+        proxy_host: ${{ secrets.STATHOST }}
+        proxy_username: ${{ secrets.SCUSERNAME }}
+        proxy_password: ${{ secrets.SCPASSWORD }}
+        proxy_port: 22
+        script: |
+                cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
+                echo "" > /sciclone/geograd/geoBoundaries/tmp/gbBuilderStage/buildStatus
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilder/buildJobStat
+                qsub buildRun               
+                bash workflow/buildWatch.sh
+                set gbid=`qstat -ru dsmillerrunfol | grep "gbBuilder" | awk '{print $1}'`
+                echo $gbid
+                qdel $gbid
+  commitGbCore:
+    name: Commit Core Files
+    needs: buildGBCore
+    runs-on: ubuntu-latest
+    steps:
+    - name: Commit Core Files (LFS) + Build Metadata
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        command_timeout: 360m
+        host: ${{ secrets.SCHOST }}
+        username: ${{ secrets.SCUSERNAME }}
+        password: ${{ secrets.SCPASSWORD }}
+        port: 22
+        proxy_host: ${{ secrets.STATHOST }}
+        proxy_username: ${{ secrets.SCUSERNAME }}
+        proxy_password: ${{ secrets.SCPASSWORD }}
+        proxy_port: 22
+        script: |
+                cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/commitStatus
+                echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilder/commitJobStat
+                qsub commitBuild             
+                bash workflow/commitWatch.sh
