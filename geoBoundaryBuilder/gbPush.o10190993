@@ -1,0 +1,177 @@
+Warning: no access to tty (Bad file descriptor).
+Thus no job control in this shell.
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   2778ea5..c0ed2da  c0ed2dafc0d7585dc0cc4058e127a3285c0ebefc -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   c0ed2da..88239d0  88239d0790919ef967edd75cc49fba0c7acea5e2 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   88239d0..cc2bcf6  cc2bcf6505cd028f710160261fabcc8b8e482117 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   cc2bcf6..5fa084d  5fa084d2f301a10d617dd900cac9d8bb4dd13801 -> main
+remote: warning: this repository is approaching its size quota        
+remote: warning: See http://git.io/iEPt8g for more information.        
+remote: warning: File releaseData/gbOpen/LAO/ADM2/geoBoundaries-LAO-ADM2-all.zip is 76.47 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        
+remote: warning: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/wmgeolab/geoBoundaries.git
+   5fa084d..1976275  1976275ce1b8e0264c7db6cbf4124e54507c4969 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   1976275..5e9386e  5e9386ec73b14a040380dc9f03a29178730876b8 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   5e9386e..0fec00b  0fec00b598a28e67b3a4e7b84ab25df750fb608d -> main
+remote: warning: this repository is approaching its size quota        
+remote: warning: See http://git.io/iEPt8g for more information.        
+remote: warning: File releaseData/gbHumanitarian/IDN/ADM2/geoBoundaries-IDN-ADM2.shp is 58.03 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        
+remote: warning: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/wmgeolab/geoBoundaries.git
+   0fec00b..cd9ddd6  cd9ddd6053017827b2d624d2e09839688808b12a -> main
+remote: warning: this repository is approaching its size quota        
+remote: warning: See http://git.io/iEPt8g for more information.        
+remote: warning: File releaseData/gbHumanitarian/IDN/ADM1/geoBoundaries-IDN-ADM1.geojson is 92.21 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        
+remote: warning: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/wmgeolab/geoBoundaries.git
+   cd9ddd6..d20ce3e  d20ce3e8f6827a6290369befbe33f67d7a8c3416 -> main
+remote: warning: this repository is approaching its size quota        
+remote: warning: See http://git.io/iEPt8g for more information.        
+remote: warning: File releaseData/gbHumanitarian/IDN/ADM0/geoBoundaries-IDN-ADM0.geojson is 85.65 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        
+remote: warning: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/wmgeolab/geoBoundaries.git
+   d20ce3e..56bf98e  56bf98ed92d14e3b4a26d8c09e96278db8a7d614 -> main
+remote: warning: this repository is approaching its size quota        
+remote: warning: See http://git.io/iEPt8g for more information.        
+remote: warning: File releaseData/gbHumanitarian/IDN/ADM4/geoBoundaries-IDN-ADM4.topojson is 91.62 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        
+remote: warning: File releaseData/gbHumanitarian/IDN/ADM4/geoBoundaries-IDN-ADM4_simplified.geojson is 71.15 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        
+remote: warning: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/wmgeolab/geoBoundaries.git
+   56bf98e..0d136d7  0d136d7d684fa33b7b8af22c9bfa1ba1d101c2be -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   0d136d7..d4798f2  d4798f2f22cde08759cc9b78a907059c781f51b1 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   d4798f2..0862767  0862767216f5e25e512fab6c43e2046f148089d6 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   0862767..c77bfaf  c77bfafd5502a5456aa04c86951af5019c93e5c6 -> main
+remote: warning: this repository is approaching its size quota        
+remote: warning: See http://git.io/iEPt8g for more information.        
+remote: warning: File releaseData/gbHumanitarian/LAO/ADM3/geoBoundaries-LAO-ADM3-all.zip is 68.23 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        
+remote: warning: File releaseData/gbHumanitarian/LAO/ADM3/geoBoundaries-LAO-ADM3.geojson is 85.67 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        
+remote: warning: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/wmgeolab/geoBoundaries.git
+   c77bfaf..8accd3f  8accd3f7d1e7c79d1d530828d593d70b246dbaea -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   8accd3f..65b0a29  65b0a2925637c478677a623efde6f7a4c353c345 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   65b0a29..cd37e3d  cd37e3de739b6fbda33c511ef524cf55c69fe2fe -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   cd37e3d..8618aae  8618aaed0838623429004547c4172c3f49e23cea -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   8618aae..ccb894c  ccb894c2ce591ee9c923eb04d66df98314e9bc85 -> main
+remote: warning: this repository is approaching its size quota        
+remote: warning: See http://git.io/iEPt8g for more information.        
+remote: warning: File releaseData/gbOpen/LAO/ADM2/geoBoundaries-LAO-ADM2-all.zip is 82.37 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        
+remote: warning: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/wmgeolab/geoBoundaries.git
+   ccb894c..eaf4cf2  eaf4cf24afcf7a0a0b0a4f0c955f41a3ea64eb38 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   eaf4cf2..b54698a  b54698a54327e783b505cfdd74547e171fef7bf4 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   b54698a..febe65b  febe65b8a524af7dc4ea6adce32e4c0d4ce858f2 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   febe65b..ada5509  ada5509bd58fbe1b175cd07d52b6e6e1c05dca0d -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   ada5509..8ae3fed  8ae3fed4bdedf33878f3123ece398ef5a070ab18 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   8ae3fed..2f587e6  2f587e6035ae5ce10cb7c617248bd78632c2f8b7 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   2f587e6..3fb644b  3fb644be49b3c9a06637326615cde39d129069d6 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   3fb644b..465c26c  465c26c9f39060d63e3c740c349ef93335abed2f -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   465c26c..a2cf974  a2cf9740acd29aa1a6e31c53f40cd1c4897875c1 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   a2cf974..d3167a2  d3167a2210a31490f5014fc01cc9b18f525a5a83 -> main
+remote: warning: this repository is approaching its size quota        
+To https://github.com/wmgeolab/geoBoundaries.git
+   d3167a2..c2a1019  c2a10190e9a5c2179c72fa984439d5e6565a686e -> main
+Commits to push: 31
+Pushing commit 0 of 31 (c0ed2dafc0d7585dc0cc4058e127a3285c0ebefc)
+b'Uploading LFS objects: 100% (1/1), 148 MB | 56 MB/s, done.\n'
+Pushing commit 1 of 31 (88239d0790919ef967edd75cc49fba0c7acea5e2)
+b'Uploading LFS objects: 100% (2/2), 1.3 GB | 107 MB/s, done.\n'
+Pushing commit 2 of 31 (cc2bcf6505cd028f710160261fabcc8b8e482117)
+b'Uploading LFS objects: 100% (1/1), 211 MB | 55 MB/s, done.\n'
+Pushing commit 3 of 31 (5fa084d2f301a10d617dd900cac9d8bb4dd13801)
+b''
+Pushing commit 4 of 31 (1976275ce1b8e0264c7db6cbf4124e54507c4969)
+b''
+Pushing commit 5 of 31 (5e9386ec73b14a040380dc9f03a29178730876b8)
+b''
+Pushing commit 6 of 31 (0fec00b598a28e67b3a4e7b84ab25df750fb608d)
+b'Uploading LFS objects: 100% (3/3), 1.5 GB | 93 MB/s, done.\n'
+Pushing commit 7 of 31 (cd9ddd6053017827b2d624d2e09839688808b12a)
+b'Uploading LFS objects: 100% (2/2), 767 MB | 89 MB/s, done.\n'
+Pushing commit 8 of 31 (d20ce3e8f6827a6290369befbe33f67d7a8c3416)
+b'Uploading LFS objects: 100% (1/1), 442 MB | 74 MB/s, done.\n'
+Pushing commit 9 of 31 (56bf98ed92d14e3b4a26d8c09e96278db8a7d614)
+b'Uploading LFS objects: 100% (1/1), 410 MB | 87 MB/s, done.\n'
+Pushing commit 10 of 31 (0d136d7d684fa33b7b8af22c9bfa1ba1d101c2be)
+b'Uploading LFS objects: 100% (3/3), 1.2 GB | 98 MB/s, done.\n'
+Pushing commit 11 of 31 (d4798f2f22cde08759cc9b78a907059c781f51b1)
+b''
+Pushing commit 12 of 31 (0862767216f5e25e512fab6c43e2046f148089d6)
+b''
+Pushing commit 13 of 31 (c77bfafd5502a5456aa04c86951af5019c93e5c6)
+b''
+Pushing commit 14 of 31 (8accd3f7d1e7c79d1d530828d593d70b246dbaea)
+b''
+Pushing commit 15 of 31 (65b0a2925637c478677a623efde6f7a4c353c345)
+b'Uploading LFS objects: 100% (1/1), 163 MB | 56 MB/s, done.\n'
+Pushing commit 16 of 31 (cd37e3de739b6fbda33c511ef524cf55c69fe2fe)
+b'Uploading LFS objects: 100% (1/1), 1.3 GB | 75 MB/s, done.\n'
+Pushing commit 17 of 31 (8618aaed0838623429004547c4172c3f49e23cea)
+b'Uploading LFS objects: 100% (1/1), 226 MB | 67 MB/s, done.\n'
+Pushing commit 18 of 31 (ccb894c2ce591ee9c923eb04d66df98314e9bc85)
+b''
+Pushing commit 19 of 31 (eaf4cf24afcf7a0a0b0a4f0c955f41a3ea64eb38)
+b''
+Pushing commit 20 of 31 (b54698a54327e783b505cfdd74547e171fef7bf4)
+b''
+Pushing commit 21 of 31 (febe65b8a524af7dc4ea6adce32e4c0d4ce858f2)
+b'Uploading LFS objects: 100% (1/1), 1.3 GB | 107 MB/s, done.\n'
+Pushing commit 22 of 31 (ada5509bd58fbe1b175cd07d52b6e6e1c05dca0d)
+b'Uploading LFS objects: 100% (1/1), 725 MB | 100 MB/s, done.\n'
+Pushing commit 23 of 31 (8ae3fed4bdedf33878f3123ece398ef5a070ab18)
+b'Uploading LFS objects: 100% (1/1), 509 MB | 93 MB/s, done.\n'
+Pushing commit 24 of 31 (2f587e6035ae5ce10cb7c617248bd78632c2f8b7)
+b'Uploading LFS objects: 100% (1/1), 473 MB | 92 MB/s, done.\n'
+Pushing commit 25 of 31 (3fb644be49b3c9a06637326615cde39d129069d6)
+b'Uploading LFS objects: 100% (1/1), 809 MB | 99 MB/s, done.\n'
+Pushing commit 26 of 31 (465c26c9f39060d63e3c740c349ef93335abed2f)
+b''
+Pushing commit 27 of 31 (a2cf9740acd29aa1a6e31c53f40cd1c4897875c1)
+b''
+Pushing commit 28 of 31 (d3167a2210a31490f5014fc01cc9b18f525a5a83)
+b''
+Pushing commit 29 of 31 (c2a10190e9a5c2179c72fa984439d5e6565a686e)
+b'Uploading LFS objects: 100% (1/1), 143 MB | 54 MB/s, done.\n'
+Pushing commit 30 of 31 ()

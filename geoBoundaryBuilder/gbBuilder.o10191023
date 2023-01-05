@@ -1,0 +1,28 @@
+Warning: no access to tty (Bad file descriptor).
+Thus no job control in this shell.
+/sciclone/home20/dsmillerrunfol
+apiBuild
+build.py
+buildAPI.py
+buildLog
+buildRun
+buildejw
+builderClass.py
+cgazBuild
+cgazBuild.py
+commitBuild
+gbAPIBuild.o10191004
+gbBuildCommit.o10190958
+gbBuilder.o10191016
+gbCGAZ.o10190969
+gbPush.o10190993
+geoBoundariesBuild.yml
+gitCommitMetaBuild.py
+gitPush.py
+notes
+pullRun
+pushBuild
+singleBuild.py
+watch.py
+workflow
+Terminated

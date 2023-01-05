@@ -60,8 +60,14 @@ jobs:
     - name: Prep Files for Upload
       run: |
            cd $GITHUB_WORKSPACE
+           pwd
            cd ..
+           pwd
            git clone https://github.com/wmgeolab/gbWeb
+           ls
+           cd /
+           ls
+           pwd
     - name: Upload API to geoboundaries.org
       uses: SamKirkland/FTP-Deploy-Action@4.1.0
       with:
@@ -69,4 +75,4 @@ jobs:
         username: ${{ secrets.GBUSER }}
         password: ${{ secrets.GBPASS }}
         server-dir: geoboundaries.org/api/
-        local-dir: api/
+        local-dir: gbWeb/api/

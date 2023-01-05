@@ -1,0 +1,26 @@
+Warning: no access to tty (Bad file descriptor).
+Thus no job control in this shell.
+[main 06b46de] Nightly API update
+ 2956 files changed, 2956 insertions(+), 2946 deletions(-)
+ rewrite api/current/gbHumanitarian/ALL/ADM0/index.json (69%)
+ rewrite api/current/gbHumanitarian/ALL/ADM1/index.json (68%)
+ rewrite api/current/gbHumanitarian/ALL/ADM2/index.json (65%)
+ rewrite api/current/gbHumanitarian/ALL/ADM3/index.json (61%)
+ rewrite api/current/gbHumanitarian/IDN/ADM0/index.json (100%)
+ rewrite api/current/gbHumanitarian/IDN/ADM1/index.json (100%)
+ rewrite api/current/gbHumanitarian/IDN/ADM2/index.json (100%)
+ rewrite api/current/gbHumanitarian/IDN/ADM3/index.json (100%)
+ create mode 100644 api/current/gbHumanitarian/IDN/ADM4/index.json
+ rewrite api/current/gbHumanitarian/IDN/ALL/index.json (97%)
+ rewrite api/current/gbHumanitarian/LAO/ADM1/index.json (97%)
+ rewrite api/current/gbHumanitarian/LAO/ADM2/index.json (97%)
+ create mode 100644 api/current/gbHumanitarian/LAO/ADM3/index.json
+ rewrite api/current/gbHumanitarian/LAO/ALL/index.json (98%)
+ create mode 100644 api/gbID/IDN-ADM0-82693735/index.json
+ create mode 100644 api/gbID/IDN-ADM1-30024224/index.json
+ create mode 100644 api/gbID/IDN-ADM2-37775238/index.json
+ create mode 100644 api/gbID/IDN-ADM3-43725864/index.json
+ create mode 100644 api/gbID/IDN-ADM4-43442698/index.json
+ create mode 100644 api/gbID/LAO-ADM1-29024476/index.json
+ create mode 100644 api/gbID/LAO-ADM2-24827057/index.json
+ create mode 100644 api/gbID/LAO-ADM3-50990375/index.json
