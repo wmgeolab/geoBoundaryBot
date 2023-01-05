@@ -73,15 +73,15 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
 
     print("Total Jobs: " + str(len(jobList)))
     
-    jobsPerNode = 8
+    jobsPerNode = 4
     
     #IF VORTEX:
     #Running on 32GB machines with 10 cores each
-    #nodeCount = comm_size/10
+    nodeCount = comm_size/10
     
     #IF BORA:
     #Running on 128GB machines with 20 cores each.
-    nodeCount = comm_size/20
+    #nodeCount = comm_size/20
     
     coresToAllocate = nodeCount * jobsPerNode
     
