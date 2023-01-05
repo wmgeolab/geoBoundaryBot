@@ -1,9 +1,9 @@
-name: Build CGAZ
+name: 2 Build CGAZ
 on:
   workflow_dispatch:
     branches: [main]
   workflow_run:
-    workflows: ["1-Initialize Build"]
+    workflows: ["1 Initialize Build"]
     branches: [main]
     types: 
       - completed

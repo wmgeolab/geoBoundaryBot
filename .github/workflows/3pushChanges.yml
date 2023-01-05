@@ -1,9 +1,9 @@
-name: Push & Update API
+name: 3 Push & Update API
 on:
   workflow_dispatch:
     branches: [main]
   workflow_run:
-    workflows: ["Build CGAZ"]
+    workflows: ["2 Build CGAZ"]
     branches: [main]
     types: 
       - completed
