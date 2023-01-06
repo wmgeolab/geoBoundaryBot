@@ -14,6 +14,9 @@ for commit in commits:
     print("Pushing commit " + str(counter) + " of " + str(len(commits)) + " (" + commit + ")")
     if(len(commit) > 10):
         gitPush = "cd " + GB_DIR + "; git push -f origin " + commit + ":main"
-        gitPushOutcome = subprocess.check_output(gitPush, shell=True)
-        print(gitPushOutcome)
+        try:
+            gitPushOutcome = subprocess.check_output(gitPush, shell=True) 
+            print(gitPushOutcome)
+        except Exception as e:
+            print("ERROR: " + str(e))
         counter = counter + 1

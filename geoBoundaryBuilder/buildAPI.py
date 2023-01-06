@@ -85,7 +85,6 @@ def apiBuilder(GB_DIR, API_DIR,ISO, ADM, PRODUCT, ID, apiDict):
     commitIDB = subprocess.check_output(gitIDCall, shell=True)
     gitHash = str(commitIDB.decode('UTF-8')).rstrip()
 
-    apiDict["downloadURL"] = "https://github.com/wmgeolab/geoBoundaries/raw/"+gitHash+"/releaseData/"+PRODUCT+"/"+ISO+"/"+ADM+"/geoBoundaries-"+ISO+"-"+ADM+"-all.zip"
     apiDict["gjDownloadURL"] = "https://github.com/wmgeolab/geoBoundaries/raw/"+gitHash+"/releaseData/"+PRODUCT+"/"+ISO+"/"+ADM+"/geoBoundaries-"+ISO+"-"+ADM+".geojson"
     apiDict["tjDownloadURL"] = "https://github.com/wmgeolab/geoBoundaries/raw/"+gitHash+"/releaseData/"+PRODUCT+"/"+ISO+"/"+ADM+"/geoBoundaries-"+ISO+"-"+ADM+".topojson"
     apiDict["imagePreview"] = "https://github.com/wmgeolab/geoBoundaries/raw/"+gitHash+"/releaseData/"+PRODUCT+"/"+ISO+"/"+ADM+"/geoBoundaries-"+ISO+"-"+ADM+"-PREVIEW.png"

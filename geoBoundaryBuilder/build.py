@@ -17,7 +17,7 @@ print(comm_size)
 #Limits total number of layers to build according to the below parameters if enabled.
 limitAdmTypes = False#["ADM0","ADM1","ADM2"]
 limitProductTypes = False#["gbAuthoritative", "gbOpen"]
-limitISO = ["DJI","CHL","MKD","FIN","PHL","URY","GRC","LCA","YEM"]#False#["IDN", "LAO"]
+limitISO = False#["DJI","CHL","MKD","FIN","PHL","URY","GRC","LCA","YEM"]#False#["IDN", "LAO"]
 
 
 #===============
@@ -44,6 +44,10 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
     #Clear any existing status information
     with open(STAGE_DIR + "buildStatus", 'w') as f:
         f.write("CLEARING STATUS FROM PREVIOUS RUNS")
+
+    #Clear temp folders from previous runs, if any
+    shutil.rmtree(TMP_DIR)
+    os.mkdir(TMP_DIR)
     
     statusFiles = glob.glob(STAT_DIR+"*")
     for f in statusFiles:
@@ -89,13 +93,13 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
     for core in range(1,(comm_size-1)):
         if(str(core)[-1:] in list(map(str, range(1,jobsPerNode)))):
             with open(CORE_DIR + str(core), 'w') as f:
-                f.write("D")
+                f.write("R")
 
 
-    checkExit = False
+
     currentJob = 0
     maxJob = len(jobList)
-    while(checkExit == False):
+    while True:
         errorCount = 0
         skipCount = 0
         STAT_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderWatch/"
@@ -105,11 +109,9 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
             if(str(core)[-1:] in list(map(str, range(1,jobsPerNode)))):
                 with open(CORE_DIR + str(core), 'r') as f:
                     stat = f.read()
-                if((stat == "D") and (currentJob <= (maxJob-1))):
+                if((stat == "R") and (currentJob <= (maxJob-1))):
                     chunk = [jobList[currentJob],core]
-                    print(chunk)
-                    with open(CORE_DIR + str(core), "w") as f:
-                        f.write("SEND: " + str(jobList[currentJob]))
+                    print("SENDING TO " + str(core) + ": " + str(chunk))
                     comm.send(chunk, dest=core, tag=1)
                     currentJob = currentJob + 1
                 
@@ -146,20 +148,29 @@ else:
 
 
     while True:
+        core = str(MPI.COMM_WORLD.Get_rank())
+        with open(CORE_DIR + str(core), "w") as f:
+            f.write("R")
+        with open(CORE_LOGGING_DIR + str(core), "a") as f:
+            f.write(str(time.ctime()) + ": I am waiting for a new job.")
         layers = comm.recv(source=0, tag=1)
-        print("I (" + str(MPI.COMM_WORLD.Get_rank()) + ", "+str(layers[1])+") have received " + str(layers[0]) + " layers to build.")
+        with open(CORE_LOGGING_DIR + str(core), "a") as f:
+            f.write(str(time.ctime()) + ": I (" + str(MPI.COMM_WORLD.Get_rank()) + ", "+str(layers[1])+") have received " + str(layers[0]) + " layers to build.")
         with open(CORE_DIR + str(layers[1]), "w") as f:
-            f.write("RECV: " + str(layers[0]))
+            f.write(str(layers[0]))
         ret = []
         core = layers[1]
         l = layers[0]
-        o = build(ISO=l[0], ADM=l[1], product=l[2])
+        try:
+            o = build(ISO=l[0], ADM=l[1], product=l[2])
+            with open(CORE_LOGGING_DIR + str(core), "a") as f:
+                f.write(str(time.ctime()) + ": I have completed the build assigned.")
+        except:
+            with open(CORE_LOGGING_DIR + str(core), "a") as f:
+                f.write(str(time.ctime()) + ": I have encountered a build error.")
         ret.append(o)
         with open(STAT_DIR + "_" + l[0] + "_" + l[1] + "_" + l[2], 'w') as f:
             f.write(o[4])
         with open(CORE_DIR + str(core), "w") as f:
             f.write("D")
         time.sleep(15)
-
-    
-    print(ret)

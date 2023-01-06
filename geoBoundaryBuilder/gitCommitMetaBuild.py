@@ -122,7 +122,7 @@ if(COMMIT == True):
 
     gitIDCall = "cd " + GB_DIR + "; git rev-parse HEAD"
     commitIDB = subprocess.check_output(gitIDCall, shell=True)
-    gitHash = str(commitIDB.decode('UTF-8'))
+    gitHash = str(commitIDB.decode('UTF-8')).rstrip()
 else:
     gitHash = "TESTHASH"
 
@@ -169,7 +169,7 @@ if(CSV_CONSTRUCT == True):
 
     #Create headers for each CSV
     def headerWriter(f):
-        f.write("boundaryID,boundaryName,boundaryISO,boundaryYearRepresented,boundaryType,boundaryCanonical,boundarySource,boundaryLicense,licenseDetail,licenseSource,boundarySourceURL,sourceDataUpdateDate,buildDate,Continent,UNSDG-region,UNSDG-subregion,worldBankIncomeGroup,apiURL,admUnitCount,meanVertices,minVertices,maxVertices,meanPerimeterLengthKM,minPerimeterLengthKM,maxPerimeterLengthKM,meanAreaSqKM,minAreaSqKM,maxAreaSqKM,staticDownloadLink\n")
+        f.write("boundaryID,boundaryName,boundaryISO,boundaryYearRepresented,boundaryType,boundaryCanonical,boundarySource,boundaryLicense,licenseDetail,licenseSource,boundarySourceURL,sourceDataUpdateDate,buildDate,Continent,UNSDG-region,UNSDG-subregion,worldBankIncomeGroup,admUnitCount,meanVertices,minVertices,maxVertices,meanPerimeterLengthKM,minPerimeterLengthKM,maxPerimeterLengthKM,meanAreaSqKM,minAreaSqKM,maxAreaSqKM,staticDownloadLink\n")
 
     with open(gbOpenCSV,'w+') as f:
         headerWriter(f)
@@ -226,8 +226,6 @@ if(CSV_CONSTRUCT == True):
             metaLine = metaLine + isoMeta["Continent"].values[0] + '","' + isoMeta["UNSDG-region"].values[0] + '","'
             metaLine = metaLine + isoMeta["UNSDG-subregion"].values[0] + '","' 
             metaLine = metaLine + isoMeta["worldBankIncomeGroup"].values[0] + '","'
-
-            metaLine = metaLine + "https://www.geoboundaries.org/api/gbID/" + meta['boundaryID'] + '","'
 
             #Append geometry stats
             metaLine = metaLine + str(meta["admUnitCount"]) + '","' + str(meta["meanVertices"]) + '","' + str(meta["minVertices"]) + '","' + str(meta["maxVertices"]) + '","'

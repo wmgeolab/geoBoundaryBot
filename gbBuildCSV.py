@@ -23,6 +23,7 @@ isoDetails = pd.read_csv(ws['working'] + "/geoBoundaryBot/dta/iso_3166_1_alpha_3
 #Get hash for static links for each boundary
 r = requests.get("https://api.github.com/repos/wmgeolab/geoboundaries/commits/main")
 gitHash = r.json()["sha"]
+gitHash = str(gitHash).rstrip()
 
 #Remove any old CSVs for each case
 gbOpenCSV = ws["working"] + "/releaseData/geoBoundariesOpen-meta.csv"

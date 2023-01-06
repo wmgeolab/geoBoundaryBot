@@ -22,6 +22,7 @@ STAT_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderWatch/"
 STAGE_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderStage/"
 CORE_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderCore/"
 SCRIPT_DIR = "/sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder"
+CORE_LOGGING_DIR = "/sciclone/geograd/geoBoundaries/logs/gbCores/"
 
 admTypes = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
 productTypes = ["gbOpen", "gbAuthoritative", "gbHumanitarian"]
