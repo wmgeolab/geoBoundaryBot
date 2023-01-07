@@ -14,16 +14,6 @@ openDta = pd.read_csv(GB_DIR + "releaseData/geoBoundariesOpen-meta.csv", encodin
 humDta = pd.read_csv(GB_DIR + "releaseData/geoBoundariesHumanitarian-meta.csv", encoding='utf8').astype(str)
 authDta = pd.read_csv(GB_DIR + "releaseData/geoBoundariesAuthoritative-meta.csv", encoding='utf8').astype(str)
 
-#Check for LFS cases
-gitatt = pd.read_csv(GB_DIR + ".gitattributes", delim_whitespace=True, header=None)
-
-lfsFiles = []
-for i, r in gitatt.iterrows():
-    splAtt = r[0].split("/")
-    if(splAtt[0] == "releaseData"):
-        if(splAtt[1] != "CGAZ"):
-            lfsFiles.append(splAtt[4])
-
 allADM = {}
 allADM["gbOpen"] = {}
 allADM["gbHumanitarian"] = {}
@@ -94,10 +84,6 @@ def apiBuilder(GB_DIR, API_DIR,ISO, ADM, PRODUCT, ID, apiDict):
     with open(currentPath + "index.json", "w") as f:
         json.dump(apiDict, f)
     
-    #Update archival ID API endpoint
-    with open(gbIDPath + "index.json", "w") as f:
-        json.dump(apiData, f)
-
     return(apiDict)
 
 #gbOpen

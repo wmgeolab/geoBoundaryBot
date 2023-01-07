@@ -30,36 +30,8 @@ def statusUpdate(ISO, ADM, product, code):
     with open(STAT_DIR + "_" + ISO + "_" + ADM + "_" + product, 'w') as f:
         f.write(code)
 
-GA_PATH = GB_DIR + "/.gitattributes"
-
 with open(STAGE_DIR + "buildStatus", 'w') as f:
-    f.write("GITATTRIBUTE BUILD HAS COMMENCED.")
-
-#Clear old attributes file
-with open(LOG_DIR + "status", 'a') as logFile:
-    logFile.write("Clearing gitattribute file.")
-try:
-    os.remove(GA_PATH)
-except:
-    pass
-
-with open(LOG_DIR + "status", 'a') as f:
-    f.write("Building new gitattribute file loop."+"\n")
-for (path, dirname, filenames) in os.walk(GB_DIR):
-    if(GB_DIR + "/.git/" not in path):
-        for f in filenames:
-            fPath = path + "/" + f
-            if(os.path.getsize(fPath) > 100000000):
-                with open(LOG_DIR + "status", 'a') as logFile:
-                    logFile.write("File greater than 100MB Detected: " + str(fPath)+"\n")
-                relPath = "/".join(fPath.strip("/").split('/')[5:])
-                with open(GA_PATH, "a") as gaP:
-                    gaP.write(relPath + " filter=lfs diff=lfs merge=lfs -text" + "\n")
-with open(GA_PATH, "a") as gaP:
-    gaP.write("releaseData/CGAZ/**" + " filter=lfs diff=lfs merge=lfs -text" + "\n")
-
-with open(STAGE_DIR + "buildStatus", 'w') as f:
-    f.write("GITATTRIBUTE BUILD COMPLETE, STARTING COMMITS.")
+    f.write("STARTING COMMITS.")
 
 if(COMMIT == True):
     #Commit the build with a stamp and description

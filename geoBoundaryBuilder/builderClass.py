@@ -132,7 +132,7 @@ class builder:
     def checkExistence(self):
         if os.path.exists(self.sourcePath):
             self.existFail = 0
-            self.logger("INFO", "File Exists: " + str(self.sourcePath))
+            self.logger(str(time.ctime()) + " INFO", "File Exists: " + str(self.sourcePath))
         else:
             self.logger("CRITICAL","File does not Exist: " + str(self.sourcePath))
 
@@ -837,6 +837,8 @@ class builder:
             destPath = os.path.join(self.targetPath, f)
             shutil.copy(sourcePath, destPath)
 
+        self.logger("INFO","Files copied, cleaning up.")
+
         #Cleanup for depricated files
         removeNames = ["CITATION-AND-USE-geoBoundaries-gbOpen.txt", "CITATION-AND-USE-geoBoundaries-gbAuthoritative.txt", "CITATION-AND-USE-geoBoundaries-gbOpen.txt"]
         destFiles = os.listdir(self.targetPath)
@@ -844,6 +846,8 @@ class builder:
         for e in destFiles:
             if(e in removeNames):
                 os.unlink(os.path.join(self.targetPath, e))
+
+        self.logger("INFO","Complete, returning string of results.")
 
         return(str(writeRet))
 

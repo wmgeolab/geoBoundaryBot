@@ -99,6 +99,7 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
 
     currentJob = 0
     maxJob = len(jobList)
+    startTime = time.time()
     while True:
         errorCount = 0
         skipCount = 0
@@ -142,7 +143,6 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
             with open(STAGE_DIR + "buildStatus", 'w') as f:
                 f.write(str(round(percentDone,2)) + " percent complete (" + str(allOutcomes.count("D")-skipCount) + " of " + str(len(allOutcomes)-skipCount) + ", " + str(skipCount) + " skipped) | BUILD ERRORS: " + str(errorCount))
                     
-        time.sleep(1)
 
 else:
 
@@ -164,10 +164,10 @@ else:
         try:
             o = build(ISO=l[0], ADM=l[1], product=l[2])
             with open(CORE_LOGGING_DIR + str(core), "a") as f:
-                f.write(str(time.ctime()) + ": I have completed the build assigned.")
+                f.write(str(time.ctime()) + ": I have completed the build assigned.\n")
         except:
             with open(CORE_LOGGING_DIR + str(core), "a") as f:
-                f.write(str(time.ctime()) + ": I have encountered a build error.")
+                f.write(str(time.ctime()) + ": I have encountered a build error.\n")
         ret.append(o)
         with open(STAT_DIR + "_" + l[0] + "_" + l[1] + "_" + l[2], 'w') as f:
             f.write(o[4])
