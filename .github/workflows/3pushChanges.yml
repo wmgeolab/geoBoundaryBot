@@ -54,6 +54,11 @@ jobs:
                 echo "" > /sciclone/geograd/geoBoundaries/logs/gbWeb/apiStat
                 qsub apiBuild          
                 bash workflow/apiWatch.sh
+  uploadAPI:
+    name: Upload API
+    needs: buildAPI
+    runs-on: ubuntu-latest
+    steps:
     - name: Push API to Website
       uses: appleboy/ssh-action@v0.1.6
       with:
