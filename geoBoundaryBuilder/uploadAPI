@@ -4,7 +4,7 @@ set user [lindex $argv 0];
 set pass [lindex $argv 1];
 set server [lindex $argv 2];
 
-spawn rsync -e "/usr/bin/ssh" -av /sciclone/geograd/geoBoundaries/scripts/gbWeb/api/current $user@$server:/home/geologs/geoboundaries.org/api/
+spawn rsync -e "/usr/bin/ssh" -av --no-perms --no-owner --no-group /sciclone/geograd/geoBoundaries/scripts/gbWeb/api/current $user@$server:/home/geologs/geoboundaries.org/api/
 expect "password:"
 send "$pass\r"
 expect eof
