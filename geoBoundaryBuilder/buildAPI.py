@@ -67,19 +67,22 @@ def apiBuilder(GB_DIR, API_DIR,ISO, ADM, PRODUCT, ID, apiDict):
     gbIDPath = API_DIR + "gbID/" + str(ID) + "/"
     currentPath = API_DIR + "current/" + PRODUCT + "/" + str(ISO) + "/" + str(ADM) + "/"
     boundaryPath = GB_DIR + "releaseData/" + PRODUCT + "/" + str(ISO) + "/" + str(ADM) + "/"
-    os.makedirs(gbIDPath, exist_ok=True)
+    
     os.makedirs(currentPath, exist_ok=True)
 
     #Retrieve the commit hash for the current version of the boundary
-    gitIDCall = "cd " + GB_DIR + "releaseData/" + PRODUCT + "/" + ISO + "/" + ADM + "/; git rev-parse " + ":./geoBoundaries-" + ISO + "-" + ADM + "-all.zip"
+    gitIDCall = "cd " + GB_DIR + "releaseData/" + PRODUCT + "/" + ISO + "/" + ADM + "/; git log -n 1 --pretty=format:'%h' -p -- " + ":./geoBoundaries-" + ISO + "-" + ADM + "-all.zip"
     commitIDB = subprocess.check_output(gitIDCall, shell=True)
-    gitHash = str(commitIDB.decode('UTF-8')).rstrip()
+    gitHash = str(commitIDB.decode('UTF-8').split("\n")[0])
 
     apiDict["gjDownloadURL"] = "https://github.com/wmgeolab/geoBoundaries/raw/"+gitHash+"/releaseData/"+PRODUCT+"/"+ISO+"/"+ADM+"/geoBoundaries-"+ISO+"-"+ADM+".geojson"
     apiDict["tjDownloadURL"] = "https://github.com/wmgeolab/geoBoundaries/raw/"+gitHash+"/releaseData/"+PRODUCT+"/"+ISO+"/"+ADM+"/geoBoundaries-"+ISO+"-"+ADM+".topojson"
     apiDict["imagePreview"] = "https://github.com/wmgeolab/geoBoundaries/raw/"+gitHash+"/releaseData/"+PRODUCT+"/"+ISO+"/"+ADM+"/geoBoundaries-"+ISO+"-"+ADM+"-PREVIEW.png"
     apiDict["simplifiedGeometryGeoJSON"] = "https://github.com/wmgeolab/geoBoundaries/raw/"+gitHash+"/releaseData/"+PRODUCT+"/"+ISO+"/"+ADM+"/geoBoundaries-"+ISO+"-"+ADM+"_simplified.geojson"
     
+    print(currentPath)
+    print(apiDict)
+
     #Update "Current" API endpoint
     with open(currentPath + "index.json", "w") as f:
         json.dump(apiDict, f)

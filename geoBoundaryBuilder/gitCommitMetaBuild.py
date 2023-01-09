@@ -22,7 +22,7 @@ STAT_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderWatch/"
 STAGE_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderStage/"
 TMP_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilder/"
 BOT_DTA = "/sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/dta/"
-COMMIT = True
+COMMIT = False
 CSV_CONSTRUCT = True
 #===
 
@@ -92,11 +92,15 @@ if(COMMIT == True):
     with open(STAGE_DIR + "buildStatus", 'w') as f:
         f.write("ALL COMMITS DONE, FINDING FINAL HASH.")
 
-    gitIDCall = "cd " + GB_DIR + "; git rev-parse HEAD"
+
+    gitIDCall = "cd " + GB_DIR + "/releaseData/" + "; git log -n 1 --pretty=format:'%h' -p -- " + ":./geoBoundariesOpen-meta.csv"
     commitIDB = subprocess.check_output(gitIDCall, shell=True)
-    gitHash = str(commitIDB.decode('UTF-8')).rstrip()
+    gitHash = str(commitIDB.decode('UTF-8').split("\n")[0])
+
 else:
-    gitHash = "TESTHASH"
+    gitIDCall = "cd " + GB_DIR + "/releaseData/" + "; git log -n 1 --pretty=format:'%h' -p -- " + ":./geoBoundariesOpen-meta.csv"
+    commitIDB = subprocess.check_output(gitIDCall, shell=True)
+    gitHash = str(commitIDB.decode('UTF-8').split("\n")[0])
 
 if(len(gitHash) < 5):
     with open(LOG_DIR + "status", 'a') as f:
