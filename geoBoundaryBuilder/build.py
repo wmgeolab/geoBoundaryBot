@@ -5,6 +5,7 @@ import math
 import glob
 import random
 import sys
+import time
 
 f = "/sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder/builderClass.py"
 exec(compile(open(f, "rb").read(), f, 'exec'))
@@ -18,6 +19,7 @@ print(comm_size)
 limitAdmTypes = False#["ADM0","ADM1","ADM2"]
 limitProductTypes = False#["gbAuthoritative", "gbOpen"]
 limitISO = False#["DJI","CHL","MKD","FIN","PHL","URY","GRC","LCA","YEM"]#False#["IDN", "LAO"]
+skipList = ["IND_ADM5_gbOpen"]
 
 
 #===============
@@ -64,9 +66,10 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
     for adm in admTypes:
         for product in productTypes:
             for iso in isoList:
-                jobList.append([iso, adm, product])
-                with open(STAT_DIR + "_" + iso + "_" + adm + "_" + product, 'w') as f:
-                    f.write("P")
+                if(str(iso + "_" + adm + "_" + product) not in skipList):
+                    jobList.append([iso, adm, product])
+                    with open(STAT_DIR + "_" + iso + "_" + adm + "_" + product, 'w') as f:
+                        f.write("P")
     
     #Shuffle the list to mitigate the chance one node gets all the small jobs.
     random.shuffle(jobList)
@@ -101,6 +104,8 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
     maxJob = len(jobList)
     startTime = time.time()
     while True:
+        beat = str(time.ctime())
+        print("===Heartbeat===" + str(time.ctime()))
         errorCount = 0
         skipCount = 0
         STAT_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilderWatch/"
@@ -115,6 +120,11 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
                     print("SENDING TO " + str(core) + ": " + str(chunk))
                     comm.send(chunk, dest=core, tag=1)
                     currentJob = currentJob + 1
+                else:
+                    print(stat)
+                    print(currentJob)
+                    print(maxJob)
+                    time.sleep(1)
                 
 
         allOutcomes = []
@@ -141,8 +151,9 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
             sys.exit()
         else:
             with open(STAGE_DIR + "buildStatus", 'w') as f:
-                f.write(str(round(percentDone,2)) + " percent complete (" + str(allOutcomes.count("D")-skipCount) + " of " + str(len(allOutcomes)-skipCount) + ", " + str(skipCount) + " skipped) | BUILD ERRORS: " + str(errorCount))
-                    
+                f.write(str(round(percentDone,2)) + " percent complete (" + str(allOutcomes.count("D")-skipCount) + " of " + str(len(allOutcomes)-skipCount) + ", " + str(skipCount) + " skipped) | BUILD ERRORS: " + str(errorCount) + " | Heartbeat: " + str(beat))
+
+        time.sleep(1)
 
 else:
 

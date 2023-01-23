@@ -34,63 +34,36 @@ with open(STAGE_DIR + "buildStatus", 'w') as f:
     f.write("STARTING COMMITS.")
 
 if(COMMIT == True):
-    #Commit the build with a stamp and description
-    #Note we'll be doing this folder-by-folder,
-    #as we need to commit each layer individually to keep 
-    #the git pushes small. 
-    #We then save the hash of the final commit, as that will have 
-    #all relevant new files contained in it (for linking in the metadata and API).
     with open(LOG_DIR + "status", 'a') as f:
         f.write("COMMIT AND CALCULATE HASH START.\n")
 
-    buildTypes = ["gbOpen", "gbAuthoritative", "gbHumanitarian"]
-    totalISO = len(os.listdir(GB_DIR + "/releaseData/gbOpen/")) + len(os.listdir(GB_DIR + "/releaseData/gbAuthoritative/")) + len(os.listdir(GB_DIR + "/releaseData/gbHumanitarian/"))
-    committedISO = 0
-    for buildType in buildTypes:
-        for ISO in os.listdir(GB_DIR + "/releaseData/" + buildType + "/"):
-            with open(STAGE_DIR + "buildStatus", 'w') as f:
-                f.write("Committing Files: " + str(committedISO) + " of " + str(totalISO) + " (" + ISO + ")")
-            with open(LOG_DIR + "status", 'a') as f:
-                f.write("Committing Files: " + str(committedISO) + " of " + str(totalISO) + " (" + ISO + ")" + "\n")
-            
-            for ADM in os.listdir(GB_DIR + "/releaseData/" + buildType + "/" + ISO + "/"):
-                with open(LOG_DIR + "status", 'a') as f:
-                    f.write("============="+str(ISO) + " " + str(ADM)+"\n")
-                
-                statusUpdate(ISO=ISO, ADM=ADM, product=buildType, code="+P")
-                newDataCheck = subprocess.check_output(["cd /sciclone/geograd/geoBoundaries/database/geoBoundaries/releaseData/"+buildType+"/"+ISO+"/"+ADM+"; git status ."], shell=True).decode()
-                with open(LOG_DIR + "status", 'a') as f:
-                    f.write(str(newDataCheck) + "\n")
+    newDataCheck = subprocess.check_output(["cd /sciclone/geograd/geoBoundaries/database/geoBoundaries/; git status ."], shell=True).decode()
+    with open(LOG_DIR + "status", 'a') as f:
+        f.write(str(newDataCheck) + "\n")
 
-                if("nothing to commit" not in newDataCheck):
-                    cMes = "Automated Build Commit for " + ISO + " | " + ADM + " | " + buildType + " | Committed on: " + time.ctime()
-                    statusUpdate(ISO=ISO, ADM=ADM, product=buildType, code="+A")
-                    addData = subprocess.check_output(["cd /sciclone/geograd/geoBoundaries/database/geoBoundaries/releaseData/"+buildType+"/"+ISO+"/"+ADM+"; git add -A ."], shell=True).decode()
-                    with open(LOG_DIR + "status", 'a') as f:
-                            f.write(str(addData) + "\n")
-                    if(("error" not in addData) and ("fatal" not in addData)):
-                        statusUpdate(ISO=ISO, ADM=ADM, product=buildType, code="+C")
-                        commitData = subprocess.check_output(["cd /sciclone/geograd/geoBoundaries/database/geoBoundaries/releaseData/"+buildType+"/"+ISO+"/"+ADM+"; git commit -m '"+str(cMes)+"'"], shell=True).decode()
-                        with open(LOG_DIR + "status", 'a') as f:
-                            f.write(str(commitData) + "\n")
-                        if(("error" not in commitData) and ("fatal" not in commitData)):
-                            statusUpdate(ISO=ISO, ADM=ADM, product=buildType, code="+D")
-                            with open(LOG_DIR + "status", 'a') as f:
-                                f.write("Commit successful.\n")
-                        else:
-                            statusUpdate(ISO=ISO, ADM=ADM, product=buildType, code="-E")
-                            with open(LOG_DIR + "status", 'a') as f:
-                                f.write("Commit failed.\n")
-                    else:
-                        statusUpdate(ISO=ISO, ADM=ADM, product=buildType, code="-E")
-                else:
-                    statusUpdate(ISO=ISO, ADM=ADM, product=buildType, code="+S")
-                    with open(LOG_DIR + "status", 'a') as f:
-                        f.write("No changes found, skipping commit.\n")
-                
-            committedISO += 1
+    if("nothing to commit" not in newDataCheck):
+        cMes = "Automated Build Commit | " + time.ctime()
+        addData = subprocess.check_output(["cd /sciclone/geograd/geoBoundaries/database/geoBoundaries/; git add -A ."], shell=True).decode()
+        with open(LOG_DIR + "status", 'a') as f:
+                f.write(str(addData) + "\n")
+        if(("error" not in addData) and ("fatal" not in addData)):
+            commitData = subprocess.check_output(["cd /sciclone/geograd/geoBoundaries/database/geoBoundaries; git commit -m '"+str(cMes)+"'"], shell=True).decode()
+            with open(LOG_DIR + "status", 'a') as f:
+                f.write(str(commitData) + "\n")
+            if(("error" not in commitData) and ("fatal" not in commitData)):
+                with open(LOG_DIR + "status", 'a') as f:
+                    f.write("Commit successful.\n")
+            else:
+                with open(LOG_DIR + "status", 'a') as f:
+                    f.write("Commit failed (A).\n")
+        else:
+            with open(LOG_DIR + "status", 'a') as f:
+                    f.write("Commit failed (B).\n")
+    else:
+        with open(LOG_DIR + "status", 'a') as f:
+            f.write("No changes found, skipping commit.\n")
     with open(STAGE_DIR + "buildStatus", 'w') as f:
-        f.write("ALL COMMITS DONE, FINDING FINAL HASH.")
+        f.write("COMMIT DONE, FINDING FINAL HASH.")
 
 
     gitIDCall = "cd " + GB_DIR + "/releaseData/" + "; git log -n 1 --pretty=format:'%h' -p -- " + ":./geoBoundariesOpen-meta.csv"

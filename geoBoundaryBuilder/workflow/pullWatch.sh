@@ -1,12 +1,12 @@
 #!/bin/tcsh
 
-qstat | grep gbCronJob > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullJobStat
+qstat | grep gbPullFromRemote > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullJobStat
 
 
 until grep "R" /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullJobStat
 do
 	echo "----WAITING FOR JOB TO COMMENCE----"
-	qstat | grep gbCronJob > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullJobStat
+	qstat | grep gbPullFromRemote > /sciclone/geograd/geoBoundaries/logs/gbBuilderCron/pullJobStat
 	date
 	sleep 1
 done
