@@ -718,6 +718,35 @@ class builder:
         
         return("Geometry Statistics Succesfully Built.")
 
+    def checkChange(self):
+        #Release folder:
+
+        self.changesDetected = False
+    
+        #Check if the file already exists in the built folder.
+        if not os.path.exists(self.targetPath):
+            self.changesDetected = True
+            return("Change Detected.")
+        
+        #For now, we're checking for changes based on file size in the geometry.
+        #This is imperfect, but much faster than a proper diff on the large binaries we're generating (which would require a full read of both into memory),
+        #and likely "good enough" (<- this is the type of comment I will regret later!)
+        tmpFold = self.tmpPath + self.ISO + self.ADM + self.product + "/"
+        newJSON = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".geojson")
+        oldJSON = self.targetPath + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".geojson"
+
+        newSize = os.path.getsize(newJSON)
+        oldSize = os.path.getsize(oldJSON)
+
+        if(newSize == oldSize):
+            self.changesDetected = False
+            return("No Changes Detected.")
+        else:
+            self.changesDetected = True
+            return("Changes Detected.")
+        
+
+
     def constructFiles(self):
         self.logger("INFO","Constructing files for release.")
         tmpJson = self.tmpPath + self.ISO + self.ADM + self.product + ".geoJSON"
@@ -828,28 +857,36 @@ class builder:
         shutil.make_archive(self.tmpPath + "zipInterim/" + self.product + "/geoBoundaries-" + self.ISO + "-" + self.ADM + "-all", 'zip', tmpFold)
         shutil.move(self.tmpPath + "zipInterim/" + self.product + "/geoBoundaries-" + self.ISO + "-" + self.ADM + "-all.zip", fullZip)
 
-        #Finally, we copy the files over to the core geoBoundaries release folder.
-        self.logger("INFO","Copying outputs into release folder.")
-        srcFiles = os.listdir(tmpFold)
+        #Check if there has been any update to the file.
+        #If not, allow for build to proceed to confirm input file validity, but don't write outputs.
+        bnd.checkChange()
 
-        for f in srcFiles:
-            sourcePath = os.path.join(tmpFold, f)
-            destPath = os.path.join(self.targetPath, f)
-            shutil.copy(sourcePath, destPath)
+        if(self.changesDetected == True):
+            self.logger("INFO","Copying outputs into release folder.")
+            srcFiles = os.listdir(tmpFold)
+            for f in srcFiles:
+                sourcePath = os.path.join(tmpFold, f)
+                destPath = os.path.join(self.targetPath, f)
+                shutil.copy(sourcePath, destPath)
 
-        self.logger("INFO","Files copied, cleaning up.")
+            self.logger("INFO","Files copied, cleaning up.")
+            
+            #Cleanup for deprecated files
+            removeNames = ["CITATION-AND-USE-geoBoundaries-gbOpen.txt", "CITATION-AND-USE-geoBoundaries-gbAuthoritative.txt", "CITATION-AND-USE-geoBoundaries-gbOpen.txt"]
+            destFiles = os.listdir(self.targetPath)
 
-        #Cleanup for depricated files
-        removeNames = ["CITATION-AND-USE-geoBoundaries-gbOpen.txt", "CITATION-AND-USE-geoBoundaries-gbAuthoritative.txt", "CITATION-AND-USE-geoBoundaries-gbOpen.txt"]
-        destFiles = os.listdir(self.targetPath)
+            for e in destFiles:
+                if(e in removeNames):
+                    os.unlink(os.path.join(self.targetPath, e))
 
-        for e in destFiles:
-            if(e in removeNames):
-                os.unlink(os.path.join(self.targetPath, e))
+            self.logger("INFO","Complete, returning string of results.")
 
-        self.logger("INFO","Complete, returning string of results.")
+        else:
+            self.logger("INFO","No changes in source detected, not generating release output files.")
+
 
         return(str(writeRet))
+
 
 
         

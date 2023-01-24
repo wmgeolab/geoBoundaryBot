@@ -1,6 +1,6 @@
 #!/bin/tcsh
 #PBS -N gbBuilder
-#PBS -l nodes=15:vortex:ppn=12
+#PBS -l nodes=10:vortex:ppn=12
 #PBS -l walltime=6:00:00
 #PBS -j oe
 #PBS -o /sciclone/geograd/geoBoundaries/logs/gbSTDOUT/
