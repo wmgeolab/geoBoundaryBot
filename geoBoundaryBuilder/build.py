@@ -10,6 +10,10 @@ import time
 f = "/sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder/builderClass.py"
 exec(compile(open(f, "rb").read(), f, 'exec'))
 
+buildType = str(sys.argv)[0]
+print(buildType)
+sys.exit()
+
 comm = MPI.COMM_WORLD
 comm_size = comm.Get_size()
 comm_rank = comm.Get_rank()
@@ -80,16 +84,18 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
 
     print("Total Jobs: " + str(len(jobList)))
     
-    jobsPerNode = 10
+    
     
     #IF VORTEX:
     #Running on 32GB machines with 12 cores each
-    #nodeCount = comm_size/12
-    
+    nodeCount = comm_size/12
+    jobsPerNode = 2
+
     #IF BORA:
     #Running on 128GB machines with 20 cores each.
-    nodeCount = comm_size/20
-    
+    #nodeCount = comm_size/20
+    #jobsPerNode = 10
+
     coresToAllocate = nodeCount * jobsPerNode
     
     #INITIALIZE CHECK FILES

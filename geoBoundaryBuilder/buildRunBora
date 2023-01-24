@@ -1,6 +1,6 @@
 #!/bin/tcsh
 #PBS -N gbBuilder
-#PBS -l nodes=20:bora:ppn=20
+#PBS -l nodes=5:bora:ppn=20
 #PBS -l walltime=6:00:00
 #PBS -j oe
 #PBS -o /sciclone/geograd/geoBoundaries/logs/gbSTDOUT/
@@ -17,4 +17,4 @@ unsetenv PYTHONPATH
 
 conda activate geoBoundariesBuild
 cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
-mvp2run python build.py >& buildLog
+mvp2run python build.py bora >& buildLog

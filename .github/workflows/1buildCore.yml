@@ -48,7 +48,7 @@ jobs:
                 cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
                 echo "" > /sciclone/geograd/geoBoundaries/tmp/gbBuilderStage/buildStatus
                 echo "" > /sciclone/geograd/geoBoundaries/logs/gbBuilder/buildJobStat
-                qsub buildRun               
+                qsub buildRunVortex               
                 bash workflow/buildWatch.sh
                 set gbid=`qstat -ru dsmillerrunfol | grep "gbBuilder" | awk '{print $1}'`
                 echo $gbid
