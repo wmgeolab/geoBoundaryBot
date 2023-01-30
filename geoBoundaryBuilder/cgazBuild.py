@@ -196,7 +196,25 @@ class cgazBuilder():
         except:
             print("No previous build to delete.")
         
+        try:
+            shutil.rmtree(self.TMP_DIR + "/cgaz0/")
+        except:
+            print("No Temp ADM0 to delete.")
+        
+        try:
+            shutil.rmtree(self.TMP_DIR + "/cgaz1/")
+        except:
+            print("No Temp ADM0 to delete.")
+        
+        try:
+            shutil.rmtree(self.TMP_DIR + "/cgaz2/")
+        except:
+            print("No Temp ADM0 to delete.")
+
         os.mkdir(self.cgazOutPath)
+        os.mkdir(self.TMP_DIR + "/cgaz0/")
+        os.mkdir(self.TMP_DIR + "/cgaz1/")
+        os.mkdir(self.TMP_DIR + "/cgaz2/")
 
 
         A0mapShaperFull = (
@@ -217,7 +235,7 @@ class cgazBuilder():
             + " -o format=geojson "
             + (self.cgazOutPath + "geoBoundariesCGAZ_ADM0.geojson")
             + " -o format=shapefile "
-            + (self.cgazOutPath + "geoBoundariesCGAZ_ADM0.shp")
+            + (self.TMP_DIR + "/cgaz0/geoBoundariesCGAZ_ADM0.shp")
         )
         A1mapShaperFull = (
             "mapshaper-xl 24gb -i "
@@ -237,7 +255,7 @@ class cgazBuilder():
             + " -o format=geojson "
             + (self.cgazOutPath + "geoBoundariesCGAZ_ADM1.geojson")
             + " -o format=shapefile "
-            + (self.cgazOutPath + "geoBoundariesCGAZ_ADM1.shp")
+            + (self.TMP_DIR + "/cgaz1/geoBoundariesCGAZ_ADM1.shp")
         )
         A2mapShaperFull = (
             "mapshaper-xl 24gb -i "
@@ -257,7 +275,7 @@ class cgazBuilder():
             + " -o format=geojson "
             + (self.cgazOutPath + "geoBoundariesCGAZ_ADM2.geojson")
             + " -o format=shapefile "
-            + (self.cgazOutPath + "geoBoundariesCGAZ_ADM2.shp")
+            + (self.TMP_DIR + "/cgaz2/geoBoundariesCGAZ_ADM2.shp")
         )
 
         self.cmd(A0mapShaperFull)
@@ -267,11 +285,16 @@ class cgazBuilder():
         self.cmd("ogr2ogr " + self.cgazOutPath + "geoBoundariesCGAZ_ADM0.gpkg " + self.cgazOutPath + "geoBoundariesCGAZ_ADM0.topojson")
         self.cmd("ogr2ogr " + self.cgazOutPath + "geoBoundariesCGAZ_ADM1.gpkg " + self.cgazOutPath + "geoBoundariesCGAZ_ADM1.topojson")
         self.cmd("ogr2ogr " + self.cgazOutPath + "geoBoundariesCGAZ_ADM2.gpkg " + self.cgazOutPath + "geoBoundariesCGAZ_ADM2.topojson")
+    
+    def saveZips(self):
+        shutil.make_archive(self.cgazOutPath + "geoBoundariesCGAZ_ADM0", 'zip', self.TMP_DIR + "/cgaz0/")
+        shutil.make_archive(self.cgazOutPath + "geoBoundariesCGAZ_ADM1", 'zip', self.TMP_DIR + "/cgaz1/")
+        shutil.make_archive(self.cgazOutPath + "geoBoundariesCGAZ_ADM2", 'zip', self.TMP_DIR + "/cgaz2/")
 
 build = cgazBuilder(GB_DIR = GB_DIR, LOG_DIR = LOG_DIR, BOT_DIR = BOT_DIR, TMP_DIR = TMP_DIR)
 print(build.preprocess_dta())
 print(build.dissolve_based_on_ISO_Code())
 adm0str, adm1str, adm2str = build.process_geometries()
 print(build.join_admins(adm0str, adm1str, adm2str))
-
+print(build.saveZips())
 

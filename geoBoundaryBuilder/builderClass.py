@@ -460,7 +460,7 @@ class builder:
     def checkBuildGeometryFiles(self):
         self.dataLoad()
         
-        nameC = set(['Name', 'name', 'NAME', 'shapeName', 'shapename', 'SHAPENAME']) 
+        nameC = set(['Name', 'name', 'NAME', 'shapeName', 'shapename', 'SHAPENAME','MAX_Name']) 
         nameCol = list(nameC & set(self.geomDta.columns))
         if(len(nameCol) == 1):
             self.logger("INFO", "Column for name detected: " + str(nameCol[0]))
@@ -473,7 +473,7 @@ class builder:
                 self.logger("WARN", "No name values were found, even though a column was present.")
                 self.geomReq["names"] = str(nameCol[0])
 
-        nameIC = set(['ISO', 'ISO_code', 'ISO_Code', 'iso', 'shapeISO', 'shapeiso', 'shape_iso']) 
+        nameIC = set(['ISO', 'ISO_code', 'ISO_Code', 'iso', 'shapeISO', 'shapeiso', 'shape_iso','MAX_ISO_Co']) 
         nameICol = list(nameIC & set(self.geomDta.columns))
         if(len(nameICol) == 1):
             self.logger("INFO", "Column for ISO detected: " + str(nameICol[0]))
@@ -719,15 +719,16 @@ class builder:
         return("Geometry Statistics Succesfully Built.")
 
     def checkChange(self):
-        #Release folder:
-
         self.changesDetected = False
     
         #Check if the file already exists in the built folder.
+        self.logger("INFO","Checking if folder exists.")
         if not os.path.exists(self.targetPath):
             self.changesDetected = True
+            self.logger("INFO","No folder - change detected..")
             return("Change Detected.")
         
+        self.logger("INFO","Checking if geometry size has changed.")
         #For now, we're checking for changes based on file size in the geometry.
         #This is imperfect, but much faster than a proper diff on the large binaries we're generating (which would require a full read of both into memory),
         #and likely "good enough" (<- this is the type of comment I will regret later!)
@@ -737,6 +738,8 @@ class builder:
 
         newSize = os.path.getsize(newJSON)
         oldSize = os.path.getsize(oldJSON)
+
+        self.logger("INFO","New Size: " + str(newSize) + " | Old Size: " + str(oldSize))
 
         if(newSize == oldSize):
             self.changesDetected = False
@@ -853,15 +856,18 @@ class builder:
             plt.title("geoBoundaries.org - " + self.product + "\n" + str(self.ISO) + " " + str(self.ADM) + "\nLast Source Data Update: " + str(self.metaDataLib["sourceDataUpdateDate"]) + "\nSource: " + str(self.metaReq["source"]))
         plt.savefig(imgOUT)
 
-        self.logger("INFO","Building zip files.") 
-        shutil.make_archive(self.tmpPath + "zipInterim/" + self.product + "/geoBoundaries-" + self.ISO + "-" + self.ADM + "-all", 'zip', tmpFold)
-        shutil.move(self.tmpPath + "zipInterim/" + self.product + "/geoBoundaries-" + self.ISO + "-" + self.ADM + "-all.zip", fullZip)
+
 
         #Check if there has been any update to the file.
         #If not, allow for build to proceed to confirm input file validity, but don't write outputs.
-        bnd.checkChange()
+        self.logger("INFO","Checking if files have changed before building Zip.")
+        self.checkChange()
+        self.logger("INFO","Result:" + str(self.changesDetected))
 
         if(self.changesDetected == True):
+            self.logger("INFO","Building zip files.") 
+            shutil.make_archive(self.tmpPath + "zipInterim/" + self.product + "/geoBoundaries-" + self.ISO + "-" + self.ADM + "-all", 'zip', tmpFold)
+            shutil.move(self.tmpPath + "zipInterim/" + self.product + "/geoBoundaries-" + self.ISO + "-" + self.ADM + "-all.zip", fullZip)
             self.logger("INFO","Copying outputs into release folder.")
             srcFiles = os.listdir(tmpFold)
             for f in srcFiles:
