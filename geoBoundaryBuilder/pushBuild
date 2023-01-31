@@ -21,6 +21,6 @@ git commit -m "Automated Nightly Build"
 cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
 
 echo "STATUS: PUSHING COMMITS" > /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/pushStat
-python gitPush.py >& /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/pushLog.log
+git push >& /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/pushLog.log
 echo "PUSH IS COMPLETE." > /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/pushStat
 cat /sciclone/geograd/geoBoundaries/logs/gbBuilderCommitCSV/pushLog.log
