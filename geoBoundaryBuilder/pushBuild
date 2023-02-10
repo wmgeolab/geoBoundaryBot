@@ -16,7 +16,7 @@ conda activate geoBoundariesBuild
 
 cd /sciclone/geograd/geoBoundaries/database/geoBoundaries
 git add -A .
-git commit -m "Automated Nightly Build"
+git commit -m "gB Core Data Update `date +'%Y-%m-%d %H:%M'`"
 
 cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
 
