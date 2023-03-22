@@ -1,5 +1,8 @@
 name: 1 Initialize Build
-on: workflow_dispatch
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 4 * * *'
 jobs:
   gbPull:
     name: Pull Files
