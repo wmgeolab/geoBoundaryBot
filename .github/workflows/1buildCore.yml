@@ -1,8 +1,13 @@
 name: 1 Initialize Build
 on:
   schedule:
-    # * is a special character in YAML so you have to quote this string
     - cron:  '0 4 * * *'
+  workflow_dispatch:
+    inputs:
+      recordKey:
+        description: "What record do you want to append to this run?"
+        required: false
+        default: "1"
 jobs:
   gbPull:
     name: Pull Files
