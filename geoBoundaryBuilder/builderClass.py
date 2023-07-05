@@ -674,7 +674,7 @@ class builder:
             for i, row in geom.iterrows():
                 n = 0
                 if(row.geometry.type.startswith("Multi")):
-                    for seg in row.geometry:
+                    for seg in row.geometry.geoms:
                         n += len(seg.exterior.coords)
                 else:
                     n = len(row.geometry.exterior.coords)

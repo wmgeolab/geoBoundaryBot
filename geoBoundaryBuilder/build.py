@@ -23,7 +23,7 @@ print(comm_size)
 limitAdmTypes = False#["ADM0","ADM1","ADM2"]
 limitProductTypes = False#["gbAuthoritative", "gbOpen"]
 limitISO = False#["DJI","CHL","MKD","FIN","PHL","URY","GRC","LCA","YEM"]#False#["IDN", "LAO"]
-skipList = ["IND_ADM5_gbOpen"]
+skipList = [""]#["IND_ADM5_gbOpen"]
 
 
 #===============

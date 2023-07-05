@@ -15,6 +15,6 @@ module load mvapich2-ib
 
 unsetenv PYTHONPATH
 
-conda activate geoBoundariesBuild
+conda activate geoBoundariesBuild_July_5_2023_v3
 cd /sciclone/geograd/geoBoundaries/scripts/geoBoundaryBot/geoBoundaryBuilder
 mvp2run python build.py vortex >& buildLog
