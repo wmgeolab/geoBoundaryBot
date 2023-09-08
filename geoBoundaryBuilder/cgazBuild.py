@@ -309,7 +309,7 @@ class cgazBuilder():
                     self.TMP_DIR+ 'geoBoundariesCGAZ_ADM1.geojson', 
                     self.TMP_DIR+ 'geoBoundariesCGAZ_ADM2.geojson']
             for file in files:
-                gdf = gpd.read_file(file)
+                gdf = geopandas.read_file(file)
                 gdf['geometry'] = gdf['geometry'].apply(lambda x: shape(x))
                 gdf['geometry'] = gdf['geometry'].apply(lambda row: shape(mapping(make_valid(row))['geometries'][0]) if not row.is_valid else row)
                 if "ADM0.geojson" in file:
