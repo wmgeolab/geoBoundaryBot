@@ -6,6 +6,8 @@ from subprocess import PIPE, run
 import geopandas
 import pandas as pd
 import shutil
+from shapely.validation import make_valid
+from shapely.geometry import shape, mapping
 
 GB_DIR = "/sciclone/geograd/geoBoundaries/database/geoBoundaries/"
 LOG_DIR = "/sciclone/geograd/geoBoundaries/logs/gbCGAZ/"
@@ -14,9 +16,9 @@ TMP_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbCGAZ/"
 
 
 
+
 # ignore warnings about using '()' in str.contains https://stackoverflow.com/a/39902267/697964
 warnings.filterwarnings("ignore", "This pattern has match groups")
-
 
 class cgazBuilder():
     def __init__(self, GB_DIR, LOG_DIR, BOT_DIR, TMP_DIR):
