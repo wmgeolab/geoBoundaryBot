@@ -718,7 +718,7 @@ class builder:
         
         return("Geometry Statistics Succesfully Built.")
 
-    def checkChange(self):
+    def checkChange(self, metaTXT):
         self.changesDetected = False
     
         #Check if the file already exists in the built folder.
@@ -729,9 +729,6 @@ class builder:
             return("Change Detected.")
         
         self.logger("INFO","Checking if geometry size has changed.")
-        #For now, we're checking for changes based on file size in the geometry.
-        #This is imperfect, but much faster than a proper diff on the large binaries we're generating (which would require a full read of both into memory),
-        #and likely "good enough" (<- this is the type of comment I will regret later!)
         tmpFold = self.tmpPath + self.ISO + self.ADM + self.product + "/"
         newJSON = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".geojson")
         oldJSON = self.targetPath + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".geojson"
@@ -741,12 +738,36 @@ class builder:
 
         self.logger("INFO","New Size: " + str(newSize) + " | Old Size: " + str(oldSize))
 
-        if(newSize == oldSize):
+        if(newSize != oldSize):
+            self.changesDetected = True
+            self.logger("INFO","Geometry changes detected.")
+            return("Geometry Changes Detected.")
+
+        #After the geometry check, we need to check if the metadata has updated
+        #(i.e., if there is no change in geom, but an updated to meta.txt in a submission).
+        #We can't simply do a binary contrast here, as the new meta.txt will have new timestamps,
+        #so this requires we only load part of each file.
+        newCSVpath = metaTXT
+        oldCSVpath = self.targetPath + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "-metaData.txt"
+
+        with open(newCSVpath,'r') as f:
+            newMetaChunk = f.readlines()[:19]
+        
+        with open(oldCSVpath, 'r') as f:
+            oldMetaChunk = f.readlines()[:19]
+        
+        if(newMetaChunk == oldMetaChunk):
             self.changesDetected = False
-            return("No Changes Detected.")
+            self.logger("INFO","No metadata changes detected.")
+            return("No Changes Detected")
+        
         else:
             self.changesDetected = True
-            return("Changes Detected.")
+            self.logger("INFO","Metadata changes detected.")
+            self.logger("INFO", "NEWMETACHUNK: " + str(newMetaChunk))
+            self.logger("INFO", "OLDMETACHUNK: " + str(oldMetaChunk))
+            return("Metadata Changes Detected")
+
         
 
 
@@ -860,8 +881,8 @@ class builder:
 
         #Check if there has been any update to the file.
         #If not, allow for build to proceed to confirm input file validity, but don't write outputs.
-        self.logger("INFO","Checking if files have changed before building Zip.")
-        self.checkChange()
+        self.logger("INFO","Checking if files have changed.")
+        self.checkChange(metaTXT)
         self.logger("INFO","Result:" + str(self.changesDetected))
 
         if(self.changesDetected == True):
