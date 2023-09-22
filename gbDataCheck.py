@@ -57,7 +57,8 @@ def geometryCheck(ws):
                         dta = geopandas.read_file("tmp/" + shp[0])
                     except Exception as e:
                         gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: The shape file provided failed to load. Make sure all required files are included (i.e., *.shx).")
-                        gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR: " + str(e))
+                        gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR str(e): " + str(e))
+                        gbHelpers.logWrite(ws["checkType"],  "CRITICAL ERROR str(shp): " + str(shp))
                         gbHelpers.logWrite(ws["checkType"],  "If the above critical error is not helpful in debugging this file, we have found that opening a shapefile created in ESRI products, saving it using QGIS, and then re-uploading will allow geoPandas to open the file.")
                         checkFail = 1
                         break
