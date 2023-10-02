@@ -845,7 +845,7 @@ class builder:
 
         #Save intermediary geoJSON
         self.logger("INFO","Building shapefiles, geojson, topojson (Full).")
-        self.geomDta.to_file(tmpJson, driver="GeoJSON")
+        self.geomDta.to_file(tmpJson, driver="GeoJSON", crs="EPSG:4326")
 
         writeRet = []
 
