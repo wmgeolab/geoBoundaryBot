@@ -79,7 +79,7 @@ def apiBuilder(GB_DIR, API_DIR,ISO, ADM, PRODUCT, ID, apiDict):
     apiDict["tjDownloadURL"] = "https://github.com/wmgeolab/geoBoundaries/raw/"+gitHash+"/releaseData/"+PRODUCT+"/"+ISO+"/"+ADM+"/geoBoundaries-"+ISO+"-"+ADM+".topojson"
     apiDict["imagePreview"] = "https://github.com/wmgeolab/geoBoundaries/raw/"+gitHash+"/releaseData/"+PRODUCT+"/"+ISO+"/"+ADM+"/geoBoundaries-"+ISO+"-"+ADM+"-PREVIEW.png"
     apiDict["simplifiedGeometryGeoJSON"] = "https://github.com/wmgeolab/geoBoundaries/raw/"+gitHash+"/releaseData/"+PRODUCT+"/"+ISO+"/"+ADM+"/geoBoundaries-"+ISO+"-"+ADM+"_simplified.geojson"
-    
+    apiDict["staticDownloadLink"] = "https://github.com/wmgeolab/geoBoundaries/raw/"+gitHash+"/releaseData/"+PRODUCT+"/"+ISO+"/"+ADM+"/geoBoundaries-"+ISO+"-"+ADM+"-all.zip"
     print(currentPath)
     print(apiDict)
 
