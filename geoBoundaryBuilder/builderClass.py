@@ -728,45 +728,55 @@ class builder:
             self.logger("INFO","No folder - change detected..")
             return("Change Detected.")
         
-        self.logger("INFO","Checking if geometry size has changed.")
-        tmpFold = self.tmpPath + self.ISO + self.ADM + self.product + "/"
-        newJSON = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".geojson")
-        oldJSON = self.targetPath + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".geojson"
+        #This try/except is in case the existing data in a folder
+        #has errors for any reason (or, more commonly, there are no files.)
+        self.logger("INFO","Entering main routine to check for updates.")
+        try:
+            self.logger("INFO","Checking if geometry size has changed.")
+            tmpFold = self.tmpPath + self.ISO + self.ADM + self.product + "/"
+            newJSON = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".geojson")
+            oldJSON = self.targetPath + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".geojson"
 
-        newSize = os.path.getsize(newJSON)
-        oldSize = os.path.getsize(oldJSON)
+            newSize = os.path.getsize(newJSON)
+            oldSize = os.path.getsize(oldJSON)
 
-        self.logger("INFO","New Size: " + str(newSize) + " | Old Size: " + str(oldSize))
+            self.logger("INFO","New Size: " + str(newSize) + " | Old Size: " + str(oldSize))
 
-        if(newSize != oldSize):
+            if(newSize != oldSize):
+                self.changesDetected = True
+                self.logger("INFO","Geometry changes detected.")
+                return("Geometry Changes Detected.")
+
+            #After the geometry check, we need to check if the metadata has updated
+            #(i.e., if there is no change in geom, but an updated to meta.txt in a submission).
+            #We can't simply do a binary contrast here, as the new meta.txt will have new timestamps,
+            #so this requires we only load part of each file.
+            newCSVpath = metaTXT
+            oldCSVpath = self.targetPath + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "-metaData.txt"
+
+            with open(newCSVpath,'r') as f:
+                newMetaChunk = f.readlines()[:19]
+            
+            with open(oldCSVpath, 'r') as f:
+                oldMetaChunk = f.readlines()[:19]
+            
+            if(newMetaChunk == oldMetaChunk):
+                self.changesDetected = False
+                self.logger("INFO","No metadata changes detected.")
+                return("No Changes Detected")
+            
+            else:
+                self.changesDetected = True
+                self.logger("INFO","Metadata changes detected.")
+                self.logger("INFO", "NEWMETACHUNK: " + str(newMetaChunk))
+                self.logger("INFO", "OLDMETACHUNK: " + str(oldMetaChunk))
+                return("Metadata Changes Detected")
+        except Exception as e:
+            self.logger("WARN","No files existed, or at least one file caused an error in the change detection.")
+            self.logger("WARN","This file is treated as if changes were detected.")
+            self.logger("WARN","Error was: " + str(e))
             self.changesDetected = True
-            self.logger("INFO","Geometry changes detected.")
-            return("Geometry Changes Detected.")
-
-        #After the geometry check, we need to check if the metadata has updated
-        #(i.e., if there is no change in geom, but an updated to meta.txt in a submission).
-        #We can't simply do a binary contrast here, as the new meta.txt will have new timestamps,
-        #so this requires we only load part of each file.
-        newCSVpath = metaTXT
-        oldCSVpath = self.targetPath + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "-metaData.txt"
-
-        with open(newCSVpath,'r') as f:
-            newMetaChunk = f.readlines()[:19]
-        
-        with open(oldCSVpath, 'r') as f:
-            oldMetaChunk = f.readlines()[:19]
-        
-        if(newMetaChunk == oldMetaChunk):
-            self.changesDetected = False
-            self.logger("INFO","No metadata changes detected.")
-            return("No Changes Detected")
-        
-        else:
-            self.changesDetected = True
-            self.logger("INFO","Metadata changes detected.")
-            self.logger("INFO", "NEWMETACHUNK: " + str(newMetaChunk))
-            self.logger("INFO", "OLDMETACHUNK: " + str(oldMetaChunk))
-            return("Metadata Changes Detected")
+            return("Exception during main routine.")
 
         
 
