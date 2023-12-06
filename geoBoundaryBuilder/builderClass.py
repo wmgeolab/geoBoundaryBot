@@ -870,7 +870,8 @@ class builder:
         #Need to open and define the projection - unsure if this is a bug in mapshaper precluding
         #the projection outputs, or if our tests were ill-formed.        
         tmpGeomJSONproj = gpd.read_file(jsonOUT)
-        tmpGeomJSONproj.to_file(jsonOUT, driver="GeoJSON", crs="EPSG:4326")
+        tmpGeomJSONproj_multi = tmpGeomJSONproj.cast("MultiPolygon")
+        tmpGeomJSONproj_multi.to_file(jsonOUT, driver="GeoJSON", crs="EPSG:4326")
 
         self.logger("INFO","Building shapefiles, geojson, topojson (Simplified).")
         writeSimplify = ("/usr/local/mapshaper-0.6.7/bin/mapshaper-xl 6gb " + tmpJson +
@@ -885,7 +886,8 @@ class builder:
         #Need to open and define the projection - unsure if this is a bug in mapshaper precluding
         #the projection outputs, or if our tests were ill-formed.        
         tmpGeomJSONproj_simplified = gpd.read_file(jsonOUT_simp)
-        tmpGeomJSONproj_simplified.to_file(jsonOUT_simp, driver="GeoJSON", crs="EPSG:4326")
+        tmpGeomJSONproj_simplified_multi = tmpGeomJSONproj_simplified.cast("MultiPolygon")
+        tmpGeomJSONproj_simplified_multi.to_file(jsonOUT_simp, driver="GeoJSON", crs="EPSG:4326")
 
         #Create the plot for the boundary to be used in display
         self.logger("INFO","Plotting preview image.")
