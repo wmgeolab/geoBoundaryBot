@@ -869,8 +869,13 @@ class builder:
 
         #Need to open and define the projection - unsure if this is a bug in mapshaper precluding
         #the projection outputs, or if our tests were ill-formed.        
+        def to_multipolygon(geom):
+            if isinstance(geom, Polygon):
+                return MultiPolygon([geom])
+            return geom
+
         tmpGeomJSONproj = gpd.read_file(jsonOUT)
-        tmpGeomJSONproj_multi = tmpGeomJSONproj.cast("MultiPolygon")
+        tmpGeomJSONproj_multi = tmpGeomJSONproj.geometry.apply(to_multipolygon)
         tmpGeomJSONproj_multi.to_file(jsonOUT, driver="GeoJSON", crs="EPSG:4326")
 
         self.logger("INFO","Building shapefiles, geojson, topojson (Simplified).")
@@ -886,7 +891,7 @@ class builder:
         #Need to open and define the projection - unsure if this is a bug in mapshaper precluding
         #the projection outputs, or if our tests were ill-formed.        
         tmpGeomJSONproj_simplified = gpd.read_file(jsonOUT_simp)
-        tmpGeomJSONproj_simplified_multi = tmpGeomJSONproj_simplified.cast("MultiPolygon")
+        tmpGeomJSONproj_simplified_multi = tmpGeomJSONproj_simplified.geometry.apply(to_multipolygon)
         tmpGeomJSONproj_simplified_multi.to_file(jsonOUT_simp, driver="GeoJSON", crs="EPSG:4326")
 
         #Create the plot for the boundary to be used in display

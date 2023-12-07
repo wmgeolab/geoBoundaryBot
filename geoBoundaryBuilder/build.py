@@ -22,7 +22,7 @@ print(comm_size)
 #Limits total number of layers to build according to the below parameters if enabled.
 limitAdmTypes = False#["ADM0","ADM1","ADM2"]
 limitProductTypes = False#["gbAuthoritative", "gbOpen"]
-limitISO = False#["DJI","CHL","MKD","FIN","PHL","URY","GRC","LCA","YEM"]#False#["IDN", "LAO"]
+limitISO = ["PRY"]#False#["IDN", "LAO"]
 skipList = [""]#["IND_ADM5_gbOpen"]
 
 
