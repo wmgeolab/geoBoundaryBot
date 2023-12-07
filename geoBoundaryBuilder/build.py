@@ -154,7 +154,7 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
 
         if(allOutcomes.count("D") == len(allOutcomes)):
             with open(STAGE_DIR + "buildStatus", 'w') as f:
-                f.write("BUILD IS COMPLETE.")
+                f.write(str(beat) + ": BUILD IS COMPLETE.")
             sys.exit()
         else:
             with open(STAGE_DIR + "buildStatus", 'w') as f:
