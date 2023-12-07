@@ -52,7 +52,7 @@ if(MPI.COMM_WORLD.Get_rank() == 0):
         f.write("CLEARING STATUS FROM PREVIOUS RUNS")
 
     #Clear temp folders from previous runs, if any
-    shutil.rmtree(TMP_DIR)
+    shutil.rmtree(TMP_DIR, -r)
     os.mkdir(TMP_DIR)
     
     statusFiles = glob.glob(STAT_DIR+"*")
