@@ -9,7 +9,7 @@ spec:
     runAsGroup: 9915
   containers:
     - name: prefect-server
-      image: prefecthq/prefect:latest
+      image: prefecthq/prefect:2.10.5
       command: ["prefect", "server", "start"]
       args:
         - "--host"
