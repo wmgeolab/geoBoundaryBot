@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: nfs-mount-tester
-  namespace: geoboundaries
+  #namespace: geoboundaries
 spec:
   restartPolicy: OnFailure
   securityContext:
