@@ -4,14 +4,15 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
 # Update the package index and install dependencies
-RUN apk update && apk add --no-cache \
+RUN apk add --no-cache \
     python3 \
     py3-pip \
-    gcc \
+    python3-dev \
     musl-dev \
+    gcc \
+    g++ \
     libffi-dev \
     openssl-dev \
-    g++ \
     make \
     git \
     git-lfs \
@@ -23,6 +24,7 @@ RUN apk update && apk add --no-cache \
     cairo-dev \
     py3-cffi \
     py3-psycopg2
+
 
 # Install Python packages
 RUN pip install --upgrade pip \
