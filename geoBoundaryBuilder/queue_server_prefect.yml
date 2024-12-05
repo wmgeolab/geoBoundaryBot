@@ -3,6 +3,8 @@ kind: Pod
 metadata:
   name: prefect-server
   namespace: geoboundaries
+  labels:
+    app: prefect-server # Ensures the service can select this pod
 spec:
   restartPolicy: Always
   securityContext:
@@ -10,7 +12,7 @@ spec:
     runAsGroup: 9915
   containers:
     - name: prefect-server
-      image: prefecthq/prefect:2.10.5
+      image: prefecthq/prefect:2.20-python3.10-kubernetes
       command: ["prefect", "server", "start"]
       args:
         - "--host"
@@ -22,26 +24,38 @@ spec:
           value: "sqlite:////sciclone/geograd/geoBoundaries/prefect/prefect.db"
         - name: PREFECT_HOME
           value: "/sciclone/geograd/geoBoundaries/prefect"
+        - name: PREFECT_SERVER_UI_STATIC_PATH
+          value: "/sciclone/geograd/geoBoundaries/prefect/ui_build" # Explicit path for UI static files
       volumeMounts:
         - name: prefect-persistence
           mountPath: "/sciclone/geograd/geoBoundaries/prefect"
+        - name: ui-static
+          mountPath: "/usr/local/lib/python3.10/site-packages/prefect/server/ui_build"
+      lifecycle:
+        postStart:
+          exec:
+            command: ["sh", "-c", "mkdir -p /sciclone/geograd/geoBoundaries/prefect/ui_build && chmod -R 775 /sciclone/geograd/geoBoundaries/prefect/ui_build"]
   volumes:
     - name: prefect-persistence
       nfs:
         server: 128.239.59.144
         path: /sciclone/geograd/geoBoundaries/prefect
+    - name: ui-static
+      nfs:
+        server: 128.239.59.144
+        path: /sciclone/geograd/geoBoundaries/prefect/ui_build
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: prefect-service
+  name: prefect-service-nodeport
   namespace: geoboundaries
 spec:
-  type: NodePort
+  selector:
+    app: prefect-server # Matches the app label on the pod
+  type: NodePort # External access via a specific port
   ports:
     - protocol: TCP
       port: 4200
       targetPort: 4200
-      nodePort: 30000 # Exposed port for external access
-  selector:
-    app: prefect-server
+      nodePort: 30000 # External port for access
