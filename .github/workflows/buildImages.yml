@@ -30,7 +30,7 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         context: .
-        file: ./geoBoundaryBuilding/images/geoBoundariesBase.Dockerfile
+        file: ./geoBoundaryBuilder/images/geoBoundariesBase.Dockerfile
         push: true
         tags: ghcr.io/${{ env.REPO_OWNER }}/gb-base:latest
         build-args: BUILDKIT_STEP_LOG_MAX_SIZE=10485760 BUILDKIT_STEP_LOG_MAX_SPEED=100000000
