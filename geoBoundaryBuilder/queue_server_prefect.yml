@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: prefect-server
+spec:
+  restartPolicy: Always
+  securityContext:
+    runAsUser: 71032
+    runAsGroup: 9915
+  containers:
+    - name: prefect-server
+      image: prefecthq/prefect:latest
+      command: ["prefect", "server", "start"]
+      args:
+        - "--host"
+        - "0.0.0.0" # Bind to all network interfaces
+      ports:
+        - containerPort: 4200 # Prefect GUI default port
+      volumeMounts:
+        - name: prefect-persistence
+          mountPath: "/sciclone/geograd/prefect"
+  volumes:
+    - name: prefect-persistence
+      nfs:
+        server: 128.239.59.144
+        path: /sciclone/geograd/prefect
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prefect-service
+spec:
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 4200
+      targetPort: 4200
+      nodePort: 30000 # Exposed port for external access
+  selector:
+    app: prefect-server
