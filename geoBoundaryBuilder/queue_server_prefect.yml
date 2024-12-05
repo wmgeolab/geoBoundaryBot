@@ -16,14 +16,19 @@ spec:
         - "0.0.0.0" # Bind to all network interfaces
       ports:
         - containerPort: 4200 # Prefect GUI default port
+      env:
+        - name: PREFECT_SERVER_DATABASE_CONNECTION_URL
+          value: "sqlite:////sciclone/geograd/geoBoundaries/prefect/prefect.db"
+        - name: PREFECT_HOME
+          value: "/sciclone/geograd/geoBoundaries/prefect"
       volumeMounts:
         - name: prefect-persistence
-          mountPath: "/sciclone/geograd/prefect"
+          mountPath: "/sciclone/geograd/geoBoundaries/prefect"
   volumes:
     - name: prefect-persistence
       nfs:
         server: 128.239.59.144
-        path: /sciclone/geograd/prefect
+        path: /sciclone/geograd/geoBoundaries/prefect
 ---
 apiVersion: v1
 kind: Service
