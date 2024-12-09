@@ -1,0 +1,31 @@
+#Prefect itself is made up of three core components on the server level:
+#Work Pools - The type of resources available.  We'll be using kubernetes.
+#Workers - These are the workers available to a work pool.  We'll only need one of these, as it's job will be to submit other jobs to kubernetes.
+#Deployments - These are the actual scripts you're running.
+#The first pod we are going to create will simply dial into the prefect server and create a kubernetes work pool, and then join that workpool as a worker.
+#Note that a "worker" in this case doesn't really do any work - it's just the process that handles submitting jobs to K8S later on.
+#We're going to create a processor-only K8S workpool for now, using a basic python base image as an example.
+#To run this on your own, all you should need to do is change the IP address in the environmental variables pointing to the Prefect Server.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: prefect-workpool
+spec:
+  restartPolicy: Always
+  containers:
+    - name: prefect-container
+      image: "prefecthq/prefect:2-python3.10"
+      env:
+        - name: PREFECT_API
+          value: "http://10.102.135.12:4200/api"
+        - name: IMAGE
+          value: "bitnami/python"
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "Connecting to prefect server"
+          prefect config set PREFECT_API_URL=$PREFECT_API
+          prefect work-pool create k8s-generic -t kubernetes
+          echo "Sleeping indefinitely..."
+          sleep infinity
