@@ -28,14 +28,14 @@ RUN apk add --no-cache \
 
 # Install Python packages in steps for debugging
 RUN pip install --upgrade pip && \
-    pip install prefect==2.2.0 kubernetes==25.3.0
+    pip install prefect==3.1.5 kubernetes==25.3.0
 
-RUN pip install geopandas==0.13.2 shapely==2.0.1 matplotlib==3.7.2 pandas==2.1.1
+RUN pip install geopandas==0.13.2
 
 RUN pip install jsonschema==4.19.0 zipfile36==0.1.3
 
 # Install Prefect Kubernetes components
-RUN pip install prefect-kubernetes
+RUN pip install prefect-kubernetes==0.5.3
 
 # Set up git-lfs
 RUN git lfs install
