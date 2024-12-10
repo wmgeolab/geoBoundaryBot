@@ -1,9 +1,7 @@
-import os
-from prefect import flow, task
-from prefect.deployments import Deployment
 import subprocess
+from prefect import flow, task
 
-# Step 1: Set Prefect API URL
+# Step 1: Set Prefect API URL dynamically
 PREFECT_API_URL = "http://prefect-server-service.geoboundaries.svc.cluster.local:4200/api"
 subprocess.run(["prefect", "config", "set", f"PREFECT_API_URL={PREFECT_API_URL}"], check=True)
 
@@ -21,19 +19,16 @@ def process_numbers_flow(numbers):
         results.append(result)
     return [r.result() for r in results]  # Gather the results
 
-# Step 4: Main script to run locally or deploy
+# Step 4: Main script to deploy and run the flow
 if __name__ == "__main__":
     # Define the list of numbers
     numbers = list(range(1, 11))
     
-    # Create a deployment for the flow
-    deployment = Deployment.build_from_flow(
-        flow=process_numbers_flow,
-        name="process-numbers-deployment",
-    )
-    deployment.apply()
+    # Deploy the flow (if needed)
+    print("Deploying the flow...")
+    process_numbers_flow.deploy(name="process-numbers-deployment", work_pool_name="k8s-gB")
 
-    # Run the flow directly
+    # Run the flow locally
     print("Running the flow locally...")
     results = process_numbers_flow(numbers)
     print("Results:", results)
