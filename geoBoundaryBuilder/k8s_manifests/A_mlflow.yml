@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mlflow-server
+  namespace: geoboundaries
+  labels:
+    app: mlflow-server
+spec:
+  restartPolicy: Always
+  securityContext:
+    runAsUser: 71032
+    runAsGroup: 9915
+  containers:
+    - name: mlflow-server
+      image: "python:3.9-slim" # Use the Python slim image
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "Setting up Python user base..." && \
+          export PYTHONUSERBASE=/mlflow/python-user-base && \
+          pip install --no-cache-dir --user mlflow && \
+          echo "Starting MLflow server..." && \
+          /mlflow/python-user-base/bin/mlflow server \
+            --backend-store-uri sqlite:///mlflow/mlflow.db \
+            --default-artifact-root /mlflow/artifacts \
+            --host 0.0.0.0 \
+            --port 5000
+      ports:
+        - containerPort: 5000 # MLflow default port
+      env:
+        - name: MLFLOW_BACKEND_STORE_URI
+          value: "sqlite:///mlflow/mlflow.db"
+        - name: MLFLOW_ARTIFACT_ROOT
+          value: "/mlflow/artifacts"
+      volumeMounts:
+        - name: mlflow-data
+          mountPath: "/mlflow"
+      resources:
+        requests:
+          ephemeral-storage: "1Gi"
+          memory: "4Gi"
+          cpu: "2"
+        limits:
+          ephemeral-storage: "2Gi"
+          memory: "8Gi"
+          cpu: "4"
+  volumes:
+    - name: mlflow-data
+      nfs:
+        server: 128.239.59.144
+        path: /sciclone/geograd/geoBoundaries/mlflow
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow-server-service
+  namespace: geoboundaries
+spec:
+  selector:
+    app: mlflow-server
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000

@@ -16,7 +16,7 @@ spec:
   restartPolicy: Always
   containers:
     - name: prefect-container
-      image: "gb-workpool-operator:latest"
+      image: "ghcr.io/wmgeolab/gb-workpool-operator:latest"
       env:
         - name: PREFECT_API_URL
           value: "http://prefect-server-service.geoboundaries.svc.cluster.local:4200/api"

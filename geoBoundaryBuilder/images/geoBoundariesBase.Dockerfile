@@ -40,16 +40,13 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /
 
 # Upgrade pip and install Python dependencies
 RUN pip install --upgrade pip && \
-    pip install prefect==3.1.5 kubernetes==25.3.0
+    pip install mlflow==2.18.0
 
 # Install geopandas and related dependencies
-RUN pip install geopandas==0.13.2
+RUN pip install geopandas==0.13.2 kubernetes==31.0.0
 
 # Install additional Python packages
 RUN pip install jsonschema==4.19.0 zipfile36==0.1.3
-
-# Install Prefect Kubernetes components
-RUN pip install prefect-kubernetes==0.5.3
 
 # Set up git-lfs
 RUN git lfs install
