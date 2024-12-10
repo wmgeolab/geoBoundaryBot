@@ -1,6 +1,9 @@
-name: geoBoundaries Base Image Build
+name: geoBoundaries Workpool Operator Build
 run-name: gB k8s Workpool Operator
-on: push
+on:
+  push:
+    branches: ['main']
+    paths: ['geoBoundaryBuilder/images/**']
 jobs:
   build-and-push:
     runs-on: ubuntu-latest

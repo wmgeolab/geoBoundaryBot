@@ -1,6 +1,9 @@
 name: geoBoundaries Base Image Build
 run-name: gB Base Build
-on: push
+on:
+  push:
+    branches: ['main']
+    paths: ['geoBoundaryBuilder/images/**']
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
