@@ -4,7 +4,7 @@ metadata:
   name: prefect-server
   namespace: geoboundaries
   labels:
-    app: prefect-server # Ensures the service can select this pod
+    app: prefect-server
 spec:
   restartPolicy: Always
   securityContext:
@@ -12,29 +12,42 @@ spec:
     runAsGroup: 9915
   containers:
     - name: prefect-server
-      image: prefecthq/prefect:2.20-python3.10-kubernetes
-      command: ["prefect", "server", "start"]
+      image: "prefecthq/prefect:3.1.6.dev6-python3.12-kubernetes"
+      command: ["/bin/sh", "-c"]
       args:
-        - "--host"
-        - "0.0.0.0" # Bind to all network interfaces
+        - |
+          echo "Setting PREFECT_API_URL based on Pod IP..."
+          export PREFECT_API_URL="http://${POD_IP}:4200/api"
+          echo "PREFECT_API_URL set to $PREFECT_API_URL"
+          prefect config set PREFECT_API_URL=$PREFECT_API_URL
+          prefect server start --host 0.0.0.0
       ports:
         - containerPort: 4200 # Prefect GUI default port
       env:
         - name: PREFECT_SERVER_DATABASE_CONNECTION_URL
-          value: "sqlite:////sciclone/geograd/geoBoundaries/prefect/prefect.db"
+          value: "postgresql+asyncpg://prefect:prefect12@prefect-postgres-service.geoboundaries.svc.cluster.local:5432/prefect"
         - name: PREFECT_HOME
           value: "/sciclone/geograd/geoBoundaries/prefect"
         - name: PREFECT_SERVER_UI_STATIC_PATH
           value: "/sciclone/geograd/geoBoundaries/prefect/ui_build" # Explicit path for UI static files
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP # Inject the Pod's IP dynamically
       volumeMounts:
         - name: prefect-persistence
           mountPath: "/sciclone/geograd/geoBoundaries/prefect"
         - name: ui-static
-          mountPath: "/usr/local/lib/python3.10/site-packages/prefect/server/ui_build"
-      lifecycle:
-        postStart:
-          exec:
-            command: ["sh", "-c", "mkdir -p /sciclone/geograd/geoBoundaries/prefect/ui_build && chmod -R 775 /sciclone/geograd/geoBoundaries/prefect/ui_build"]
+          mountPath: "/usr/local/lib/python3.12/site-packages/prefect/server/ui_build"
+      resources:
+        requests:
+          ephemeral-storage: "1Gi"
+          memory: "8Gi"
+          cpu: "4"
+        limits:
+          ephemeral-storage: "2Gi"
+          memory: "8Gi"
+          cpu: "4"
   volumes:
     - name: prefect-persistence
       nfs:
@@ -48,14 +61,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: prefect-service-nodeport
+  name: prefect-server-service
   namespace: geoboundaries
 spec:
   selector:
-    app: prefect-server # Matches the app label on the pod
-  type: NodePort # External access via a specific port
+    app: prefect-server
+  type: ClusterIP
   ports:
     - protocol: TCP
       port: 4200
       targetPort: 4200
-      nodePort: 30000 # External port for access

@@ -11,21 +11,25 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: prefect-workpool
+  namespace: geoboundaries
 spec:
   restartPolicy: Always
   containers:
     - name: prefect-container
-      image: "prefecthq/prefect:2-python3.10"
+      image: "prefecthq/prefect:3.1.6.dev6-python3.12-kubernetes"
       env:
-        - name: PREFECT_API
-          value: "http://10.102.135.12:4200/api"
-        - name: IMAGE
-          value: "bitnami/python"
+        - name: PREFECT_API_URL
+          value: "http://prefect-server-service.geoboundaries.svc.cluster.local:4200/api"
+      resources:
+        requests:
+          ephemeral-storage: "100Mi"
+          memory: "512Mi"
+          cpu: "1"
       command: ["/bin/sh", "-c"]
       args:
         - |
           echo "Connecting to prefect server"
           prefect config set PREFECT_API_URL=$PREFECT_API
-          prefect work-pool create k8s-generic -t kubernetes
-          echo "Sleeping indefinitely..."
-          sleep infinity
+          
+          prefect work-pool create k8s-gB -t kubernetes --overwrite
+          prefect worker start -p 'k8s-gB'

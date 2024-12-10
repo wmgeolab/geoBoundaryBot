@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: prefect-postgres
+  namespace: geoboundaries
+  labels:
+    app: prefect-postgres
+spec:
+  containers:
+  - name: postgres
+    image: postgres:14
+    ports:
+    - containerPort: 5432
+    env:
+    - name: POSTGRES_USER
+      value: "prefect"
+    - name: POSTGRES_PASSWORD
+      value: "prefect12"
+    - name: POSTGRES_DB
+      value: "prefect"
+    volumeMounts:
+    - name: postgres-data
+      mountPath: /var/lib/postgresql/data
+    resources:
+      requests:
+        memory: "8Gi"
+        cpu: "4"
+      limits:
+        memory: "8Gi"
+        cpu: "4"
+  volumes:
+  - name: postgres-data
+    nfs:
+      server: 128.239.59.144
+      path: /sciclone/geograd/geoBoundaries/postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prefect-postgres-service
+  namespace: geoboundaries
+spec:
+  selector:
+    app: prefect-postgres
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+  type: ClusterIP
