@@ -28,7 +28,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
     ca-certificates \
     gnupg \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    lsb-release && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Docker CLI
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
