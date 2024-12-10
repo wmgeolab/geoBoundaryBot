@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: gB-dev
+  name: gbdev
   namespace: geoboundaries
 spec:
   securityContext:
@@ -9,7 +9,7 @@ spec:
     runAsGroup: 9915
   containers:
     - name: gb-dev-container
-      image: ghcr.io/your-custom-image:latest # Replace with your custom image name
+      image: ghcr.io/wmgeolab/gb-base:latest # Replace with your custom image name
       command: ["/bin/sh", "-c"] # Keep the container running
       args:
         - |
