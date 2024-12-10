@@ -10,6 +10,7 @@ spec:
   containers:
     - name: gb-dev-container
       image: ghcr.io/wmgeolab/gb-base:latest # Replace with your custom image name
+      imagePullPolicy: Always # Always pull the latest image
       command: ["/bin/sh", "-c"] # Keep the container running
       args:
         - |

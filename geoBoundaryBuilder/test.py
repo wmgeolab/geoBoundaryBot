@@ -1,42 +1,43 @@
 import os
 import subprocess
 
-# Configure Prefect home directory and API URL
+# Step 1: Configure Prefect home directory and API URL
 os.environ["PREFECT_HOME"] = "/tmp/.prefect"  # Ensure this path is writable
 PREFECT_API_URL = "http://prefect-server-service.geoboundaries.svc.cluster.local:4200/api"
 os.environ["PREFECT_API_URL"] = PREFECT_API_URL  # Directly set in environment
-print(f"Using PREFECT_API_URL: {PREFECT_API_URL}")
+print(f"Using PREFECT_API_URL: {PREFECT_API_URL}")  # Debug output
 subprocess.run(["prefect", "config", "set", f"PREFECT_API_URL={PREFECT_API_URL}"], check=True)
 
+from prefect import flow
+from prefect.context import get_run_context
 
-from prefect import flow, task
-
-
-# Define a task to process numbers
-@task
-def multiply_by_20(number):
-    return number * 20
-
-# Define the main flow
 @flow
-def process_numbers_flow(numbers):
-    results = []
-    for number in numbers:
-        result = multiply_by_20.submit(number)  # Submit tasks asynchronously
-        results.append(result)
-    return [r.result() for r in results]  # Gather the results
+def my_flow():
+    # Your flow logic here
+    print("Running my flow on Kubernetes")
 
 if __name__ == "__main__":
-    # Deploy the flow
-    print("Deploying the flow...")
-    process_numbers_flow.deploy(
-        name="process-numbers-deployment",
-        work_pool_name="k8s-gB",
-        image="ghcr.io/wmgeolab/gb-base:latest"  # Ensure this matches your Kubernetes work pool
-    )
+    # Get the current script path
+    script_path = __file__
     
-    # Run the flow locally for testing
-    print("Running the flow locally...")
-    numbers = list(range(1, 11))
-    results = process_numbers_flow(numbers)
-    print("Results:", results)
+    # Define dynamic parameters
+    image = "ghcr.io/wmgeolab/gb-base:latest"
+    
+    # Deploy the flow with dynamic configurations
+    deployment = my_flow.deploy(
+        name="dynamic-k8s-flow",
+        work_pool_name="k8s-gB",
+        image=image,
+        job_variables={
+            "env": {"EXTRA_PIP_PACKAGES": "your-required-packages"},
+            "image_pull_policy": "Always",
+            "command": [
+                "bash",
+                "-c",
+                f"pip install -r requirements.txt && python {script_path}"
+            ]
+        }
+    )
+
+    # Optionally, run the deployment immediately
+    deployment.run()
