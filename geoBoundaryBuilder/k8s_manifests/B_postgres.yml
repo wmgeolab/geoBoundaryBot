@@ -1,33 +1,35 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: prefect-postgres
+  name: geoboundaries-postgres
   namespace: geoboundaries
   labels:
-    app: prefect-postgres
+    app: geoboundaries-postgres
 spec:
   containers:
   - name: postgres
-    image: postgres:14
+    image: postgis/postgis:14-3.3  # Use the PostGIS-enabled image
     ports:
     - containerPort: 5432
     env:
     - name: POSTGRES_USER
-      value: "prefect"
+      value: "geoboundaries"
     - name: POSTGRES_PASSWORD
-      value: "prefect12"
+      value: ""
     - name: POSTGRES_DB
-      value: "prefect"
+      value: "geoboundaries"
+    - name: POSTGRES_HOST_AUTH_METHOD
+      value: "trust"  # Allow connections without a password
     volumeMounts:
     - name: postgres-data
       mountPath: /var/lib/postgresql/data
     resources:
       requests:
-        memory: "8Gi"
-        cpu: "4"
+        memory: "32Gi"
+        cpu: "8"
       limits:
-        memory: "8Gi"
-        cpu: "4"
+        memory: "32Gi"
+        cpu: "8"
   volumes:
   - name: postgres-data
     nfs:
@@ -37,11 +39,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: prefect-postgres-service
+  name: geoboundaries-postgres-service
   namespace: geoboundaries
 spec:
   selector:
-    app: prefect-postgres
+    app: geoboundaries-postgres
   ports:
   - protocol: TCP
     port: 5432

@@ -18,7 +18,7 @@ spec:
         - |
           echo "Setting up Python user base..." && \
           export PYTHONUSERBASE=/mlflow/python-user-base && \
-          pip install --no-cache-dir --user mlflow && \
+          pip install --no-cache-dir --user mlflow==2.19.0 && \
           echo "Starting MLflow server..." && \
           /mlflow/python-user-base/bin/mlflow server \
             --backend-store-uri sqlite:///mlflow/mlflow.db \
