@@ -6,35 +6,39 @@ metadata:
   labels:
     app: geoboundaries-postgres
 spec:
+  securityContext:
+    runAsUser: 71032  # Required for NFS compatibility
+    runAsGroup: 9915  # Required for NFS group access
+    fsGroup: 9915     # Ensures group ownership for the data directory
   containers:
   - name: postgres
-    image: postgis/postgis:14-3.3  # Use the PostGIS-enabled image
+    image: postgis/postgis:14-3.3  # PostGIS-enabled PostgreSQL image
     ports:
     - containerPort: 5432
     env:
     - name: POSTGRES_USER
-      value: "geoboundaries"
+      value: "geoboundaries"  # User to be created on first run
     - name: POSTGRES_PASSWORD
-      value: ""
+      value: ""  # Empty password (trust authentication enabled)
     - name: POSTGRES_DB
-      value: "geoboundaries"
+      value: "geoboundaries"  # Database to be created on first run
     - name: POSTGRES_HOST_AUTH_METHOD
       value: "trust"  # Allow connections without a password
     volumeMounts:
     - name: postgres-data
-      mountPath: /var/lib/postgresql/data
+      mountPath: /var/lib/postgresql/data  # Persistent data directory
     resources:
       requests:
-        memory: "32Gi"
-        cpu: "8"
+        memory: "8Gi"
+        cpu: "2"
       limits:
-        memory: "32Gi"
-        cpu: "8"
+        memory: "16Gi"
+        cpu: "4"
   volumes:
   - name: postgres-data
     nfs:
-      server: 128.239.59.144
-      path: /sciclone/geograd/geoBoundaries/postgres
+      server: 128.239.59.144  # Replace with your NFS server IP
+      path: /sciclone/geograd/geoBoundaries/postgres  # NFS path for PostgreSQL data storage
 ---
 apiVersion: v1
 kind: Service

@@ -6,11 +6,7 @@ import sys
 import psycopg2
 from psycopg2 import sql
 from datetime import datetime
-
-# MLflow Configuration
-MLFLOW_TRACKING_URI = "http://mlflow-server-service.geoboundaries.svc.cluster.local:5000"
-EXPERIMENT_NAME = "Pull from Github"
-NEXT_SCRIPT = "collect_data.py"  # Path to your next script
+import time
 
 # Database Configuration
 DB_SERVICE = "geoboundaries-postgres-service"
@@ -19,12 +15,19 @@ DB_USER = "geoboundaries"
 DB_PASSWORD = ""  # Trust-based auth, no password
 DB_PORT = 5432
 
+# MLflow Configuration
+MLFLOW_TRACKING_URI = "http://mlflow-server-service.geoboundaries.svc.cluster.local:5000"
+BUILD_TASKS_EXPERIMENT = "Build Tasks"
+PREVIOUS_EXPERIMENT = "Pull from Github"
+
 # Task Directory
 TASK_DIR = "/sciclone/geograd/geoBoundaries/database/geoBoundaries/sourceData/gbOpen"
 
-# Initialize MLflow client
+# Initialize MLflow
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+mlflow.set_experiment(BUILD_TASKS_EXPERIMENT)
 client = MlflowClient()
+
 
 def connect_to_db():
     """Establishes a connection to the PostGIS database."""
@@ -32,14 +35,16 @@ def connect_to_db():
         conn = psycopg2.connect(
             dbname=DB_NAME,
             user=DB_USER,
-            password=DB_PASSWORD,
+            password="",
             host=DB_SERVICE,
             port=DB_PORT
         )
         return conn
     except Exception as e:
         print(f"Database connection failed: {e}")
+        mlflow.log_metric("status", 0)  # Log failure status
         sys.exit(1)
+
 
 def create_tasks_table(conn):
     """Creates the 'Tasks' table if it does not already exist."""
@@ -59,8 +64,10 @@ def create_tasks_table(conn):
         conn.commit()
     print("Table 'Tasks' created or verified successfully.")
 
+
 def populate_tasks_table(conn):
     """Iterates over files in the TASK_DIR and populates the 'Tasks' table."""
+    tasks_added = 0
     with conn.cursor() as cur:
         for filename in os.listdir(TASK_DIR):
             if filename.endswith(".zip"):
@@ -83,13 +90,15 @@ def populate_tasks_table(conn):
                         VALUES (%s, %s, %s, %s, %s)
                     """)
                     cur.execute(insert_query, (iso, adm, datetime.now(), file_size, "ready"))
+                    tasks_added += 1
                     print(f"Task for {filename} added successfully.")
 
                 except Exception as e:
                     print(f"Error processing file {filename}: {e}")
-
+                    mlflow.log_metric("status", 0)  # Log failure status
         conn.commit()
-    print("All tasks have been populated into the 'Tasks' table.")
+    return tasks_added
+
 
 def get_last_run_status(experiment_name):
     """Fetch the most recent run's status from the specified MLflow experiment."""
@@ -112,33 +121,34 @@ def get_last_run_status(experiment_name):
     print(f"Most recent run ID: {last_run.info.run_id}, Status: {status}")
     return status
 
-def trigger_next_script():
-    """Trigger the next script (e.g., data collection)."""
-    print(f"Triggering the next script: {NEXT_SCRIPT}")
-    result = subprocess.run(["python", NEXT_SCRIPT], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    if result.returncode == 0:
-        print("Next script executed successfully.")
-    else:
-        print("Next script failed.")
-        print(result.stderr)
-        sys.exit(1)
 
 if __name__ == "__main__":
+    start_time = time.time()
+
     # Check the last run's status
-    last_status = get_last_run_status(EXPERIMENT_NAME)
+    last_status = get_last_run_status(PREVIOUS_EXPERIMENT)
     if last_status == 1:  # Success
         print("Previous run succeeded. Proceeding to populate the database...")
-        # Connect to the database and populate tasks
-        conn = connect_to_db()
-        try:
-            create_tasks_table(conn)
-            populate_tasks_table(conn)
-        finally:
-            conn.close()
-        print("Database population completed.")
+        with mlflow.start_run(run_name="Build Tasks Execution"):
+            try:
+                mlflow.log_param("task_directory", TASK_DIR)
+                conn = connect_to_db()
+                create_tasks_table(conn)
+                tasks_added = populate_tasks_table(conn)
+                runtime = time.time() - start_time
 
-        # Trigger the next script
-        trigger_next_script()
+                # Log metrics
+                mlflow.log_metric("tasks_added", tasks_added)
+                mlflow.log_metric("runtime_seconds", runtime)
+                mlflow.log_metric("status", 1)  # Success
+
+                print(f"Database population completed. Tasks added: {tasks_added}")
+            except Exception as e:
+                mlflow.log_metric("status", 0)  # Failure
+                print(f"Error during execution: {e}")
+                sys.exit(1)
+            finally:
+                conn.close()
     else:
         print("Previous run did not succeed. Halting execution.")
         sys.exit(1)

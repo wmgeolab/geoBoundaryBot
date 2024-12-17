@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: task-controller
+  namespace: geoboundaries
+  labels:
+    app: task-controller
+spec:
+  restartPolicy: Never  # Restart policy at the Pod level
+  containers:
+    - name: task-controller
+      image: python:3.11-slim
+      command: ["/bin/bash", "-c"]
+      args:
+        - |
+          export KUBECONFIG=/sciclone/geograd/geoBoundaries/.kube/config && \
+          pip install psycopg2-binary kubernetes && \
+          python /scripts/task_controller.py
+      env:
+        - name: DB_SERVICE
+          value: "geoboundaries-postgres-service"
+        - name: DB_NAME
+          value: "geoboundaries"
+        - name: DB_USER
+          value: "geoboundaries"
+        - name: DB_PASSWORD
+          value: ""
+      volumeMounts:
+        - name: script-volume
+          mountPath: /scripts
+        - name: kubeconfig-volume
+          mountPath: /sciclone/geograd/geoBoundaries/.kube  # Mount kubeconfig directory
+  volumes:
+    - name: script-volume
+      nfs:
+        server: 128.239.59.144
+        path: /sciclone/geograd/geoBoundaries/geoBoundaryBot/geoBoundaryBuilder
+    - name: kubeconfig-volume
+      nfs:
+        server: 128.239.59.144
+        path: /sciclone/geograd/geoBoundaries/.kube
