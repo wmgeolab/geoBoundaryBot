@@ -47,7 +47,7 @@ RUN pip install --upgrade pip && \
 RUN pip install geopandas==0.13.2 kubernetes==31.0.0
 
 # Install additional Python packages
-RUN pip install jsonschema==4.19.0 zipfile36==0.1.3
+RUN pip install jsonschema==4.19.0 zipfile36==0.1.3 psycopg2==2.9.10
 
 # Set up git-lfs and SSH
 RUN git lfs install --system && \
