@@ -1,0 +1,15 @@
+artifact_uri: file:///sciclone/geograd/geoBoundaries/geoBoundaryBot/geoBoundaryBuilder/flows/pull_from_github/mlruns/119041156989095158/af6bd54fc28f4cb3b016c215e630d07c/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '119041156989095158'
+lifecycle_stage: active
+run_id: af6bd54fc28f4cb3b016c215e630d07c
+run_name: bald-cub-840
+run_uuid: af6bd54fc28f4cb3b016c215e630d07c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1734458887978
+status: 1
+tags: []
+user_id: root
