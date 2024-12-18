@@ -7,6 +7,7 @@ import psycopg2
 from psycopg2 import sql
 from datetime import datetime
 import time
+import uuid  # For generating unique task IDs
 
 # Database Configuration
 DB_SERVICE = "geoboundaries-postgres-service"
@@ -50,13 +51,16 @@ def create_tasks_table(conn):
     """Creates the 'Tasks' table if it does not already exist."""
     create_table_query = """
     CREATE TABLE IF NOT EXISTS Tasks (
+        taskID VARCHAR(36) PRIMARY KEY,  -- UUID for unique task ID
         ISO VARCHAR(10),
         ADM VARCHAR(10),
         time_added TIMESTAMP,
         time_completed TIMESTAMP,
         runtime INTERVAL,
         filesize BIGINT,
-        status VARCHAR(20)
+        status VARCHAR(20),
+        status_detail TEXT,
+        status_time TIMESTAMP
     );
     """
     with conn.cursor() as cur:
@@ -76,22 +80,16 @@ def populate_tasks_table(conn):
                     iso, adm = filename.split(".zip")[0].split("_")
                     file_path = os.path.join(TASK_DIR, filename)
                     file_size = os.path.getsize(file_path)  # File size in bytes
+                    task_id = str(uuid.uuid4())  # Generate a unique task ID
 
-                    # Check if task already exists
-                    select_query = sql.SQL("SELECT COUNT(*) FROM Tasks WHERE ISO = %s AND ADM = %s")
-                    cur.execute(select_query, (iso, adm))
-                    if cur.fetchone()[0] > 0:
-                        print(f"Task for {filename} already exists. Skipping.")
-                        continue
-
-                    # Insert task into table
+                    # Insert a new task into the table
                     insert_query = sql.SQL("""
-                        INSERT INTO Tasks (ISO, ADM, time_added, filesize, status)
-                        VALUES (%s, %s, %s, %s, %s)
+                        INSERT INTO Tasks (taskID, ISO, ADM, time_added, filesize, status, status_time)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """)
-                    cur.execute(insert_query, (iso, adm, datetime.now(), file_size, "ready"))
+                    cur.execute(insert_query, (task_id, iso, adm, datetime.now(), file_size, "ready", datetime.now()))
                     tasks_added += 1
-                    print(f"Task for {filename} added successfully.")
+                    print(f"Task {task_id} for {filename} added successfully.")
 
                 except Exception as e:
                     print(f"Error processing file {filename}: {e}")
