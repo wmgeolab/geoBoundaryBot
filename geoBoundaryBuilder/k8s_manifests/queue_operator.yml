@@ -17,7 +17,7 @@ spec:
       args:
         - |
           export KUBECONFIG=/sciclone/geograd/geoBoundaries/.kube/config && \
-          python /scripts/flows/B_create_job_queue/check_and_populate_tasks.py
+          python /scripts/modules/queue_operator.py
       env:
         - name: DB_SERVICE
           value: "geoboundaries-postgres-service"

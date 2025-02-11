@@ -1,13 +1,16 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: git-sync-job
+  name: git-sync-operator
   namespace: geoboundaries
 spec:
   ttlSecondsAfterFinished: 60  # Auto-delete job after 60 seconds
   backoffLimit: 0  # Do not retry the job on failure
   template:
     spec:
+      securityContext:
+        runAsUser: 71032  # Required for NFS compatibility
+        runAsGroup: 9915  # Required for NFS group access
       restartPolicy: Never
       containers:
         - name: git-sync-container
@@ -25,11 +28,11 @@ spec:
               ssh-keyscan -H github.com >> ${SSH_DIR}/known_hosts && chmod 600 ${SSH_DIR}/known_hosts
               
               # Run the Python script directly with system Python
-              cd /sciclone/geograd/geoBoundaries/geoBoundaryBot/geoBoundaryBuilder/flows/pull_from_github
-              python git_sync.py
+              cd /sciclone/geograd/geoBoundaries/geoBoundaryBot/geoBoundaryBuilder/modules/
+              python git_operator.py
           volumeMounts:
             - name: nfs-mount
-              mountPath: /sciclone/geograd/geoBoundaries
+              mountPath: /sciclone/
           resources:
             requests:
               memory: "16Gi"
@@ -41,4 +44,4 @@ spec:
         - name: nfs-mount
           nfs:
             server: 128.239.59.144
-            path: /sciclone/geograd/geoBoundaries
+            path: /sciclone/

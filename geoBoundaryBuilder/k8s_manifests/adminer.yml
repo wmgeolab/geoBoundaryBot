@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: adminer
+  namespace: geoboundaries
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080
+  selector:
+    app: adminer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adminer
+  namespace: geoboundaries
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: adminer
+  template:
+    metadata:
+      labels:
+        app: adminer
+    spec:
+      securityContext:
+        runAsUser: 71032  # Required for NFS compatibility
+        runAsGroup: 9915  # Required for NFS group access
+      containers:
+        - name: adminer
+          image: adminer:latest
+          ports:
+            - containerPort: 8080
