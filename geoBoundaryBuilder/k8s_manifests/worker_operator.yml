@@ -1,23 +1,24 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: task-controller
+  name: worker-operator
   namespace: geoboundaries
   labels:
-    app: task-controller
+    app: worker-operator
 spec:
   restartPolicy: Never  # Restart policy at the Pod level
   securityContext:
     runAsUser: 71032    # User ID for accessing NFS
     runAsGroup: 9915    # Group ID for accessing NFS
   containers:
-    - name: task-controller
+    - name: worker-operator
       image: ghcr.io/wmgeolab/gb-base:latest
       command: ["/bin/bash", "-c"]
       args:
         - |
           export KUBECONFIG=/sciclone/geograd/geoBoundaries/.kube && \
-          python /scripts/task_controller.py
+          cd /sciclone/geograd/geoBoundaries/geoBoundaryBot/geoBoundaryBuilder/modules/
+          python worker_operator.py
       env:
         - name: DB_SERVICE
           value: "geoboundaries-postgres-service"
@@ -28,16 +29,10 @@ spec:
         - name: DB_PASSWORD
           value: ""
       volumeMounts:
-        - name: script-volume
-          mountPath: /scripts
-        - name: kubeconfig-volume
+        - name: sciclone-volume
           mountPath: /sciclone  # Mount kubeconfig directory
   volumes:
-    - name: script-volume
-      nfs:
-        server: 128.239.59.144
-        path: /sciclone/geograd/geoBoundaries/geoBoundaryBot/geoBoundaryBuilder
-    - name: kubeconfig-volume
+    - name: sciclone-volume
       nfs:
         server: 128.239.59.144
         path: /sciclone

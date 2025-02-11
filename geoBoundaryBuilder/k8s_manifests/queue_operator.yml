@@ -1,17 +1,17 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: check-and-populate-tasks
+  name: queue-operator
   namespace: geoboundaries
   labels:
-    app: check-and-populate-tasks
+    app: queue-operator
 spec:
   restartPolicy: Never
   securityContext:
     runAsUser: 71032    # User ID for accessing NFS
     runAsGroup: 9915    # Group ID for accessing NFS
   containers:
-    - name: check-and-populate-tasks
+    - name: queue-operator
       image: ghcr.io/wmgeolab/gb-base:latest
       command: ["/bin/bash", "-c"]
       args:
