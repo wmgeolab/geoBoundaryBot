@@ -34,9 +34,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     npm && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Mapshaper-xl
+# Set npm global install directory to avoid permission issues
+RUN mkdir -p /usr/local/npm-global && \
+    npm config set prefix '/usr/local/npm-global' && \
+    export PATH="/usr/local/npm-global/bin:$PATH"
+
+# Install mapshaper-xl
 RUN npm install -g mapshaper && \
-    ln -s /usr/local/bin/mapshaper /usr/local/bin/mapshaper-xl
+    ln -s /usr/local/npm-global/bin/mapshaper /usr/local/bin/mapshaper-xl
 
 # Install Docker CLI
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
