@@ -3,7 +3,7 @@ import subprocess
 import sys
 import psycopg2
 from psycopg2 import sql
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import uuid  # For generating unique task IDs
 import logging  # For logging functionality
@@ -29,21 +29,34 @@ DB_PORT = 5432
 TASK_DIR = "/sciclone/geograd/geoBoundaries/database/geoBoundaries/sourceData/gbOpen"
 
 
-def connect_to_db():
-    """Establishes a connection to the PostGIS database."""
-    try:
-        conn = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password="",
-            host=DB_SERVICE,
-            port=DB_PORT
-        )
-        logging.info("Database connection established.")
-        return conn
-    except Exception as e:
-        logging.error(f"Database connection failed: {e}")
-        sys.exit(1)
+def connect_to_db(max_attempts=10, retry_delay=15):
+    """
+    Establishes a connection to the PostGIS database with retry mechanism.
+    
+    Args:
+        max_attempts (int): Maximum number of connection attempts
+        retry_delay (int): Delay between connection attempts in seconds
+    """
+    for attempt in range(1, max_attempts + 1):
+        try:
+            conn = psycopg2.connect(
+                dbname=os.environ.get('DB_NAME', 'geoboundaries'),
+                user=os.environ.get('DB_USER', 'postgres'),
+                password=os.environ.get('DB_PASSWORD', ''),
+                host=os.environ.get('DB_SERVICE', 'localhost'),
+                port=os.environ.get('DB_PORT', '5432')
+            )
+            logging.info("Database connection established.")
+            return conn
+        except Exception as e:
+            logging.warning(f"Database connection attempt {attempt} failed: {e}")
+            
+            if attempt < max_attempts:
+                logging.info(f"Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+            else:
+                logging.error("All database connection attempts failed.")
+                sys.exit(1)
 
 
 def create_tasks_table(conn):
@@ -106,15 +119,112 @@ def populate_tasks_table(conn):
     return tasks_added
 
 
+def get_last_queue_status_time(conn):
+    """
+    Retrieve the timestamp of the last QUEUE_STATUS update.
+    
+    Args:
+        conn (psycopg2.connection): Database connection
+    
+    Returns:
+        datetime: Timestamp of the last QUEUE_STATUS, or current time if not found
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT "TIME" 
+                FROM status 
+                WHERE "STATUS_TYPE" = 'QUEUE_STATUS' 
+                ORDER BY "TIME" DESC 
+                LIMIT 1
+            """)
+            result = cur.fetchone()
+            
+            if result:
+                return result[0]
+            else:
+                # If no previous status, use current time
+                return datetime.now()
+    except Exception as e:
+        logging.error(f"Error retrieving last queue status time: {e}")
+        return datetime.now()
+
+
 if __name__ == "__main__":
     logging.info("Script started.")
+    
+    # Retrieve initial last queue time from database
+    with connect_to_db() as initial_conn:
+        last_queue_time = get_last_queue_status_time(initial_conn)
+    
+    queue_interval = timedelta(hours=1)
+    
     while True:
-        current_time = time.localtime()
-        if current_time.tm_hour == 3 and current_time.tm_min == 0:
-            logging.info("Running populate_tasks_table...")
-            with connect_to_db() as conn:
-                create_tasks_table(conn)
-                tasks_added = populate_tasks_table(conn)
-                logging.info(f"Database population completed. Tasks added: {tasks_added}")
-            time.sleep(60)  # Sleep for 60 seconds to avoid multiple triggers
-        time.sleep(1)  # Check every second
+        current_time = datetime.now()
+        
+        # Calculate time until next queue population based on last queue time
+        time_until_next_queue = queue_interval - (current_time - last_queue_time)
+        
+        # Update queue heartbeat in database
+        try:
+            with connect_to_db() as heartbeat_conn:
+                with heartbeat_conn.cursor() as cur:
+                    heartbeat_query = """
+                    UPDATE status 
+                    SET "TIME" = %s, "STATUS" = %s 
+                    WHERE "STATUS_TYPE" = 'QUEUE_HEARTBEAT'
+                    """
+                    # Format time remaining, handling negative values
+                    heartbeat_status = f"Next queue population in: {max(timedelta(), time_until_next_queue)}"
+                    cur.execute(heartbeat_query, (current_time, heartbeat_status))
+                    heartbeat_conn.commit()
+        except Exception as e:
+            logging.error(f"Error updating queue heartbeat: {e}")
+        
+        # Check if it's time to populate queue
+        if current_time - last_queue_time >= queue_interval:
+            try:
+                logging.info("Running populate_tasks_table...")
+                
+                with connect_to_db() as conn:
+                    # Create tasks table if not exists
+                    create_tasks_table(conn)
+                    
+                    # Populate tasks and count
+                    tasks_added = populate_tasks_table(conn)
+                    
+                    # Update queue status in database
+                    with conn.cursor() as cur:
+                        status_query = """
+                        UPDATE status 
+                        SET "TIME" = %s, "STATUS" = %s 
+                        WHERE "STATUS_TYPE" = 'QUEUE_STATUS'
+                        """
+                        status_message = f"Queue population successful. Tasks added: {tasks_added}"
+                        cur.execute(status_query, (current_time, status_message))
+                        conn.commit()
+                    
+                    logging.info(f"Database population completed. Tasks added: {tasks_added}")
+                
+                # Update last queue population time
+                last_queue_time = current_time
+            
+            except Exception as e:
+                # Log error and update status
+                logging.error(f"Queue population failed: {e}")
+                try:
+                    with connect_to_db() as conn:
+                        with conn.cursor() as cur:
+                            status_query = """
+                            UPDATE status 
+                            SET "TIME" = %s, "STATUS" = %s 
+                            WHERE "STATUS_TYPE" = 'QUEUE_STATUS'
+                            """
+                            status_message = f"Queue population failed: {str(e)}"
+                            cur.execute(status_query, (current_time, status_message))
+                            conn.commit()
+                except Exception as db_error:
+                    logging.error(f"Could not update status in database: {db_error}")
+        
+        # Sleep to reduce CPU usage and provide consistent heartbeat
+        time.sleep(15)  # 15-second heartbeat

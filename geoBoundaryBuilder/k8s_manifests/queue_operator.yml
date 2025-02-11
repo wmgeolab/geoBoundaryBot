@@ -17,7 +17,8 @@ spec:
       args:
         - |
           export KUBECONFIG=/sciclone/geograd/geoBoundaries/.kube/config && \
-          python /scripts/modules/queue_operator.py
+          cd /sciclone/geograd/geoBoundaries/geoBoundaryBot/geoBoundaryBuilder/modules/
+          python queue_operator.py
       env:
         - name: DB_SERVICE
           value: "geoboundaries-postgres-service"
@@ -28,16 +29,10 @@ spec:
         - name: DB_PASSWORD
           value: ""
       volumeMounts:
-        - name: script-volume
-          mountPath: /scripts
-        - name: kubeconfig-volume
+        - name: sciclone-volume
           mountPath: /sciclone  # Mount NFS base directory
   volumes:
-    - name: script-volume
-      nfs:
-        server: 128.239.59.144
-        path: /sciclone/geograd/geoBoundaries/geoBoundaryBot/geoBoundaryBuilder
-    - name: kubeconfig-volume
+    - name: sciclone-volume
       nfs:
         server: 128.239.59.144
         path: /sciclone
