@@ -103,6 +103,17 @@ def git_pull():
     overall_success = True
     
     try:
+        # Immediately update database to show pull is starting
+        with connect_to_db() as conn:
+            with conn.cursor() as cur:
+                start_status_query = """
+                UPDATE status 
+                SET "TIME" = %s, "STATUS" = %s 
+                WHERE "STATUS_TYPE" = 'GIT_PULL'
+                """
+                cur.execute(start_status_query, (start_time, "Git Pull Started"))
+                conn.commit()
+
         # Set up SSH directory
         os.makedirs(SSH_DIR, exist_ok=True)
         os.chmod(SSH_DIR, 0o700)
@@ -184,7 +195,7 @@ def git_pull():
                 SET "TIME" = %s, "STATUS" = %s 
                 WHERE "STATUS_TYPE" = 'GIT_PULL'
                 """
-                cur.execute(update_query, (datetime.now(), status_message))
+                cur.execute(update_query, (end_time, status_message))
                 conn.commit()
 
     except Exception as e:
@@ -231,7 +242,34 @@ def check_git_pull_status():
 
 if __name__ == "__main__":
     logging.info("Script started.")
+    # Track time for next git pull check
+    last_pull_check_time = datetime.now()
+    pull_check_interval = timedelta(hours=12)
+    
     while True:
+        current_time = datetime.now()
+        
+        # Perform git pull status check
         check_git_pull_status()
-        time.sleep(3600)  # Check every hour
-    logging.info("Script ended.")
+        
+        # Calculate time until next pull
+        time_until_next_pull = pull_check_interval - (current_time - last_pull_check_time)
+        
+        # Update heartbeat in database
+        try:
+            with connect_to_db() as conn:
+                with conn.cursor() as cur:
+                    heartbeat_query = """
+                    UPDATE status 
+                    SET "TIME" = %s, "STATUS" = %s 
+                    WHERE "STATUS_TYPE" = 'GIT_HEARTBEAT'
+                    """
+                    # Format time remaining, handling negative values
+                    time_status = f"Next GitHub status check in: {max(timedelta(), time_until_next_pull)}"
+                    cur.execute(heartbeat_query, (current_time, time_status))
+                    conn.commit()
+        except Exception as e:
+            logging.error(f"Error updating git heartbeat: {e}")
+        
+        # Sleep to reduce CPU usage and provide consistent heartbeat
+        time.sleep(15)  # 15-second heartbeat
