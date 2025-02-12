@@ -16,10 +16,15 @@ from builder_class import builder
 GB_DIR = "/sciclone/geograd/geoBoundaries/database/geoBoundariesDev/"
 TMP_DIR = "/sciclone/geograd/geoBoundaries/tmp/gbBuilder/"
 LOG_DIR = "/sciclone/geograd/geoBoundaries/logs/worker_script/"
+META_DIR = "/sciclone/geograd/geoBoundaries/geoBoundaryBot/dta/"
 os.makedirs(LOG_DIR, exist_ok=True)  # Ensure log directory exists
 
+# Extract ISO and ADM parameters
+iso = sys.argv[1]
+adm = sys.argv[2]
+
 # Configure logging with a centralized log file
-log_file = os.path.join(LOG_DIR, f"worker_script_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+log_file = os.path.join(LOG_DIR, f"worker_script_{iso}_{adm}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -75,18 +80,32 @@ def update_status_in_db(conn, status_type, status, timestamp):
         logging.error(f"Error updating worker_status in database: {e}")
         conn.rollback()
 
-# Extract ISO and ADM parameters
-iso = sys.argv[1]
-adm = sys.argv[2]
+def update_tasks_db(conn, iso, adm, error_message):
+    """
+    Update tasks database with error message
+    """
+    try:
+        with conn.cursor() as cur:
+            update_query = """
+            UPDATE tasks
+            SET error_message = %s
+            WHERE iso = %s AND adm = %s
+            """
+            cur.execute(update_query, (error_message, iso, adm))
+            conn.commit()
+            logging.info(f"Updated tasks database for {iso} {adm}: {error_message}")
+    except Exception as e:
+        logging.error(f"Error updating tasks database: {e}")
+        conn.rollback()
 
 # Create status type from ISO and ADM
 status_type = f"{iso}_{adm}_WORKER"
 
 # Load valid ISOs and Licenses
-countries = pd.read_csv(os.path.join(os.path.dirname(__file__), "../dta/iso_3166_1_alpha_3.csv"))
+countries = pd.read_csv(os.path.join(os.path.dirname(__file__), META_DIR + "iso_3166_1_alpha_3.csv"))
 isoList = countries["Alpha-3code"].values
 
-licenses = pd.read_csv(os.path.join(os.path.dirname(__file__), "../dta/gbLicenses.csv"))
+licenses = pd.read_csv(os.path.join(os.path.dirname(__file__), META_DIR + "gbLicenses.csv"))
 licenseList = licenses["license_name"].values
 
 # File to process
@@ -131,6 +150,17 @@ try:
             if "ERROR" in str(result):
                 logging.error(f"Error in {stage_method}: {result}")
                 update_status_in_db(conn, status_type, f"ERROR_{stage_status}", datetime.now())
+                # Update tasks database with the error
+                with conn.cursor() as cur:
+                    update_query = """
+                    UPDATE tasks
+                    SET status = 'ERROR',
+                        status_time = %s,
+                        error_message = %s
+                    WHERE iso = %s AND adm = %s
+                    """
+                    cur.execute(update_query, (datetime.now(), str(result), iso, adm))
+                    conn.commit()
                 build_results.append([iso, adm, "gbOpen", result, f"E{stage_status[0]}"])
                 break
         else:
@@ -141,7 +171,8 @@ try:
     except Exception as product_error:
         logging.error(f"Error processing gbOpen: {product_error}")
         build_results.append([iso, adm, "gbOpen", str(product_error), "EP"])
-        update_status_in_db(conn, status_type, "ERROR_PROCESSING_GBOPEN", datetime.now())
+        update_status_in_db(conn, status_type, f"ERROR_PROCESSING_GBOPEN: {str(product_error)}", datetime.now())
+        update_tasks_db(conn, iso, adm, str(product_error))
 
     # Final status update
     update_status_in_db(conn, status_type, "WORKER_SCRIPT_COMPLETE", datetime.now())
@@ -153,6 +184,7 @@ try:
 except Exception as main_error:
     logging.error(f"Critical error in worker script: {main_error}")
     update_status_in_db(conn, status_type, f"WORKER_SCRIPT_ERROR: {str(main_error)}", datetime.now())
+    update_tasks_db(conn, iso, adm, str(main_error))
     raise
 
 finally:

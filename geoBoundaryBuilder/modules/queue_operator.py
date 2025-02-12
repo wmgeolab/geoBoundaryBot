@@ -94,14 +94,13 @@ def populate_tasks_table(conn):
                     file_size = os.path.getsize(file_path)  # File size in bytes
                     task_id = str(uuid.uuid4())  # Generate a unique task ID
 
-                    # Check if the record already exists
-                    check_query = sql.SQL("SELECT COUNT(*) FROM Tasks WHERE ISO = %s AND ADM = %s AND status = 'ready'").format(
-                        sql.Identifier('Tasks'))
+                    # Check if any READY tasks exist for this ISO/ADM combination
+                    check_query = sql.SQL("SELECT COUNT(*) FROM Tasks WHERE ISO = %s AND ADM = %s AND status = 'ready'")
                     cur.execute(check_query, (iso, adm))
-                    exists = cur.fetchone()[0]
+                    ready_count = cur.fetchone()[0]
 
-                    if exists > 0:
-                        logging.info(f"Record for ISO: {iso}, ADM: {adm} already exists and is ready. Skipping insertion.")
+                    if ready_count > 0:
+                        logging.info(f"Record for ISO: {iso}, ADM: {adm} already has a ready task. Skipping insertion.")
                         continue  # Skip to the next file
 
                     # Insert a new task into the table

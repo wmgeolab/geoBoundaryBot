@@ -109,8 +109,15 @@ def monitor_worker_pods():
         for pod in pods.items:
             pod_name = pod.metadata.name
             pod_status = pod.status.phase
+            completion_time = None
 
-            # If pod failed, update the corresponding task to "ERROR"
+            # Get completion time for completed pods
+            if pod_status == "Succeeded" and pod.status.container_statuses:
+                container_state = pod.status.container_statuses[0].state
+                if hasattr(container_state, 'terminated') and container_state.terminated:
+                    completion_time = container_state.terminated.finished_at
+
+            # Handle failed pods
             if pod_status == "Failed":
                 # Extract task identifiers from the pod name
                 _, iso, adm = pod_name.split("-")
@@ -129,6 +136,16 @@ def monitor_worker_pods():
                     logging.info(f"Deleted failed pod {pod_name}.")
                 except Exception as e:
                     logging.error(f"Error fetching logs or deleting pod {pod_name}: {e}")
+            
+            # Handle completed pods
+            elif pod_status == "Succeeded" and completion_time:
+                # Check if pod has been completed for more than 5 minutes
+                if datetime.now(completion_time.tzinfo) - completion_time > timedelta(minutes=5):
+                    try:
+                        k8s_client.delete_namespaced_pod(name=pod_name, namespace=NAMESPACE)
+                        logging.info(f"Deleted completed pod {pod_name} after 5 minutes.")
+                    except Exception as e:
+                        logging.error(f"Error deleting completed pod {pod_name}: {e}")
 
         if failed_pod_count >= MAX_FAILED_PODS:
             logging.critical(f"Maximum failed pods reached ({failed_pod_count}). Stopping task controller.")
