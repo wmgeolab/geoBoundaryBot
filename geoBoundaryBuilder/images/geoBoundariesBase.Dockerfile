@@ -36,7 +36,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Mapshaper-xl
 RUN npm install -g mapshaper && \
-    ln -s /usr/local/bin/mapshaper /usr/local/bin/mapshaper-xl
+    [ ! -f /usr/local/bin/mapshaper-xl ] && ln -s /usr/local/bin/mapshaper /usr/local/bin/mapshaper-xl || true
+
 
 # Install Docker CLI
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
