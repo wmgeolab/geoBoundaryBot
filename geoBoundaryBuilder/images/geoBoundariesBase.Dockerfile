@@ -1,13 +1,13 @@
 FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=1 \
+    GDAL_VERSION=3.6.2 \
+    GDAL_DATA=/usr/share/gdal \
+    PROJ_LIB=/usr/share/proj
 
-# Install system dependencies
+# Install system dependencies in a single layer
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
-    python3-pip \
-    python3-dev \
     musl-dev \
     gcc \
     g++ \
@@ -34,14 +34,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     npm && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Set npm global install directory to avoid permission issues
-RUN mkdir -p /usr/local/npm-global && \
-    npm config set prefix '/usr/local/npm-global' && \
-    export PATH="/usr/local/npm-global/bin:$PATH"
-
-# Install mapshaper-xl
+# Install Mapshaper-xl
 RUN npm install -g mapshaper && \
-    ln -s /usr/local/npm-global/bin/mapshaper /usr/local/bin/mapshaper-xl
+    ln -s /usr/local/bin/mapshaper /usr/local/bin/mapshaper-xl
 
 # Install Docker CLI
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
@@ -50,15 +45,19 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /
     docker-ce-cli && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and install Python dependencies
+# Upgrade pip and install Python dependencies in a single layer
 RUN pip install --upgrade pip && \
-    pip install mlflow==2.18.0
-
-# Install geopandas and related dependencies
-RUN pip install geopandas==0.13.2 kubernetes==31.0.0
-
-# Install additional Python packages
-RUN pip install jsonschema==4.19.0 zipfile36==0.1.3 psycopg2==2.9.10
+    pip install \
+    geopandas==0.13.2 \
+    fiona==1.9.5 \
+    shapely \
+    rasterio \
+    pyproj \
+    mlflow==2.18.0 \
+    kubernetes==31.0.0 \
+    jsonschema==4.19.0 \
+    zipfile36==0.1.3 \
+    psycopg2==2.9.10
 
 # Set up git-lfs and SSH
 RUN git lfs install --system && \
