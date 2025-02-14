@@ -2,6 +2,13 @@ from flask import Flask, render_template, jsonify
 import psycopg2
 from datetime import datetime, timedelta
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 app = Flask(__name__)
 
