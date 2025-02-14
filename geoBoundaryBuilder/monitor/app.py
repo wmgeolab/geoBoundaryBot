@@ -60,27 +60,84 @@ def get_stats():
 
                 # Get status information
                 cur.execute("""
-                    WITH latest_status AS (
-                        SELECT "STATUS_TYPE", "STATUS", "TIME"
+                    WITH git_status AS (
+                        SELECT 'GIT' as component,
+                               "STATUS" as status_message,
+                               "TIME" as status_time
                         FROM status
-                        WHERE "STATUS" NOT LIKE '%heartbeat%'
-                        AND "STATUS_TYPE" IN ('GIT', 'QUEUE', 'WORKER')
+                        WHERE "STATUS_TYPE" = 'GIT_PULL'
+                        ORDER BY "TIME" DESC
+                        LIMIT 1
                     ),
-                    latest_heartbeat AS (
-                        SELECT "STATUS_TYPE", "STATUS", "TIME"
+                    git_heartbeat AS (
+                        SELECT "STATUS" as heartbeat_message,
+                               "TIME" as heartbeat_time
                         FROM status
-                        WHERE "STATUS" LIKE '%heartbeat%'
-                        AND "STATUS_TYPE" IN ('GIT', 'QUEUE', 'WORKER')
+                        WHERE "STATUS_TYPE" = 'GIT_HEARTBEAT'
+                        ORDER BY "TIME" DESC
+                        LIMIT 1
+                    ),
+                    queue_status AS (
+                        SELECT 'QUEUE' as component,
+                               "STATUS" as status_message,
+                               "TIME" as status_time
+                        FROM status
+                        WHERE "STATUS_TYPE" = 'QUEUE_STATUS'
+                        ORDER BY "TIME" DESC
+                        LIMIT 1
+                    ),
+                    queue_heartbeat AS (
+                        SELECT "STATUS" as heartbeat_message,
+                               "TIME" as heartbeat_time
+                        FROM status
+                        WHERE "STATUS_TYPE" = 'QUEUE_HEARTBEAT'
+                        ORDER BY "TIME" DESC
+                        LIMIT 1
+                    ),
+                    worker_status AS (
+                        SELECT 'WORKER' as component,
+                               "STATUS" as status_message,
+                               "TIME" as status_time
+                        FROM status
+                        WHERE "STATUS_TYPE" = 'WORKER_STATUS'
+                        ORDER BY "TIME" DESC
+                        LIMIT 1
+                    ),
+                    worker_heartbeat AS (
+                        SELECT "STATUS" as heartbeat_message,
+                               "TIME" as heartbeat_time
+                        FROM status
+                        WHERE "STATUS_TYPE" = 'WORKER_OP_HEARTBEAT'
+                        ORDER BY "TIME" DESC
+                        LIMIT 1
                     )
                     SELECT 
-                        ls."STATUS_TYPE",
-                        ls."STATUS" as status_message,
-                        ls."TIME" as status_time,
-                        lh."STATUS" as heartbeat_message,
-                        lh."TIME" as heartbeat_time
-                    FROM latest_status ls
-                    LEFT JOIN latest_heartbeat lh ON ls."STATUS_TYPE" = lh."STATUS_TYPE"
-                    ORDER BY ls."STATUS_TYPE"
+                        gs.component,
+                        gs.status_message,
+                        gs.status_time,
+                        gh.heartbeat_message,
+                        gh.heartbeat_time
+                    FROM git_status gs
+                    LEFT JOIN git_heartbeat gh ON true
+                    UNION ALL
+                    SELECT 
+                        qs.component,
+                        qs.status_message,
+                        qs.status_time,
+                        qh.heartbeat_message,
+                        qh.heartbeat_time
+                    FROM queue_status qs
+                    LEFT JOIN queue_heartbeat qh ON true
+                    UNION ALL
+                    SELECT 
+                        ws.component,
+                        ws.status_message,
+                        ws.status_time,
+                        wh.heartbeat_message,
+                        wh.heartbeat_time
+                    FROM worker_status ws
+                    LEFT JOIN worker_heartbeat wh ON true
+                    ORDER BY component
                 """)
                 rows = cur.fetchall()
                 logging.info(f"Status rows: {rows}")
