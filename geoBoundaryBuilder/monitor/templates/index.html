@@ -195,17 +195,16 @@
         }
 
         function getStatusColor(status) {
-            switch(status.toLowerCase()) {
-                case 'running':
-                case 'active':
-                    return '#27ae60';
-                case 'error':
-                case 'failed':
-                    return '#e74c3c';
-                case 'warning':
-                    return '#f39c12';
-                default:
-                    return '#2c3e50';
+            if (!status) return '#95a5a6';
+            const statusLower = status.toLowerCase();
+            if (statusLower.includes('error') || statusLower.includes('failed') || statusLower.includes('not found')) {
+                return '#e74c3c';
+            } else if (statusLower.includes('warning')) {
+                return '#f1c40f';
+            } else if (statusLower.includes('success') || statusLower.includes('running') || statusLower.includes('ok')) {
+                return '#2ecc71';
+            } else {
+                return '#3498db';
             }
         }
 
@@ -234,8 +233,6 @@
                     data.status_info.forEach(status => {
                         const statusCard = document.createElement('div');
                         statusCard.className = 'status-card';
-                        
-                        const statusColor = getStatusColor(status.status);
                         
                         const statusColor = getStatusColor(status.status_message);
                         const heartbeatColor = getHeartbeatColor(status.heartbeat_time);
