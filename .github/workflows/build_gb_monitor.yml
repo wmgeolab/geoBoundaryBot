@@ -1,5 +1,5 @@
-name: geoBoundaries Base Image Build
-run-name: gB Base Build
+name: geoBoundaries Monitor Image Build
+run-name: gB Monitor Build
 on:
   push:
     branches: ['main']

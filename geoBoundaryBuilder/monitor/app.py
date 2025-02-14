@@ -47,10 +47,26 @@ def get_stats():
                 oldest_ready = cur.fetchone()
                 oldest_ready_time = oldest_ready[0].isoformat() if oldest_ready else None
 
+                # Get status information
+                cur.execute("""
+                    SELECT status_type, status, last_updated, heartbeat
+                    FROM status
+                    ORDER BY status_type
+                """)
+                status_info = []
+                for row in cur.fetchall():
+                    status_info.append({
+                        'type': row[0],
+                        'status': row[1],
+                        'last_updated': row[2].isoformat() if row[2] else None,
+                        'heartbeat': row[3].isoformat() if row[3] else None
+                    })
+
                 return jsonify({
                     'ready_tasks': ready_count,
                     'processed_24h': processed_24h,
-                    'oldest_ready': oldest_ready_time
+                    'oldest_ready': oldest_ready_time,
+                    'status_info': status_info
                 })
     except Exception as e:
         return jsonify({'error': str(e)}), 500

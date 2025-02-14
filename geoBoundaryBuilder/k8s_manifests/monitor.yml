@@ -13,6 +13,9 @@ spec:
       labels:
         app: geoboundaries-monitor
     spec:
+      securityContext:
+        runAsUser: 71032
+        runAsGroup: 9915
       containers:
       - name: monitor
         image: ghcr.io/wmgeolab/gb-monitor:latest
@@ -26,10 +29,7 @@ spec:
         - name: DB_USER
           value: "geoboundaries"
         - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: postgres-secret
-              key: password
+          value: ""
 ---
 apiVersion: v1
 kind: Service
@@ -41,6 +41,6 @@ spec:
   ports:
   - port: 80
     targetPort: 5000
-    nodePort: 30081  # Similar to adminer's setup
+    nodePort: 30081  # Monitor dashboard port
   selector:
     app: geoboundaries-monitor
