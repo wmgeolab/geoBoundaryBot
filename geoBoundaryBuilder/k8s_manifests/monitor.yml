@@ -1,35 +1,37 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
   name: geoboundaries-monitor
   namespace: geoboundaries
+  labels:
+    app: geoboundaries-monitor
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: geoboundaries-monitor
-  template:
-    metadata:
-      labels:
-        app: geoboundaries-monitor
-    spec:
-      securityContext:
-        runAsUser: 71032
-        runAsGroup: 9915
-      containers:
-      - name: monitor
-        image: ghcr.io/wmgeolab/gb-monitor:latest
-        ports:
-        - containerPort: 5000
-        env:
-        - name: DB_SERVICE
-          value: "geoboundaries-postgres-service"
-        - name: DB_NAME
-          value: "geoboundaries"
-        - name: DB_USER
-          value: "geoboundaries"
-        - name: DB_PASSWORD
-          value: ""
+  securityContext:
+    runAsUser: 71032
+    runAsGroup: 9915
+  containers:
+  - name: monitor
+    image: ghcr.io/wmgeolab/gb-monitor:latest
+    imagePullPolicy: Always
+    ports:
+    - containerPort: 5000
+    env:
+    - name: DB_SERVICE
+      value: "geoboundaries-postgres-service"
+    - name: DB_NAME
+      value: "geoboundaries"
+    - name: DB_USER
+      value: "geoboundaries"
+    - name: DB_PASSWORD
+      value: ""
+    volumeMounts:
+    - mountPath: /sciclone
+      name: nfs-mount
+  volumes:
+  - name: nfs-mount
+    nfs:
+      server: "128.239.59.144"
+      path: "/sciclone"
 ---
 apiVersion: v1
 kind: Service
