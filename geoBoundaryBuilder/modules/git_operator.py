@@ -215,7 +215,10 @@ def git_pull():
             logging.error(f"Could not log error to database: {db_error}")
 
 def check_git_pull_status():
-    """Check if git pull is needed based on timestamp."""
+    """Check if git pull is needed based on timestamp.
+    Returns:
+        bool: True if a git pull was performed, False otherwise
+    """
     try:
         with connect_to_db() as conn:
             with conn.cursor() as cur:
@@ -226,7 +229,7 @@ def check_git_pull_status():
                 if result is None:
                     # No record exists, first time running
                     git_pull()
-                    return
+                    return True
 
                 last_pull_time = result[0]
                 current_time = datetime.now()
@@ -235,25 +238,42 @@ def check_git_pull_status():
                 if time_since_last_pull >= timedelta(hours=12):
                     logging.info(f"Last git pull was {time_since_last_pull} ago. Running git pull.")
                     git_pull()
+                    return True
                 else:
                     logging.info(f"Last git pull was {time_since_last_pull} ago. No action needed.")
+                    return False
     except Exception as e:
         logging.error(f"Error checking git pull status: {e}")
+        return False
 
 if __name__ == "__main__":
     logging.info("Script started.")
-    # Track time for next git pull check
-    last_pull_check_time = datetime.now()
     pull_check_interval = timedelta(hours=12)
     
     while True:
         current_time = datetime.now()
         
+        # Get last pull time from database
+        last_pull_time = None
+        try:
+            with connect_to_db() as conn:
+                with conn.cursor() as cur:
+                    cur.execute('SELECT "TIME" FROM status WHERE "STATUS_TYPE" = \'GIT_PULL\'')
+                    result = cur.fetchone()
+                    if result:
+                        last_pull_time = result[0]
+        except Exception as e:
+            logging.error(f"Error getting last pull time: {e}")
+            last_pull_time = current_time  # Default to current time on error
+        
         # Perform git pull status check
         check_git_pull_status()
         
-        # Calculate time until next pull
-        time_until_next_pull = pull_check_interval - (current_time - last_pull_check_time)
+        # Calculate time until next pull using database timestamp
+        if last_pull_time:
+            time_until_next_pull = pull_check_interval - (current_time - last_pull_time)
+        else:
+            time_until_next_pull = timedelta()
         
         # Update heartbeat in database
         try:

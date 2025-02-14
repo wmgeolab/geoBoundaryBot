@@ -694,7 +694,7 @@ class builder:
             self.logger.info("Checking if geometry size has changed.")
             tmpFold = self.tmpPath + self.ISO + self.ADM + self.product + "/"
             newJSON = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".geojson")
-            oldJSON = self.targetPath + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".geojson"
+            oldJSON = self.targetPath + "/geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".geojson"
 
             newSize = os.path.getsize(newJSON)
             oldSize = os.path.getsize(oldJSON)

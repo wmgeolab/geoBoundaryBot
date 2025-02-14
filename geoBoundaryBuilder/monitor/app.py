@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify
 import psycopg2
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import os
 import logging
 
@@ -55,7 +56,10 @@ def get_stats():
                 """)
                 oldest_ready = cur.fetchone()
                 logging.info(f"Oldest ready task query result: {oldest_ready}")
-                oldest_ready_time = oldest_ready[0].isoformat() if oldest_ready else None
+                oldest_ready_time = None
+                if oldest_ready and oldest_ready[0]:
+                    # Convert from UTC to EST
+                    oldest_ready_time = oldest_ready[0].replace(tzinfo=ZoneInfo('UTC')).astimezone(ZoneInfo('America/New_York')).isoformat()
                 logging.info(f"Oldest ready task time: {oldest_ready_time}")
 
                 # Get status information
@@ -144,12 +148,16 @@ def get_stats():
                 
                 status_info = []
                 for row in rows:
+                    # Convert times from UTC to EST
+                    status_time = row[2].replace(tzinfo=ZoneInfo('UTC')).astimezone(ZoneInfo('America/New_York')) if row[2] else None
+                    heartbeat_time = row[4].replace(tzinfo=ZoneInfo('UTC')).astimezone(ZoneInfo('America/New_York')) if row[4] else None
+                    
                     status_info.append({
                         'type': row[0],
                         'status_message': row[1],
-                        'status_time': row[2].isoformat() if row[2] else None,
+                        'status_time': status_time.isoformat() if status_time else None,
                         'heartbeat_message': row[3],
-                        'heartbeat_time': row[4].isoformat() if row[4] else None
+                        'heartbeat_time': heartbeat_time.isoformat() if heartbeat_time else None
                     })
                 logging.info(f"Processed status info: {status_info}")
 

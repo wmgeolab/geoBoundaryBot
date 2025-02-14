@@ -113,13 +113,20 @@ licenseList = licenses["license_name"].values
 filename = f"{iso}_{adm}.zip"
 file_path = os.path.join(GB_DIR, "sourceData/gbOpen", filename)
 
+def format_elapsed_time(start_time):
+    """Format elapsed time in human readable format"""
+    elapsed = datetime.now() - start_time
+    hours, remainder = divmod(int(elapsed.total_seconds()), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
 try:
     # Establish database connection
     conn = connect_to_db()
 
-    # Update status to indicate start of processing
-    current_timestamp = datetime.now()
-    update_status_in_db(conn, status_type, "STARTING_WORKER_SCRIPT", current_timestamp)
+    # Record start time for elapsed time calculation
+    start_time = datetime.now()
+    update_status_in_db(conn, status_type, "STARTING_WORKER_SCRIPT", start_time)
 
     # Process the single product type
     build_results = []
@@ -167,7 +174,25 @@ try:
         else:
             # If all stages complete successfully
             build_results.append([iso, adm, "gbOpen", "Successfully built.", "D"])
-            update_status_in_db(conn, status_type, "BUILD_COMPLETE", datetime.now())
+            
+            # Calculate elapsed time
+            elapsed_time = format_elapsed_time(start_time)
+            
+            # Update both worker_status and tasks tables
+            with conn.cursor() as cur:
+                # Update worker status with completion time
+                update_status_in_db(conn, status_type, f"COMPLETE: {elapsed_time}", datetime.now())
+                
+                # Update tasks table
+                update_query = """
+                UPDATE tasks
+                SET status = 'COMPLETE',
+                    status_time = %s,
+                    status_detail = %s
+                WHERE taskid = %s
+                """
+                cur.execute(update_query, (datetime.now(), f"Completed in {elapsed_time}", taskid))
+                conn.commit()
 
     except Exception as product_error:
         error_msg = f"Error processing gbOpen: {product_error}"

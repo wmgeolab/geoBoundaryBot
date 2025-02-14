@@ -323,7 +323,7 @@ def main():
                             # Execute count query
                             cur.execute("""
                                 SELECT 
-                                    COUNT(*) FILTER (WHERE status = 'completed') as successful_tasks,
+                                    COUNT(*) FILTER (WHERE status = 'COMPLETE') as successful_tasks,
                                     COUNT(*) FILTER (WHERE status = 'ERROR') as failed_tasks
                                 FROM Tasks
                                 WHERE status_time >= %s
