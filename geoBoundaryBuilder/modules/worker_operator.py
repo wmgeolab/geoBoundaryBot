@@ -160,7 +160,7 @@ def get_and_mark_ready_task():
             with conn.cursor() as cur:
                 # Fetch one "ready" task
                 cur.execute("""
-                    SELECT ISO, ADM, filesize FROM Tasks 
+                    SELECT taskid, ISO, ADM, filesize FROM Tasks 
                     WHERE status = 'ready' 
                     LIMIT 1
                     FOR UPDATE SKIP LOCKED;
@@ -169,12 +169,12 @@ def get_and_mark_ready_task():
 
                 if task:
                     # Mark the task as 'working'
-                    iso, adm, filesize = task
+                    taskid, iso, adm, filesize = task
                     cur.execute("""
                         UPDATE Tasks 
                         SET status = 'working', status_time = NOW() 
-                        WHERE ISO = %s AND ADM = %s AND status = 'ready';
-                    """, (iso.upper(), adm.upper()))
+                        WHERE taskid = %s;
+                    """, (taskid,))
                     conn.commit()
                     logging.info(f"Task {iso.upper()}_{adm.upper()} marked as 'working'.")
                     return task
@@ -186,7 +186,7 @@ def get_and_mark_ready_task():
         return None
 
 # Create a Worker Pod
-def create_worker_pod(iso, adm, filesize):
+def create_worker_pod(iso, adm, filesize, taskid):
     try:
         k8s_client = client.CoreV1Api()
 
@@ -204,13 +204,30 @@ def create_worker_pod(iso, adm, filesize):
                     run_as_user=71032,
                     run_as_group=9915
                 ),
+                affinity=client.V1Affinity(
+                    node_affinity=client.V1NodeAffinity(
+                        required_during_scheduling_ignored_during_execution=client.V1NodeSelector(
+                            node_selector_terms=[
+                                client.V1NodeSelectorTerm(
+                                    match_expressions=[
+                                        client.V1NodeSelectorRequirement(
+                                            key="kubernetes.io/hostname",
+                                            operator="In",
+                                            values=["d3i00.sciclone.wm.edu"]
+                                        )
+                                    ]
+                                )
+                            ]
+                        )
+                    )
+                ),
                 containers=[
                     client.V1Container(
                         name="worker-container",
                         image="ghcr.io/wmgeolab/gb-base:latest",
                         command=["/bin/bash", "-c"],
                         args=[
-                            f"python /sciclone/geograd/geoBoundaries/geoBoundaryBot/geoBoundaryBuilder/modules/worker_script.py {iso.upper()} {adm.upper()}"
+                            f"python /sciclone/geograd/geoBoundaries/geoBoundaryBot/geoBoundaryBuilder/modules/worker_script.py {iso.upper()} {adm.upper()} {taskid}"
                         ],
                         env=[
                             client.V1EnvVar(name="DB_SERVICE", value=DB_SERVICE),
@@ -343,8 +360,8 @@ def main():
                 task = get_and_mark_ready_task()
                 
                 if task:
-                    iso, adm, filesize = task
-                    create_worker_pod(iso, adm, filesize)
+                    taskid, iso, adm, filesize = task
+                    create_worker_pod(iso, adm, filesize, taskid)
             
             # Sleep to reduce CPU usage
             time.sleep(15)

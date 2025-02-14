@@ -19,9 +19,10 @@ LOG_DIR = "/sciclone/geograd/geoBoundaries/logs/worker_script/"
 META_DIR = "/sciclone/geograd/geoBoundaries/geoBoundaryBot/dta/"
 os.makedirs(LOG_DIR, exist_ok=True)  # Ensure log directory exists
 
-# Extract ISO and ADM parameters
+# Extract ISO, ADM, and taskid parameters
 iso = sys.argv[1]
 adm = sys.argv[2]
+taskid = sys.argv[3]
 
 # Configure logging with a centralized log file
 log_file = os.path.join(LOG_DIR, f"worker_script_{iso}_{adm}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
@@ -156,7 +157,7 @@ try:
                     UPDATE tasks
                     SET status = 'ERROR',
                         status_time = %s,
-                        error_message = %s
+                        status_detail = %s
                     WHERE iso = %s AND adm = %s
                     """
                     cur.execute(update_query, (datetime.now(), str(result), iso, adm))
@@ -169,13 +170,37 @@ try:
             update_status_in_db(conn, status_type, "BUILD_COMPLETE", datetime.now())
 
     except Exception as product_error:
-        logging.error(f"Error processing gbOpen: {product_error}")
-        build_results.append([iso, adm, "gbOpen", str(product_error), "EP"])
-        update_status_in_db(conn, status_type, f"ERROR_PROCESSING_GBOPEN: {str(product_error)}", datetime.now())
-        update_tasks_db(conn, iso, adm, str(product_error))
+        error_msg = f"Error processing gbOpen: {product_error}"
+        logging.error(error_msg)
+        error_code = "EP"  # Error Processing
+        build_results.append([iso, adm, "gbOpen", str(product_error), error_code])
+        
+        # Update both status tables
+        with conn.cursor() as cur:
+            # Update tasks table
+            update_query = """
+            UPDATE tasks
+            SET status = 'ERROR',
+                status_time = %s,
+                status_detail = %s
+            WHERE taskid = %s
+            """
+            cur.execute(update_query, (datetime.now(), error_msg, taskid))
+            
+            # Update worker status
+            status_msg = f"ERROR_{error_code}: {error_msg}"
+            update_status_in_db(conn, status_type, status_msg, datetime.now())
+            
+            conn.commit()
 
-    # Final status update
-    update_status_in_db(conn, status_type, "WORKER_SCRIPT_COMPLETE", datetime.now())
+    # Final status update with error code if present
+    if build_results:
+        result = build_results[-1]
+        if len(result) >= 5 and result[4].startswith('E'):  # Check if there's an error code
+            final_status = f"ERROR_{result[4]}: {result[3]}"  # Include both error code and message
+        else:
+            final_status = "COMPLETE"
+        update_status_in_db(conn, status_type, final_status, datetime.now())
     
     # Log build results
     for result in build_results:

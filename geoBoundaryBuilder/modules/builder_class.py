@@ -42,10 +42,10 @@ class builder:
         self.basePath = basePath
         self.logPath = logPath
         self.tmpPath = tmpPath
-        self.sourceFolder = self.basePath + "sourceData/" + self.product + "/"
-        self.sourcePath = self.basePath + "sourceData/" + self.product + "/" + self.ISO + "_" + self.ADM + ".zip"
-        self.targetPath = self.basePath + "releaseData/" + self.product + "/" + self.ISO + "/" + self.ADM + "/"
-        self.zipExtractPath = self.tmpPath + self.product + "/" + self.ISO + "_" + self.ADM + "/"
+        self.sourceFolder = os.path.join(self.basePath, "sourceData", self.product)
+        self.sourcePath = os.path.join(self.basePath, "sourceData", self.product, f"{self.ISO}_{self.ADM}.zip")
+        self.targetPath = os.path.join(self.basePath, "releaseData", self.product, self.ISO, self.ADM)
+        self.zipExtractPath = os.path.join(self.tmpPath, self.product, f"{self.ISO}_{self.ADM}")
         self.validISO = validISO
         self.validLicense = [x.lower().strip() for x in validLicense]        
 
@@ -101,9 +101,10 @@ class builder:
     def unzip(self):
         try:
             sourceZip = zipfile.ZipFile(self.sourcePath)
-            sourceZip.extractall(self.zipExtractPath )
-            if(os.path.exists(self.zipExtractPath  + "__MACOSX")):
-                shutil.rmtree(self.zipExtractPath  + "__MACOSX")
+            sourceZip.extractall(self.zipExtractPath)
+            macosx_path = os.path.join(self.zipExtractPath, "__MACOSX")
+            if os.path.exists(macosx_path):
+                shutil.rmtree(macosx_path)
             self.dataExtractFail = 0
         except Exception as e:
             self.logger.critical("Zipfile extraction failed: " + str(e))
@@ -124,18 +125,22 @@ class builder:
                 if(len(shp) == 1):
                     self.logger.info("Shapefile (*.shp) found. Attempting to load.")
                     try:
-                        self.geomDta = gpd.read_file(self.zipExtractPath + shp[0])
+                        self.geomDta = gpd.read_file(os.path.join(self.zipExtractPath, shp[0]))
                         self.dataLoadFail = 0
                     except Exception as e:
-                        self.logger.critical("The shape file provided failed to load. Make sure all required files are included (i.e., *.shx). Here is what I know: " + str(e))
+                        error_msg = f"The shape file provided failed to load. Make sure all required files are included (i.e., *.shx). Here is what I know: {str(e)}"
+                        self.logger.critical(error_msg)
+                        return error_msg
                         
                 if(len(geojson) == 1):
                     self.logger.info("geoJSON (*.geojson) found. Attempting to load.")
                     try:
-                        self.geomDta = gpd.read_file(self.zipExtractPath + geojson[0])
+                        self.geomDta = gpd.read_file(os.path.join(self.zipExtractPath, geojson[0]))
                         self.dataLoadFail = 0
                     except Exception as e:
-                        self.logger.critical("The geojson provided failed to load. Here is what I know: " + str(e))
+                        error_msg = f"The geojson provided failed to load. Here is what I know: {str(e)}"
+                        self.logger.critical(error_msg)
+                        return error_msg
             
             else:
                 self.logger.critical("There was more than one geometry file (shapefile or geojson) present in the zipfile.")
@@ -737,20 +742,25 @@ class builder:
 
     def constructFiles(self):
         self.logger.info("Constructing files for release.")
-        tmpJson = self.tmpPath + self.ISO + self.ADM + self.product + ".geoJSON"
-        tmpFold = self.tmpPath + self.ISO + self.ADM + self.product + "/"
+        tmpJson = os.path.join(self.tmpPath, f"{self.ISO}{self.ADM}{self.product}.geoJSON")
+        tmpFold = os.path.join(self.tmpPath, f"{self.ISO}{self.ADM}{self.product}/")
 
-        jsonOUT_simp = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "_simplified.geojson")
-        topoOUT_simp = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "_simplified.topojson")
-        shpOUT_simp  = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "_simplified.zip")
-        jsonOUT = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".geojson")
-        topoOUT = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".topojson")
-        shpOUT  = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + ".zip")
-        imgOUT  = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "-PREVIEW.png")
-        fullZip = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "-all.zip")
-        metaJSON = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "-metaData.json")
-        metaTXT = (tmpFold + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "-metaData.txt")
-        citeUse = (tmpFold + "CITATION-AND-USE-geoBoundaries.txt")
+        base_name = f"geoBoundaries-{self.ISO}-{self.ADM}"
+        
+        # Simplified versions
+        jsonOUT_simp = os.path.join(tmpFold, f"{base_name}_simplified.geojson")
+        topoOUT_simp = os.path.join(tmpFold, f"{base_name}_simplified.topojson")
+        shpOUT_simp = os.path.join(tmpFold, f"{base_name}_simplified.zip")
+
+        # Full versions
+        jsonOUT = os.path.join(tmpFold, f"{base_name}.geojson")
+        topoOUT = os.path.join(tmpFold, f"{base_name}.topojson")
+        shpOUT = os.path.join(tmpFold, f"{base_name}.zip")
+        imgOUT = os.path.join(tmpFold, f"{base_name}-PREVIEW.png")
+        fullZip = os.path.join(tmpFold, f"{base_name}-all.zip")
+        metaJSON = os.path.join(tmpFold, f"{base_name}-metaData.json")
+        metaTXT = os.path.join(tmpFold, f"{base_name}-metaData.txt")
+        citeUse = os.path.join(tmpFold, "CITATION-AND-USE-geoBoundaries.txt")
 
 
         if not os.path.exists(tmpFold):
@@ -812,15 +822,43 @@ class builder:
         self.geomDta.to_file(tmpJson, driver="GeoJSON", crs="EPSG:4326")
 
         writeRet = []
-
-        write = ("/usr/local/mapshaper-0.6.7/bin/mapshaper-xl 6gb " + tmpJson +
+        self.logger.info("Debug - File paths:")
+        self.logger.info(f"Working directory: {os.getcwd()}")
+        self.logger.info(f"Input file (tmpJson): {tmpJson}")
+        self.logger.info(f"Input file exists: {os.path.exists(tmpJson)}")
+        self.logger.info(f"Output folder (tmpFold): {tmpFold}")
+        self.logger.info(f"Output folder exists: {os.path.exists(tmpFold)}")
+        self.logger.info("Mapshaper Call")
+        write = ("mapshaper-xl 6gb " + tmpJson +
                 " -clean gap-fill-area=500m2 snap-interval=.00001" +
                 " -o format=shapefile " + shpOUT +
                 " -o format=topojson " + topoOUT +
                 " -o format=geojson " + jsonOUT)
         
-        writeRet.append(subprocess.Popen(write, shell=True).wait())
-
+        # Run mapshaper and check return code
+        ret_code = subprocess.Popen(write, shell=True).wait()
+        
+        # If mapshaper-xl failed, try regular mapshaper
+        if ret_code == 127:
+            self.logger.info("mapshaper-xl not found, trying mapshaper instead...")
+            write = write.replace('mapshaper-xl', 'mapshaper')
+            self.logger.info(f"Retrying with command: {write}")
+            ret_code = subprocess.Popen(write, shell=True).wait()
+        writeRet.append(ret_code)
+        self.logger.info(f"Mapshaper Call Done with return code: {ret_code}")
+        
+        # Check if output file exists and has content
+        if ret_code != 0:
+            self.logger.error(f"Mapshaper command failed with return code {ret_code}")
+            return f"ERROR: Mapshaper command failed with return code {ret_code}"
+            
+        if not os.path.exists(jsonOUT):
+            self.logger.error(f"Output file {jsonOUT} was not created")
+            return f"ERROR: Output file {jsonOUT} was not created"
+            
+        if os.path.getsize(jsonOUT) == 0:
+            self.logger.error(f"Output file {jsonOUT} is empty")
+            return f"ERROR: Output file {jsonOUT} is empty"
         #Need to open and define the projection - unsure if this is a bug in mapshaper precluding
         #the projection outputs, or if our tests were ill-formed.        
         def to_multipolygon(geom):
@@ -828,12 +866,24 @@ class builder:
                 return MultiPolygon([geom])
             return geom
 
-        tmpGeomJSONproj_multi = gpd.read_file(jsonOUT)
-        #tmpGeomJSONproj_multi = tmpGeomJSONproj.geometry.apply(to_multipolygon)
-        tmpGeomJSONproj_multi.to_file(jsonOUT, driver="GeoJSON", crs="EPSG:4326")
+        
+        try:
+            self.logger.info(f"Attempting to read {jsonOUT}")
+            tmpGeomJSONproj_multi = gpd.read_file(jsonOUT)
+            if len(tmpGeomJSONproj_multi) == 0:
+                self.logger.error(f"No features found in {jsonOUT}")
+                return f"ERROR: No features found in {jsonOUT}"
+            self.logger.info(f"Successfully read {len(tmpGeomJSONproj_multi)} features from {jsonOUT}")
+            #tmpGeomJSONproj_multi = tmpGeomJSONproj.geometry.apply(to_multipolygon)
+            tmpGeomJSONproj_multi.to_file(jsonOUT, driver="GeoJSON", crs="EPSG:4326")
+        except Exception as e:
+            self.logger.error(f"Failed to read/write GeoJSON: {str(e)}")
+            return f"ERROR: Failed to read/write GeoJSON: {str(e)}"
+
+        self.logger.info("Starting simplified build")
 
         self.logger.info("Building shapefiles, geojson, topojson (Simplified).")
-        writeSimplify = ("/usr/local/mapshaper-0.6.7/bin/mapshaper-xl 6gb " + tmpJson +
+        writeSimplify = ("/usr/local/bin/mapshaper-xl 6gb " + tmpJson +
                 " -simplify dp interval=100 keep-shapes" +
                 " -clean gap-fill-area=500m2 snap-interval=.00001" +
                 " -o format=shapefile " + shpOUT_simp +

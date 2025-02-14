@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: geoboundaries-monitor
+  namespace: geoboundaries
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: geoboundaries-monitor
+  template:
+    metadata:
+      labels:
+        app: geoboundaries-monitor
+    spec:
+      containers:
+      - name: monitor
+        image: ghcr.io/wmgeolab/gb-monitor:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: DB_SERVICE
+          value: "geoboundaries-postgres-service"
+        - name: DB_NAME
+          value: "geoboundaries"
+        - name: DB_USER
+          value: "geoboundaries"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: geoboundaries-monitor-service
+  namespace: geoboundaries
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 5000
+    nodePort: 30081  # Similar to adminer's setup
+  selector:
+    app: geoboundaries-monitor
