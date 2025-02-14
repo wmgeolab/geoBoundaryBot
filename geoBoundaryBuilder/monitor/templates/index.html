@@ -62,30 +62,45 @@
         }
         .status-card {
             background-color: #fff;
-            padding: 15px;
+            padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             border: 1px solid #e1e1e1;
         }
         .status-type {
-            font-size: 1.2em;
+            font-size: 1.4em;
             font-weight: bold;
             color: #2c3e50;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .status-section {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        .status-label {
+            font-size: 0.9em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
         }
         .status-value {
             font-size: 1.1em;
-            color: #34495e;
-            margin-bottom: 5px;
+            margin: 5px 0;
+            padding: 5px;
+            background: white;
+            border-radius: 4px;
         }
         .status-time {
-            font-size: 0.9em;
-            color: #7f8c8d;
-        }
-        .heartbeat {
             font-size: 0.8em;
-            color: #95a5a6;
-            margin-top: 5px;
+            color: #7f8c8d;
+            margin-top: 3px;
+            font-style: italic;
         }
         .error {
             color: #e74c3c;
@@ -119,10 +134,19 @@
     </div>
 
     <script>
-        function formatDate(isoString) {
+        function formatDateEST(isoString) {
             if (!isoString) return 'None';
             const date = new Date(isoString);
-            return date.toLocaleString();
+            return date.toLocaleString('en-US', { 
+                timeZone: 'America/New_York',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
         }
 
         function getTimeDifferenceInMinutes(isoString) {
@@ -213,11 +237,21 @@
                         
                         const statusColor = getStatusColor(status.status);
                         
+                        const statusColor = getStatusColor(status.status_message);
+                        const heartbeatColor = getHeartbeatColor(status.heartbeat_time);
+                        
                         statusCard.innerHTML = `
                             <div class="status-type">${status.type}</div>
-                            <div class="status-value" style="color: ${statusColor}">${status.status}</div>
-                            <div class="status-time">Updated: ${formatDate(status.last_updated)}</div>
-                            <div class="heartbeat" style="color: ${getHeartbeatColor(status.heartbeat)}">Heartbeat: ${formatDate(status.heartbeat)}</div>
+                            <div class="status-section">
+                                <div class="status-label">Status:</div>
+                                <div class="status-value" style="color: ${statusColor}">${status.status_message}</div>
+                                <div class="status-time">Last Updated: ${formatDateEST(status.status_time)}</div>
+                            </div>
+                            <div class="status-section">
+                                <div class="status-label">Heartbeat:</div>
+                                <div class="status-value" style="color: ${heartbeatColor}">${status.heartbeat_message}</div>
+                                <div class="status-time">Last Beat: ${formatDateEST(status.heartbeat_time)}</div>
+                            </div>
                         `;
                         
                         statusGrid.appendChild(statusCard);

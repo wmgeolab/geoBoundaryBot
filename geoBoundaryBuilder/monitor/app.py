@@ -60,9 +60,27 @@ def get_stats():
 
                 # Get status information
                 cur.execute("""
-                    SELECT "STATUS_TYPE", "STATUS", "TIME"
-                    FROM status
-                    ORDER BY "STATUS_TYPE"
+                    WITH latest_status AS (
+                        SELECT "STATUS_TYPE", "STATUS", "TIME"
+                        FROM status
+                        WHERE "STATUS" NOT LIKE '%heartbeat%'
+                        AND "STATUS_TYPE" IN ('GIT', 'QUEUE', 'WORKER')
+                    ),
+                    latest_heartbeat AS (
+                        SELECT "STATUS_TYPE", "STATUS", "TIME"
+                        FROM status
+                        WHERE "STATUS" LIKE '%heartbeat%'
+                        AND "STATUS_TYPE" IN ('GIT', 'QUEUE', 'WORKER')
+                    )
+                    SELECT 
+                        ls."STATUS_TYPE",
+                        ls."STATUS" as status_message,
+                        ls."TIME" as status_time,
+                        lh."STATUS" as heartbeat_message,
+                        lh."TIME" as heartbeat_time
+                    FROM latest_status ls
+                    LEFT JOIN latest_heartbeat lh ON ls."STATUS_TYPE" = lh."STATUS_TYPE"
+                    ORDER BY ls."STATUS_TYPE"
                 """)
                 rows = cur.fetchall()
                 logging.info(f"Status rows: {rows}")
@@ -71,9 +89,10 @@ def get_stats():
                 for row in rows:
                     status_info.append({
                         'type': row[0],
-                        'status': row[1],
-                        'last_updated': row[2].isoformat() if row[2] else None,
-                        'heartbeat': row[2].isoformat() if row[2] else None  # Using TIME for both since there's no separate heartbeat
+                        'status_message': row[1],
+                        'status_time': row[2].isoformat() if row[2] else None,
+                        'heartbeat_message': row[3],
+                        'heartbeat_time': row[4].isoformat() if row[4] else None
                     })
                 logging.info(f"Processed status info: {status_info}")
 
