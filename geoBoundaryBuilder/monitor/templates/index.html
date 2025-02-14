@@ -223,7 +223,7 @@
                     processed24hEl.style.color = getProcessed24hColor(data.processed_24h);
 
                     const oldestReadyEl = document.getElementById('oldest-ready');
-                    oldestReadyEl.textContent = formatDate(data.oldest_ready);
+                    oldestReadyEl.textContent = formatDateEST(data.oldest_ready);
                     oldestReadyEl.style.color = getOldestReadyColor(data.oldest_ready);
 
                     // Update status grid
