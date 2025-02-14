@@ -125,6 +125,51 @@
             return date.toLocaleString();
         }
 
+        function getTimeDifferenceInMinutes(isoString) {
+            if (!isoString) return Infinity;
+            const date = new Date(isoString);
+            const now = new Date();
+            return (now - date) / (1000 * 60); // Convert to minutes
+        }
+
+        function getTimeDifferenceInDays(isoString) {
+            if (!isoString) return Infinity;
+            const date = new Date(isoString);
+            const now = new Date();
+            return (now - date) / (1000 * 60 * 60 * 24); // Convert to days
+        }
+
+        function getHeartbeatColor(heartbeat) {
+            const minutesAgo = getTimeDifferenceInMinutes(heartbeat);
+            if (minutesAgo === Infinity) return '#95a5a6'; // Gray for no heartbeat
+            if (minutesAgo > 5) return '#e74c3c';  // Red for > 5 minutes
+            if (minutesAgo > 1) return '#f39c12';  // Orange for > 1 minute
+            return '#27ae60';  // Green for < 1 minute
+        }
+
+        function getReadyTasksColor(count) {
+            if (count > 800) return '#e74c3c';  // Red for > 800
+            if (count > 500) return '#f39c12';  // Orange for > 500
+            if (count > 200) return '#f1c40f';  // Yellow for > 200
+            return '#27ae60';  // Green for <= 200
+        }
+
+        function getProcessed24hColor(count) {
+            if (count < 10) return '#e74c3c';    // Red for < 10 tasks
+            if (count < 50) return '#f39c12';    // Orange for < 50 tasks
+            if (count < 100) return '#f1c40f';   // Yellow for < 100 tasks
+            return '#27ae60';  // Green for >= 100 tasks
+        }
+
+        function getOldestReadyColor(timeAdded) {
+            const daysOld = getTimeDifferenceInDays(timeAdded);
+            if (daysOld === Infinity) return '#95a5a6'; // Gray for no tasks
+            if (daysOld > 2) return '#e74c3c';  // Red for > 2 days
+            if (daysOld > 1) return '#f39c12';  // Orange for > 1 day
+            if (daysOld > 0.5) return '#f1c40f'; // Yellow for > 12 hours
+            return '#27ae60';  // Green for < 12 hours
+        }
+
         function getStatusColor(status) {
             switch(status.toLowerCase()) {
                 case 'running':
@@ -145,9 +190,18 @@
                 .then(response => response.json())
                 .then(data => {
                     // Update task stats
-                    document.getElementById('ready-tasks').textContent = data.ready_tasks;
-                    document.getElementById('processed-24h').textContent = data.processed_24h;
-                    document.getElementById('oldest-ready').textContent = formatDate(data.oldest_ready);
+                    // Update task stats with colors
+                    const readyTasksEl = document.getElementById('ready-tasks');
+                    readyTasksEl.textContent = data.ready_tasks;
+                    readyTasksEl.style.color = getReadyTasksColor(data.ready_tasks);
+
+                    const processed24hEl = document.getElementById('processed-24h');
+                    processed24hEl.textContent = data.processed_24h;
+                    processed24hEl.style.color = getProcessed24hColor(data.processed_24h);
+
+                    const oldestReadyEl = document.getElementById('oldest-ready');
+                    oldestReadyEl.textContent = formatDate(data.oldest_ready);
+                    oldestReadyEl.style.color = getOldestReadyColor(data.oldest_ready);
 
                     // Update status grid
                     const statusGrid = document.getElementById('status-grid');
@@ -163,7 +217,7 @@
                             <div class="status-type">${status.type}</div>
                             <div class="status-value" style="color: ${statusColor}">${status.status}</div>
                             <div class="status-time">Updated: ${formatDate(status.last_updated)}</div>
-                            <div class="heartbeat">Heartbeat: ${formatDate(status.heartbeat)}</div>
+                            <div class="heartbeat" style="color: ${getHeartbeatColor(status.heartbeat)}">Heartbeat: ${formatDate(status.heartbeat)}</div>
                         `;
                         
                         statusGrid.appendChild(statusCard);
