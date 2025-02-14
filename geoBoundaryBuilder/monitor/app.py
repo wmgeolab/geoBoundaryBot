@@ -60,9 +60,9 @@ def get_stats():
 
                 # Get status information
                 cur.execute("""
-                    SELECT status_type, status, last_updated, heartbeat
+                    SELECT "STATUS_TYPE", "STATUS", "TIME"
                     FROM status
-                    ORDER BY status_type
+                    ORDER BY "STATUS_TYPE"
                 """)
                 rows = cur.fetchall()
                 logging.info(f"Status rows: {rows}")
@@ -73,7 +73,7 @@ def get_stats():
                         'type': row[0],
                         'status': row[1],
                         'last_updated': row[2].isoformat() if row[2] else None,
-                        'heartbeat': row[3].isoformat() if row[3] else None
+                        'heartbeat': row[2].isoformat() if row[2] else None  # Using TIME for both since there's no separate heartbeat
                     })
                 logging.info(f"Processed status info: {status_info}")
 
