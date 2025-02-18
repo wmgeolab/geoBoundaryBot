@@ -204,23 +204,6 @@ def create_worker_pod(iso, adm, filesize, taskid):
                     run_as_user=71032,
                     run_as_group=9915
                 ),
-                affinity=client.V1Affinity(
-                    node_affinity=client.V1NodeAffinity(
-                        required_during_scheduling_ignored_during_execution=client.V1NodeSelector(
-                            node_selector_terms=[
-                                client.V1NodeSelectorTerm(
-                                    match_expressions=[
-                                        client.V1NodeSelectorRequirement(
-                                            key="kubernetes.io/hostname",
-                                            operator="In",
-                                            values=["d3i00.sciclone.wm.edu"]
-                                        )
-                                    ]
-                                )
-                            ]
-                        )
-                    )
-                ),
                 containers=[
                     client.V1Container(
                         name="worker-container",

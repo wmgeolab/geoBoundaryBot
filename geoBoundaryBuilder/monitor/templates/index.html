@@ -107,15 +107,91 @@
             text-align: center;
             padding: 20px;
         }
+
+        .worker-grid {
+            margin-top: 20px;
+            overflow-x: auto;
+            margin-bottom: 40px;
+        }
+
+        .worker-grid table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .worker-grid th {
+            background-color: #f5f5f5;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .worker-grid td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+            min-width: 50px;
+        }
+
+        .worker-grid td:first-child {
+            font-weight: bold;
+            background-color: #f5f5f5;
+            position: sticky;
+            left: 0;
+            z-index: 2;
+        }
+
+        .status-square {
+            width: 20px;
+            height: 20px;
+            margin: 0 auto;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border-radius: 3px;
+        }
+
+        .status-square:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>geoBoundaries Monitor</h1>
+        
+        <h2>System Status</h2>
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-title">Ready Tasks</div>
                 <div class="stat-value" id="ready-tasks">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Worker Status</div>
+                <div class="stat-value" id="worker-status">-</div>
+            </div>
+
+            <h2>Worker Status Grid</h2>
+            <div class="worker-grid">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ISO</th>
+                            <th>ADM0</th>
+                            <th>ADM1</th>
+                            <th>ADM2</th>
+                            <th>ADM3</th>
+                            <th>ADM4</th>
+                            <th>ADM5</th>
+                        </tr>
+                    </thead>
+                    <tbody id="worker-grid-body">
+                    </tbody>
+                </table>
             </div>
             <div class="stat-card">
                 <div class="stat-title">Processed in Last 24h</div>
@@ -208,6 +284,66 @@
             }
         }
 
+        function getStatusColor(status, timestamp) {
+            const ageInHours = (new Date() - new Date(timestamp)) / (1000 * 60 * 60);
+            const baseColor = status.includes('COMPLETE') ? [46, 204, 113] : // Green
+                             status.includes('ERROR') ? [231, 76, 60] : // Red
+                             [241, 196, 15]; // Yellow
+            
+            // Darken based on age (up to 72 hours)
+            const darkening = Math.min(ageInHours / 72, 1) * 0.7; // Max 70% darker
+            return `rgb(${baseColor.map(c => Math.round(c * (1 - darkening))).join(',')})`;
+        }
+
+        function updateWorkerGrid() {
+            fetch('/api/worker-grid')
+                .then(response => response.json())
+                .then(data => {
+                    // Group by ISO
+                    const isoMap = new Map();
+                    data.grid_data.forEach(item => {
+                        if (!isoMap.has(item.iso)) {
+                            isoMap.set(item.iso, new Map());
+                        }
+                        isoMap.get(item.iso).set(item.adm, {
+                            status: item.status,
+                            time: item.time
+                        });
+                    });
+
+                    // Sort ISOs
+                    const sortedIsos = Array.from(isoMap.keys()).sort();
+
+                    // Build table rows
+                    const tbody = document.getElementById('worker-grid-body');
+                    tbody.innerHTML = '';
+                    
+                    sortedIsos.forEach(iso => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td>${iso}</td>`;
+                        
+                        // Add cells for each ADM level
+                        for (let adm = 0; adm <= 5; adm++) {
+                            const cell = document.createElement('td');
+                            const status = isoMap.get(iso).get(adm.toString());
+                            
+                            if (status) {
+                                const square = document.createElement('div');
+                                square.className = 'status-square';
+                                square.style.backgroundColor = getStatusColor(status.status, status.time);
+                                square.title = `${status.status}\nLast Updated: ${formatDateEST(status.time)}`;
+                                cell.appendChild(square);
+                            }
+                            
+                            row.appendChild(cell);
+                        }
+                        
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching worker grid:', error));
+        }
+
         function updateStats() {
             fetch('/api/stats')
                 .then(response => response.json())
@@ -259,9 +395,13 @@
                 });
         }
 
-        // Update stats immediately and then every 5 seconds
+        // Update stats and grid immediately and then every 5 seconds
         updateStats();
-        setInterval(updateStats, 5000);
+        updateWorkerGrid();
+        setInterval(() => {
+            updateStats();
+            updateWorkerGrid();
+        }, 5000);
     </script>
 </body>
 </html>

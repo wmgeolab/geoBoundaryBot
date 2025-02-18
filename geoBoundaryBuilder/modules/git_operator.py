@@ -215,14 +215,58 @@ def git_pull():
             logging.error(f"Could not log error to database: {db_error}")
 
 def check_git_pull_status():
-    """Check if git pull is needed based on timestamp.
+    """Check if git pull is needed based on conditions:
+    1. No tasks are currently set to 'ready'
+    2. At least 3 hours since last task was processed
+    3. At least 12 hours since last pull
+
     Returns:
         bool: True if a git pull was performed, False otherwise
     """
     try:
         with connect_to_db() as conn:
             with conn.cursor() as cur:
-                # Select the last git pull timestamp
+                # Check for ready tasks
+                cur.execute('SELECT COUNT(*) FROM tasks WHERE status = \'ready\'')
+                ready_count = cur.fetchone()[0]
+                if ready_count > 0:
+                    logging.info(f"Found {ready_count} ready tasks. Skipping git pull.")
+                    # Get last successful pull time for status message
+                    cur.execute('SELECT "TIME" FROM status WHERE "STATUS_TYPE" = \'GIT_PULL\'')
+                    last_pull = cur.fetchone()
+                    last_pull_time = last_pull[0] if last_pull else 'Never'
+                    status_msg = f"Git pull skipped due to ongoing tasks; last successful pull was {last_pull_time}"
+                    cur.execute(
+                        'UPDATE status SET "TIME" = %s, "STATUS" = %s WHERE "STATUS_TYPE" = \'GIT_PULL\'',
+                        (datetime.now(), status_msg)
+                    )
+                    conn.commit()
+                    return False
+
+                # Check time since last processed task
+                cur.execute("""
+                    SELECT MAX(status_time) 
+                    FROM tasks 
+                    WHERE status = 'COMPLETE'
+                """)
+                last_task_time = cur.fetchone()[0]
+                if last_task_time:
+                    time_since_last_task = datetime.now() - last_task_time
+                    if time_since_last_task < timedelta(hours=3):
+                        logging.info(f"Only {time_since_last_task} since last task completion. Skipping git pull.")
+                        # Get last successful pull time for status message
+                        cur.execute('SELECT "TIME" FROM status WHERE "STATUS_TYPE" = \'GIT_PULL\'')
+                        last_pull = cur.fetchone()
+                        last_pull_time = last_pull[0] if last_pull else 'Never'
+                        status_msg = f"Git pull skipped due to recent task activity; last successful pull was {last_pull_time}"
+                        cur.execute(
+                            'UPDATE status SET "TIME" = %s, "STATUS" = %s WHERE "STATUS_TYPE" = \'GIT_PULL\'',
+                            (datetime.now(), status_msg)
+                        )
+                        conn.commit()
+                        return False
+
+                # Check time since last git pull
                 cur.execute('SELECT "TIME" FROM status WHERE "STATUS_TYPE" = \'GIT_PULL\'')
                 result = cur.fetchone()
                 
@@ -232,8 +276,7 @@ def check_git_pull_status():
                     return True
 
                 last_pull_time = result[0]
-                current_time = datetime.now()
-                time_since_last_pull = current_time - last_pull_time
+                time_since_last_pull = datetime.now() - last_pull_time
 
                 if time_since_last_pull >= timedelta(hours=12):
                     logging.info(f"Last git pull was {time_since_last_pull} ago. Running git pull.")
@@ -241,6 +284,12 @@ def check_git_pull_status():
                     return True
                 else:
                     logging.info(f"Last git pull was {time_since_last_pull} ago. No action needed.")
+                    status_msg = f"Git pull skipped (too soon); last successful pull was {last_pull_time}"
+                    cur.execute(
+                        'UPDATE status SET "TIME" = %s, "STATUS" = %s WHERE "STATUS_TYPE" = \'GIT_PULL\'',
+                        (datetime.now(), status_msg)
+                    )
+                    conn.commit()
                     return False
     except Exception as e:
         logging.error(f"Error checking git pull status: {e}")

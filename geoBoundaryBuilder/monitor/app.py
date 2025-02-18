@@ -29,6 +29,43 @@ def get_db_connection():
         port=DB_PORT
     )
 
+@app.route('/api/worker-grid')
+def get_worker_grid():
+    """Get status for all ISO/ADM combinations"""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                # Get all worker statuses
+                cur.execute("""
+                    SELECT "STATUS_TYPE", "STATUS", "TIME"
+                    FROM status
+                    WHERE "STATUS_TYPE" LIKE '%_WORKER'
+                """)
+                rows = cur.fetchall()
+                
+                # Process into grid format
+                grid_data = []
+                for row in rows:
+                    # Parse ISO and ADM from STATUS_TYPE (format: ISO_ADM#_WORKER)
+                    parts = row[0].split('_')
+                    if len(parts) >= 3:
+                        iso = parts[0]
+                        adm = parts[1].replace('ADM', '')
+                        status = row[1]
+                        timestamp = row[2].replace(tzinfo=ZoneInfo('UTC')).astimezone(ZoneInfo('America/New_York')).isoformat() if row[2] else None
+                        
+                        grid_data.append({
+                            'iso': iso,
+                            'adm': adm,
+                            'status': status,
+                            'time': timestamp
+                        })
+                
+                return jsonify({'grid_data': grid_data})
+    except Exception as e:
+        logging.error(f"Error getting worker grid data: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/stats')
 def get_stats():
     try:

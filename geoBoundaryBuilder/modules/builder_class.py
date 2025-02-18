@@ -711,7 +711,7 @@ class builder:
             #We can't simply do a binary contrast here, as the new meta.txt will have new timestamps,
             #so this requires we only load part of each file.
             newCSVpath = metaTXT
-            oldCSVpath = self.targetPath + "geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "-metaData.txt"
+            oldCSVpath = self.targetPath + "/geoBoundaries-" + str(self.ISO) + "-" + str(self.ADM) + "-metaData.txt"
 
             with open(newCSVpath,'r') as f:
                 newMetaChunk = f.readlines()[:19]
