@@ -1,6 +1,7 @@
 import zipfile
 import hashlib 
 import os
+import shutil
 import geopandas as gpd
 import datetime
 from shapely.validation import explain_validity
@@ -740,8 +741,31 @@ class builder:
         
 
 
+    def cleanup_target_directory(self):
+        """Clean up existing files in the target directory"""
+        if os.path.exists(self.targetPath):
+            self.logger.info(f"Cleaning up target directory: {self.targetPath}")
+            try:
+                for filename in os.listdir(self.targetPath):
+                    file_path = os.path.join(self.targetPath, filename)
+                    try:
+                        if os.path.isfile(file_path):
+                            os.unlink(file_path)
+                            self.logger.info(f"Deleted file: {file_path}")
+                        elif os.path.isdir(file_path):
+                            shutil.rmtree(file_path)
+                            self.logger.info(f"Deleted directory: {file_path}")
+                    except Exception as e:
+                        self.logger.error(f"Error deleting {file_path}: {str(e)}")
+            except Exception as e:
+                self.logger.error(f"Error cleaning target directory: {str(e)}")
+
     def constructFiles(self):
         self.logger.info("Constructing files for release.")
+        
+        # If changes were detected, clean up the target directory first
+        if self.changesDetected:
+            self.cleanup_target_directory()
         tmpJson = os.path.join(self.tmpPath, f"{self.ISO}{self.ADM}{self.product}.geoJSON")
         tmpFold = os.path.join(self.tmpPath, f"{self.ISO}{self.ADM}{self.product}/")
 
