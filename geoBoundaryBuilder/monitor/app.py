@@ -38,7 +38,7 @@ def get_worker_grid():
                 # Get all worker statuses
                 cur.execute("""
                     SELECT "STATUS_TYPE", "STATUS", "TIME"
-                    FROM status
+                    FROM worker_status
                     WHERE "STATUS_TYPE" LIKE '%_WORKER'
                 """)
                 rows = cur.fetchall()
