@@ -58,7 +58,8 @@ def get_worker_grid():
                             'iso': iso,
                             'adm': adm,
                             'status': status,
-                            'time': timestamp
+                            'time': timestamp,
+                            'build_date': row[3] if len(row) > 3 else None
                         })
                 
                 return jsonify({'grid_data': grid_data})

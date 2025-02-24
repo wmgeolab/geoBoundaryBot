@@ -64,19 +64,51 @@ def update_status_in_db(conn, status_type, status, timestamp):
     Update or insert a status record in the worker_status table
     """
     try:
+        # Extract ISO and ADM from status_type
+        parts = status_type.split('_')
+        if len(parts) >= 3 and parts[1].startswith('ADM'):
+            iso = parts[0]
+            adm = parts[1].replace('ADM', '')
+            
+            # Try to get build date from metadata file
+            build_date = None
+            meta_path = f"/sciclone/geograd/geoBoundaries/database/geoBoundariesDev/releaseData/gbOpen/{iso}/{parts[1]}/geoBoundaries-{iso}-{parts[1]}-metaData.json"
+            try:
+                if os.path.exists(meta_path):
+                    with open(meta_path, 'r') as f:
+                        meta_data = json.load(f)
+                        build_date_str = meta_data.get('buildDate')
+                        if build_date_str:
+                            # Convert the date string to a timestamp
+                            build_date = datetime.datetime.strptime(build_date_str, '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
+            except Exception as e:
+                logging.warning(f"Could not read build date from metadata: {e}")
+        
         with conn.cursor() as cur:
-            # Upsert query to either update existing row or insert new row in worker_status table
+            # First, try to alter table to add BUILD_DATE column if it doesn't exist
+            try:
+                cur.execute("""
+                    ALTER TABLE worker_status 
+                    ADD COLUMN IF NOT EXISTS "BUILD_DATE" TIMESTAMP WITH TIME ZONE
+                """)
+                conn.commit()
+            except Exception as e:
+                logging.warning(f"Could not add BUILD_DATE column: {e}")
+                conn.rollback()
+            
+            # Upsert query including BUILD_DATE
             upsert_query = """
-            INSERT INTO worker_status ("STATUS_TYPE", "STATUS", "TIME") 
-            VALUES (%s, %s, %s)
+            INSERT INTO worker_status ("STATUS_TYPE", "STATUS", "TIME", "BUILD_DATE") 
+            VALUES (%s, %s, %s, %s)
             ON CONFLICT ("STATUS_TYPE") 
             DO UPDATE SET 
                 "STATUS" = EXCLUDED."STATUS", 
-                "TIME" = EXCLUDED."TIME"
+                "TIME" = EXCLUDED."TIME",
+                "BUILD_DATE" = EXCLUDED."BUILD_DATE"
             """
-            cur.execute(upsert_query, (status_type, status, timestamp))
+            cur.execute(upsert_query, (status_type, status, timestamp, build_date))
             conn.commit()
-            logging.info(f"Updated worker_status for {status_type}: {status}")
+            logging.info(f"Updated worker_status for {status_type}: {status} (Build Date: {build_date})")
     except Exception as e:
         logging.error(f"Error updating worker_status in database: {e}")
         conn.rollback()

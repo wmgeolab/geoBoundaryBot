@@ -166,6 +166,14 @@
             display: inline-block;
         }
 
+        .build-date {
+            font-size: 8px;
+            color: #666;
+            margin-top: 2px;
+            line-height: 1;
+            text-align: center;
+        }
+
         .status-square:hover {
             transform: scale(1.5);
             z-index: 10;
@@ -350,11 +358,28 @@
                             const status = isoMap.get(iso).get(adm.toString());
                             
                             if (status) {
+                                const container = document.createElement('div');
+                                container.style.display = 'flex';
+                                container.style.flexDirection = 'column';
+                                container.style.alignItems = 'center';
+                                container.style.padding = '2px';
+
                                 const square = document.createElement('div');
                                 square.className = 'status-square';
                                 square.style.backgroundColor = getStatusColor(status.status, status.time);
-                                square.title = `Status: ${status.status}\nUpdated: ${formatDateEST(status.time)}`;
-                                cell.appendChild(square);
+                                square.title = `Status: ${status.status}\nUpdated: ${formatDateEST(status.time)}${status.build_date ? '\nBuild Date: ' + status.build_date : ''}`;
+                                container.appendChild(square);
+
+                                if (status.build_date) {
+                                    const dateDiv = document.createElement('div');
+                                    dateDiv.className = 'build-date';
+                                    // Format build date as YYYY-MM-DD
+                                    const buildDate = new Date(status.build_date);
+                                    dateDiv.textContent = buildDate.toISOString().split('T')[0];
+                                    container.appendChild(dateDiv);
+                                }
+
+                                cell.appendChild(container);
                             }
                             
                             row.appendChild(cell);
