@@ -244,4 +244,3 @@ finally:
 
     # Sleep for 15 minutes after processing
     logging.info("Sleeping for 15 minutes...")
-    time.sleep(900)  # 900 seconds = 15 minutes
