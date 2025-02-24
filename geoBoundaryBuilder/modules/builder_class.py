@@ -83,6 +83,9 @@ class builder:
 
         #Library for metadata
         self.metaDataLib = {}
+        
+        # Initialize changes detection flag
+        self.changesDetected = False
     
     def checkExistence(self):
         if os.path.exists(self.sourcePath):
