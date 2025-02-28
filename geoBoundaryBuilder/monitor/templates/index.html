@@ -158,26 +158,70 @@
         }
 
         .status-square {
-            width: 16px;
-            height: 16px;
-            margin: 0;
-            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            margin: 2px;
             transition: transform 0.2s;
-            display: inline-block;
-        }
-
-        .build-date {
-            font-size: 8px;
-            color: #666;
-            margin-top: 2px;
-            line-height: 1;
-            text-align: center;
+            cursor: pointer;
         }
 
         .status-square:hover {
-            transform: scale(1.5);
+            transform: scale(1.2);
             z-index: 10;
             position: relative;
+        }
+        
+        .status-modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .status-modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        }
+        
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover,
+        .close-modal:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .status-details {
+            margin-top: 10px;
+        }
+        
+        .status-details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .status-details table th, 
+        .status-details table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
         }
 
         .dropdown {
@@ -230,8 +274,6 @@
                 <thead>
                     <tr>
                         <th>ISO</th>
-                        <th>Activity Date</th>
-                        <th>Source Date</th>
                         <th>ADM0</th>
                         <th>ADM1</th>
                         <th>ADM2</th>
@@ -241,8 +283,20 @@
                     </tr>
                 </thead>
                 <tbody id="worker-grid-body">
+                    <!-- Worker status grid will be inserted here -->
                 </tbody>
             </table>
+        </div>
+        
+        <!-- Status Modal -->
+        <div id="status-modal" class="status-modal">
+            <div class="status-modal-content">
+                <span class="close-modal">&times;</span>
+                <h3 id="modal-title">Status Details</h3>
+                <div class="status-details" id="status-details">
+                    <!-- Status details will be inserted here -->
+                </div>
+            </div>
         </div>
     </div>
 
@@ -348,7 +402,7 @@
                     // Check if grid_data exists
                     if (!data || !data.grid_data || !Array.isArray(data.grid_data)) {
                         console.error('Invalid grid data received:', data);
-                        document.getElementById('worker-grid-body').innerHTML = '<tr><td colspan="9">No data available</td></tr>';
+                        document.getElementById('worker-grid-body').innerHTML = '<tr><td colspan="7">No data available</td></tr>';
                         return;
                     }
                     
@@ -381,44 +435,9 @@
                             return; // Skip this ISO
                         }
                         
-                        // Find most recent timestamp for this ISO
-                        let mostRecentTime = null;
-                        let mostRecentSourceDate = null;
-                        
-                        isoData.forEach((value) => {
-                            if (value && value.time && (!mostRecentTime || new Date(value.time) > new Date(mostRecentTime))) {
-                                mostRecentTime = value.time;
-                            }
-                            if (value && value.source_date && (!mostRecentSourceDate || new Date(value.source_date) > new Date(mostRecentSourceDate))) {
-                                mostRecentSourceDate = value.source_date;
-                            }
-                        });
-                        
-                        // Add ISO and timestamp columns
+                        // Add ISO column
                         row.innerHTML = `
                             <td>${iso}</td>
-                            <td>
-                                <div class="dropdown">
-                                    <span>${mostRecentTime ? formatDateEST(mostRecentTime) : '-'}</span>
-                                    <div class="dropdown-content">
-                                        ${Array.from(isoData.entries())
-                                            .filter(([_, value]) => value && value.time)
-                                            .map(([adm, value]) => `<p>ADM${adm}: ${formatDateEST(value.time)}</p>`)
-                                            .join('')}
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="dropdown">
-                                    <span>${mostRecentSourceDate ? formatDateEST(mostRecentSourceDate) : '-'}</span>
-                                    <div class="dropdown-content">
-                                        ${Array.from(isoData.entries())
-                                            .filter(([_, value]) => value && value.source_date)
-                                            .map(([adm, value]) => `<p>ADM${adm}: ${formatDateEST(value.source_date)}</p>`)
-                                            .join('')}
-                                    </div>
-                                </div>
-                            </td>
                         `;
                         
                         // Add cells for each ADM level
@@ -436,18 +455,21 @@
                                 const square = document.createElement('div');
                                 square.className = 'status-square';
                                 square.style.backgroundColor = getStatusColor(status.status, status.time);
-                                square.title = `Status: ${status.status}\nUpdated: ${formatDateEST(status.time)}${status.source_date ? '\nSource Data Update: ' + formatDateEST(status.source_date) : ''}`;
+                                square.title = `Click for details`;
+                                
+                                // Store data for modal
+                                square.dataset.iso = iso;
+                                square.dataset.adm = adm;
+                                square.dataset.status = status.status;
+                                square.dataset.time = status.time || '';
+                                square.dataset.sourceDate = status.source_date || '';
+                                
+                                // Add click event to show modal
+                                square.addEventListener('click', function() {
+                                    showStatusModal(this.dataset);
+                                });
+                                
                                 container.appendChild(square);
-
-                                if (status.source_date) {
-                                    const dateDiv = document.createElement('div');
-                                    dateDiv.className = 'build-date';
-                                    // Format source date as YYYY-MM-DD
-                                    const sourceDate = new Date(status.source_date);
-                                    dateDiv.textContent = sourceDate.toISOString().split('T')[0];
-                                    dateDiv.title = "Source Data Update Date";
-                                    container.appendChild(dateDiv);
-                                }
 
                                 cell.appendChild(container);
                             }
@@ -461,7 +483,7 @@
                 .catch(error => {
                     console.error('Error fetching worker grid:', error);
                     document.getElementById('worker-grid-body').innerHTML = 
-                        `<tr><td colspan="9">Error loading data: ${error.message}</td></tr>`;
+                        `<tr><td colspan="7">Error loading data: ${error.message}</td></tr>`;
                 });
         }
 
@@ -515,6 +537,49 @@
                     console.error('Error fetching stats:', error);
                 });
         }
+
+        // Status modal functions
+        function showStatusModal(data) {
+            const modal = document.getElementById('status-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const statusDetails = document.getElementById('status-details');
+            
+            modalTitle.textContent = `${data.iso} ADM${data.adm} Status Details`;
+            
+            // Create details table
+            let detailsHTML = `
+                <table>
+                    <tr>
+                        <th>Status</th>
+                        <td>${data.status}</td>
+                    </tr>
+                    <tr>
+                        <th>Activity Date</th>
+                        <td>${data.time ? formatDateEST(data.time) : '-'}</td>
+                    </tr>
+                    <tr>
+                        <th>Source Date</th>
+                        <td>${data.sourceDate ? formatDateEST(data.sourceDate) : '-'}</td>
+                    </tr>
+                </table>
+            `;
+            
+            statusDetails.innerHTML = detailsHTML;
+            modal.style.display = 'block';
+        }
+        
+        // Close the modal when clicking the close button
+        document.querySelector('.close-modal').addEventListener('click', function() {
+            document.getElementById('status-modal').style.display = 'none';
+        });
+        
+        // Close the modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('status-modal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
 
         // Update stats and grid immediately and then every 5 seconds
         updateStats();
