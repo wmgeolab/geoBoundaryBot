@@ -235,6 +235,45 @@
         .dropdown:hover .dropdown-content {
             display: block;
         }
+        
+        .color-controls {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .color-controls label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .color-option {
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        
+        .color-option input {
+            margin-right: 5px;
+        }
+        
+        .legend {
+            display: flex;
+            align-items: center;
+            margin-left: 20px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body>
@@ -262,6 +301,66 @@
         </div>
 
         <h2>Worker Status Grid</h2>
+        <div class="color-controls">
+            <label>Color by:</label>
+            <div class="color-option">
+                <input type="radio" id="color-status" name="color-scheme" value="status" checked>
+                <label for="color-status">Status</label>
+            </div>
+            <div class="color-option">
+                <input type="radio" id="color-activity" name="color-scheme" value="activity">
+                <label for="color-activity">Activity Date</label>
+            </div>
+            <div class="color-option">
+                <input type="radio" id="color-source" name="color-scheme" value="source">
+                <label for="color-source">Source Date</label>
+            </div>
+            
+            <div class="legend" id="status-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #4CAF50;"></div>
+                    <span>Success</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #FFC107;"></div>
+                    <span>Running</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #F44336;"></div>
+                    <span>Error</span>
+                </div>
+            </div>
+            
+            <div class="legend" id="activity-legend" style="display: none;">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #4CAF50;"></div>
+                    <span>Recent</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #FFC107;"></div>
+                    <span>Few days old</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #F44336;"></div>
+                    <span>> 1 week old</span>
+                </div>
+            </div>
+            
+            <div class="legend" id="source-legend" style="display: none;">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #4CAF50;"></div>
+                    <span>Recent</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #FFC107;"></div>
+                    <span>~1 year old</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #F44336;"></div>
+                    <span>> 3 years old</span>
+                </div>
+            </div>
+        </div>
         <div class="worker-grid">
             <table>
                 <thead>
@@ -368,15 +467,89 @@
         }
 
         function getStatusColor(status, timestamp) {
-            const ageInHours = (new Date() - new Date(timestamp)) / (1000 * 60 * 60);
-            const baseColor = status.includes('COMPLETE') ? [76, 220, 100] : // Brighter green
-                             status.includes('ERROR') ? [255, 82, 82] : // Brighter red
-                             [241, 196, 15]; // Yellow
-            
-            // Darken based on age (up to 72 hours) but keep more visible
-            const darkening = Math.min(ageInHours / 72, 1) * 0.4; // Max 40% darker
-            return `rgb(${baseColor.map(c => Math.round(c * (1 - darkening))).join(',')})`;
+            if (status === 'SUCCESS') return '#4CAF50';  // Green
+            if (status === 'RUNNING') return '#FFC107';  // Amber
+            if (status === 'ERROR') return '#F44336';    // Red
+            return '#9E9E9E';  // Grey for unknown status
         }
+        
+        function getActivityDateColor(timestamp) {
+            if (!timestamp) return '#9E9E9E'; // Grey for unknown
+            
+            const now = new Date();
+            const activityDate = new Date(timestamp);
+            const diffDays = Math.floor((now - activityDate) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 1) return '#4CAF50'; // Less than 1 day - bright green
+            if (diffDays < 3) return '#8BC34A'; // 1-3 days - light green
+            if (diffDays < 5) return '#CDDC39'; // 3-5 days - lime green
+            if (diffDays < 7) return '#FFC107'; // 5-7 days - amber
+            return '#F44336'; // More than a week - red
+        }
+        
+        function getSourceDateColor(sourceDate) {
+            if (!sourceDate) return '#9E9E9E'; // Grey for unknown
+            
+            // Try to parse the date
+            let date;
+            try {
+                // First try as ISO string
+                date = new Date(sourceDate);
+                
+                // If invalid, try parsing from format like "2023-01-19 07:31:04+00"
+                if (isNaN(date.getTime())) {
+                    const parts = sourceDate.split(/[\s\+]/);
+                    if (parts.length >= 2) {
+                        date = new Date(parts[0] + 'T' + parts[1]);
+                    }
+                }
+                
+                // If still invalid, return grey
+                if (isNaN(date.getTime())) {
+                    console.warn("Could not parse source date:", sourceDate);
+                    return '#9E9E9E';
+                }
+            } catch (e) {
+                console.error("Error parsing source date:", e);
+                return '#9E9E9E';
+            }
+            
+            const now = new Date();
+            const diffYears = (now - date) / (1000 * 60 * 60 * 24 * 365);
+            
+            if (diffYears < 1) return '#4CAF50'; // Less than 1 year - bright green
+            if (diffYears < 1.5) return '#8BC34A'; // 1-1.5 years - light green
+            if (diffYears < 2) return '#CDDC39'; // 1.5-2 years - lime green
+            if (diffYears < 3) return '#FFC107'; // 2-3 years - amber
+            return '#F44336'; // More than 3 years - red
+        }
+        
+        // Get the current color scheme
+        function getCurrentColorScheme() {
+            const radios = document.getElementsByName('color-scheme');
+            for (const radio of radios) {
+                if (radio.checked) {
+                    return radio.value;
+                }
+            }
+            return 'status'; // Default
+        }
+        
+        // Update legend visibility based on selected color scheme
+        function updateLegendVisibility() {
+            const scheme = getCurrentColorScheme();
+            document.getElementById('status-legend').style.display = scheme === 'status' ? 'flex' : 'none';
+            document.getElementById('activity-legend').style.display = scheme === 'activity' ? 'flex' : 'none';
+            document.getElementById('source-legend').style.display = scheme === 'source' ? 'flex' : 'none';
+        }
+        
+        // Add event listeners for color scheme changes
+        document.querySelectorAll('input[name="color-scheme"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                updateLegendVisibility();
+                updateWorkerGrid(); // Refresh the grid with new colors
+            });
+        });
 
         function updateWorkerGrid() {
             fetch('/api/worker-grid')
@@ -442,7 +615,6 @@
 
                                 const square = document.createElement('div');
                                 square.className = 'status-square';
-                                square.style.backgroundColor = getStatusColor(status.status, status.time);
                                 square.title = `Click for details`;
                                 
                                 // Store data for popup
@@ -457,6 +629,20 @@
                                     event.stopPropagation();
                                     showStatusPopup(this, this.dataset);
                                 });
+                                
+                                // Get the appropriate color based on the current color scheme
+                                const colorScheme = getCurrentColorScheme();
+                                let squareColor;
+                                
+                                if (colorScheme === 'status') {
+                                    squareColor = getStatusColor(status.status, status.time);
+                                } else if (colorScheme === 'activity') {
+                                    squareColor = getActivityDateColor(status.time);
+                                } else if (colorScheme === 'source') {
+                                    squareColor = getSourceDateColor(status.source_date);
+                                }
+                                
+                                square.style.backgroundColor = squareColor;
                                 
                                 container.appendChild(square);
 
