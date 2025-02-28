@@ -69,9 +69,17 @@ def get_worker_grid():
                         source_date = None
                         if row[3]:
                             try:
-                                source_date = row[3].replace(tzinfo=ZoneInfo('UTC')).astimezone(ZoneInfo('America/New_York')).isoformat()
+                                # Check if it's a datetime object or a string
+                                if hasattr(row[3], 'replace'):
+                                    source_date = row[3].replace(tzinfo=ZoneInfo('UTC')).astimezone(ZoneInfo('America/New_York')).isoformat()
+                                else:
+                                    # It's a string, pass it directly
+                                    source_date = str(row[3])
+                                    logging.info(f"Source date is a string: {source_date}")
                             except Exception as date_e:
                                 logging.error(f"Error processing source date for {iso}_ADM{adm}: {date_e}")
+                                # Still try to use the raw value
+                                source_date = str(row[3])
                         
                         grid_data.append({
                             'iso': iso,
