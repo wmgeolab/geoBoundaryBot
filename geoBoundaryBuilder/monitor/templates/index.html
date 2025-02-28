@@ -334,8 +334,20 @@
 
         function updateWorkerGrid() {
             fetch('/api/worker-grid')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    // Check if grid_data exists
+                    if (!data || !data.grid_data || !Array.isArray(data.grid_data)) {
+                        console.error('Invalid grid data received:', data);
+                        document.getElementById('worker-grid-body').innerHTML = '<tr><td colspan="9">No data available</td></tr>';
+                        return;
+                    }
+                    
                     // Group by ISO
                     const isoMap = new Map();
                     data.grid_data.forEach(item => {
@@ -358,12 +370,19 @@
                     
                     sortedIsos.forEach(iso => {
                         const row = document.createElement('tr');
+                        const isoData = isoMap.get(iso);
+                        
+                        if (!isoData) {
+                            console.warn(`No data found for ISO: ${iso}`);
+                            return; // Skip this ISO
+                        }
                         
                         // Find most recent timestamp for this ISO
                         let mostRecentTime = null;
                         let mostRecentSourceDate = null;
-                        isoMap.get(iso).forEach((value) => {
-                            if (!mostRecentTime || new Date(value.time) > new Date(mostRecentTime)) {
+                        
+                        isoData.forEach((value) => {
+                            if (!mostRecentTime || (value.time && new Date(value.time) > new Date(mostRecentTime))) {
                                 mostRecentTime = value.time;
                             }
                             if (value.source_date && (!mostRecentSourceDate || new Date(value.source_date) > new Date(mostRecentSourceDate))) {
@@ -378,8 +397,8 @@
                                 <div class="dropdown">
                                     <span>${mostRecentTime ? formatDateEST(mostRecentTime) : '-'}</span>
                                     <div class="dropdown-content">
-                                        ${Array.from(isoMap.get(iso).entries())
-                                            .filter(([_, value]) => value.time)
+                                        ${Array.from(isoData.entries())
+                                            .filter(([_, value]) => value && value.time)
                                             .map(([adm, value]) => `<p>ADM${adm}: ${formatDateEST(value.time)}</p>`)
                                             .join('')}
                                     </div>
@@ -389,8 +408,8 @@
                                 <div class="dropdown">
                                     <span>${mostRecentSourceDate ? formatDateEST(mostRecentSourceDate) : '-'}</span>
                                     <div class="dropdown-content">
-                                        ${Array.from(isoMap.get(iso).entries())
-                                            .filter(([_, value]) => value.source_date)
+                                        ${Array.from(isoData.entries())
+                                            .filter(([_, value]) => value && value.source_date)
                                             .map(([adm, value]) => `<p>ADM${adm}: ${formatDateEST(value.source_date)}</p>`)
                                             .join('')}
                                     </div>
@@ -401,7 +420,7 @@
                         // Add cells for each ADM level
                         for (let adm = 0; adm <= 5; adm++) {
                             const cell = document.createElement('td');
-                            const status = isoMap.get(iso).get(adm.toString());
+                            const status = isoData.get(adm.toString());
                             
                             if (status) {
                                 const container = document.createElement('div');
@@ -435,7 +454,11 @@
                         tbody.appendChild(row);
                     });
                 })
-                .catch(error => console.error('Error fetching worker grid:', error));
+                .catch(error => {
+                    console.error('Error fetching worker grid:', error);
+                    document.getElementById('worker-grid-body').innerHTML = 
+                        `<tr><td colspan="9">Error loading data: ${error.message}</td></tr>`;
+                });
         }
 
         function updateStats() {
