@@ -37,7 +37,7 @@ def get_worker_grid():
             with conn.cursor() as cur:
                 # Get all worker statuses
                 cur.execute("""
-                    SELECT "STATUS_TYPE", "STATUS", "TIME"
+                    SELECT "STATUS_TYPE", "STATUS", "TIME", "SOURCE_DATE"
                     FROM worker_status
                     WHERE "STATUS_TYPE" LIKE '%_WORKER'
                 """)
@@ -59,7 +59,7 @@ def get_worker_grid():
                             'adm': adm,
                             'status': status,
                             'time': timestamp,
-                            'build_date': row[3] if len(row) > 3 else None
+                            'source_date': row[3].replace(tzinfo=ZoneInfo('UTC')).astimezone(ZoneInfo('America/New_York')).isoformat() if row[3] else None
                         })
                 
                 return jsonify({'grid_data': grid_data})

@@ -179,6 +179,25 @@
             z-index: 10;
             position: relative;
         }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            padding: 12px 16px;
+            z-index: 1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -211,7 +230,8 @@
                 <thead>
                     <tr>
                         <th>ISO</th>
-                        <th>Last Update (EST)</th>
+                        <th>Activity Date</th>
+                        <th>Source Date</th>
                         <th>ADM0</th>
                         <th>ADM1</th>
                         <th>ADM2</th>
@@ -324,7 +344,8 @@
                         }
                         isoMap.get(item.iso).set(item.adm, {
                             status: item.status,
-                            time: item.time
+                            time: item.time,
+                            source_date: item.source_date
                         });
                     });
 
@@ -340,16 +361,41 @@
                         
                         // Find most recent timestamp for this ISO
                         let mostRecentTime = null;
+                        let mostRecentSourceDate = null;
                         isoMap.get(iso).forEach((value) => {
                             if (!mostRecentTime || new Date(value.time) > new Date(mostRecentTime)) {
                                 mostRecentTime = value.time;
+                            }
+                            if (value.source_date && (!mostRecentSourceDate || new Date(value.source_date) > new Date(mostRecentSourceDate))) {
+                                mostRecentSourceDate = value.source_date;
                             }
                         });
                         
                         // Add ISO and timestamp columns
                         row.innerHTML = `
                             <td>${iso}</td>
-                            <td>${mostRecentTime ? formatDateEST(mostRecentTime) : '-'}</td>
+                            <td>
+                                <div class="dropdown">
+                                    <span>${mostRecentTime ? formatDateEST(mostRecentTime) : '-'}</span>
+                                    <div class="dropdown-content">
+                                        ${Array.from(isoMap.get(iso).entries())
+                                            .filter(([_, value]) => value.time)
+                                            .map(([adm, value]) => `<p>ADM${adm}: ${formatDateEST(value.time)}</p>`)
+                                            .join('')}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="dropdown">
+                                    <span>${mostRecentSourceDate ? formatDateEST(mostRecentSourceDate) : '-'}</span>
+                                    <div class="dropdown-content">
+                                        ${Array.from(isoMap.get(iso).entries())
+                                            .filter(([_, value]) => value.source_date)
+                                            .map(([adm, value]) => `<p>ADM${adm}: ${formatDateEST(value.source_date)}</p>`)
+                                            .join('')}
+                                    </div>
+                                </div>
+                            </td>
                         `;
                         
                         // Add cells for each ADM level
@@ -367,15 +413,16 @@
                                 const square = document.createElement('div');
                                 square.className = 'status-square';
                                 square.style.backgroundColor = getStatusColor(status.status, status.time);
-                                square.title = `Status: ${status.status}\nUpdated: ${formatDateEST(status.time)}${status.build_date ? '\nBuild Date: ' + status.build_date : ''}`;
+                                square.title = `Status: ${status.status}\nUpdated: ${formatDateEST(status.time)}${status.source_date ? '\nSource Data Update: ' + formatDateEST(status.source_date) : ''}`;
                                 container.appendChild(square);
 
-                                if (status.build_date) {
+                                if (status.source_date) {
                                     const dateDiv = document.createElement('div');
                                     dateDiv.className = 'build-date';
-                                    // Format build date as YYYY-MM-DD
-                                    const buildDate = new Date(status.build_date);
-                                    dateDiv.textContent = buildDate.toISOString().split('T')[0];
+                                    // Format source date as YYYY-MM-DD
+                                    const sourceDate = new Date(status.source_date);
+                                    dateDiv.textContent = sourceDate.toISOString().split('T')[0];
+                                    dateDiv.title = "Source Data Update Date";
                                     container.appendChild(dateDiv);
                                 }
 
