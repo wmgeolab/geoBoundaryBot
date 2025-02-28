@@ -352,12 +352,16 @@
                     <span>Recent</span>
                 </div>
                 <div class="legend-item">
+                    <div class="legend-color" style="background-color: #8BC34A;"></div>
+                    <span>~2 years old</span>
+                </div>
+                <div class="legend-item">
                     <div class="legend-color" style="background-color: #FFC107;"></div>
-                    <span>~1 year old</span>
+                    <span>~4 years old</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background-color: #F44336;"></div>
-                    <span>> 3 years old</span>
+                    <span>> 5 years old</span>
                 </div>
             </div>
         </div>
@@ -452,24 +456,16 @@
             return '#27ae60';  // Green for < 12 hours
         }
 
-        function getStatusColor(status) {
-            if (!status) return '#95a5a6';
-            const statusLower = status.toLowerCase();
-            if (statusLower.includes('error') || statusLower.includes('failed') || statusLower.includes('not found')) {
-                return '#e74c3c';
-            } else if (statusLower.includes('warning')) {
-                return '#f1c40f';
-            } else if (statusLower.includes('success') || statusLower.includes('running') || statusLower.includes('ok')) {
-                return '#2ecc71';
-            } else {
-                return '#3498db';
-            }
-        }
-
         function getStatusColor(status, timestamp) {
-            if (status === 'SUCCESS') return '#4CAF50';  // Green
-            if (status === 'RUNNING') return '#FFC107';  // Amber
-            if (status === 'ERROR') return '#F44336';    // Red
+            if (status === 'SUCCESS' || status.includes('SUCCESS') || status.includes('COMPLETE')) {
+                return '#4CAF50';  // Green
+            }
+            if (status === 'RUNNING' || status.includes('RUNNING')) {
+                return '#FFC107';  // Amber
+            }
+            if (status === 'ERROR' || status.includes('ERROR') || status.includes('FAIL')) {
+                return '#F44336';  // Red
+            }
             return '#9E9E9E';  // Grey for unknown status
         }
         
@@ -518,10 +514,10 @@
             const diffYears = (now - date) / (1000 * 60 * 60 * 24 * 365);
             
             if (diffYears < 1) return '#4CAF50'; // Less than 1 year - bright green
-            if (diffYears < 1.5) return '#8BC34A'; // 1-1.5 years - light green
-            if (diffYears < 2) return '#CDDC39'; // 1.5-2 years - lime green
-            if (diffYears < 3) return '#FFC107'; // 2-3 years - amber
-            return '#F44336'; // More than 3 years - red
+            if (diffYears < 2) return '#8BC34A'; // 1-2 years - light green
+            if (diffYears < 3) return '#CDDC39'; // 2-3 years - lime green
+            if (diffYears < 5) return '#FFC107'; // 3-5 years - amber
+            return '#F44336'; // More than 5 years - red
         }
         
         // Get the current color scheme
