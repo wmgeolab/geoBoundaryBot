@@ -248,18 +248,22 @@
 
     <script>
         function formatDateEST(isoString) {
-            if (!isoString) return 'None';
-            const date = new Date(isoString);
-            return date.toLocaleString('en-US', { 
-                timeZone: 'America/New_York',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true
-            });
+            if (!isoString) return '-';
+            try {
+                const date = new Date(isoString);
+                if (isNaN(date.getTime())) return '-'; // Invalid date
+                return date.toLocaleString('en-US', { 
+                    timeZone: 'America/New_York',
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (e) {
+                console.error('Error formatting date:', e, isoString);
+                return '-';
+            }
         }
 
         function getTimeDifferenceInMinutes(isoString) {
@@ -382,10 +386,10 @@
                         let mostRecentSourceDate = null;
                         
                         isoData.forEach((value) => {
-                            if (!mostRecentTime || (value.time && new Date(value.time) > new Date(mostRecentTime))) {
+                            if (value && value.time && (!mostRecentTime || new Date(value.time) > new Date(mostRecentTime))) {
                                 mostRecentTime = value.time;
                             }
-                            if (value.source_date && (!mostRecentSourceDate || new Date(value.source_date) > new Date(mostRecentSourceDate))) {
+                            if (value && value.source_date && (!mostRecentSourceDate || new Date(value.source_date) > new Date(mostRecentSourceDate))) {
                                 mostRecentSourceDate = value.source_date;
                             }
                         });

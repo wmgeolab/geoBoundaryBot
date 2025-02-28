@@ -36,12 +36,16 @@ def get_worker_grid():
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 # Get all worker statuses
-                cur.execute("""
+                query = """
                     SELECT "STATUS_TYPE", "STATUS", "TIME", "SOURCE_DATE"
                     FROM worker_status
                     WHERE "STATUS_TYPE" LIKE '%_WORKER'
-                """)
+                """
+                
+                logging.info(f"Executing query: {query}")
+                cur.execute(query)
                 rows = cur.fetchall()
+                logging.info(f"Found {len(rows)} worker status rows")
                 
                 # Process into grid format
                 grid_data = []
@@ -52,19 +56,36 @@ def get_worker_grid():
                         iso = parts[0]
                         adm = parts[1].replace('ADM', '')
                         status = row[1]
-                        timestamp = row[2].replace(tzinfo=ZoneInfo('UTC')).astimezone(ZoneInfo('America/New_York')).isoformat() if row[2] else None
+                        
+                        # Handle TIME column safely
+                        timestamp = None
+                        if row[2]:
+                            try:
+                                timestamp = row[2].replace(tzinfo=ZoneInfo('UTC')).astimezone(ZoneInfo('America/New_York')).isoformat()
+                            except Exception as time_e:
+                                logging.error(f"Error processing time for {iso}_ADM{adm}: {time_e}")
+                        
+                        # Handle SOURCE_DATE column safely
+                        source_date = None
+                        if row[3]:
+                            try:
+                                source_date = row[3].replace(tzinfo=ZoneInfo('UTC')).astimezone(ZoneInfo('America/New_York')).isoformat()
+                            except Exception as date_e:
+                                logging.error(f"Error processing source date for {iso}_ADM{adm}: {date_e}")
                         
                         grid_data.append({
                             'iso': iso,
                             'adm': adm,
                             'status': status,
                             'time': timestamp,
-                            'source_date': row[3].replace(tzinfo=ZoneInfo('UTC')).astimezone(ZoneInfo('America/New_York')).isoformat() if row[3] else None
+                            'source_date': source_date
                         })
                 
                 return jsonify({'grid_data': grid_data})
     except Exception as e:
         logging.error(f"Error getting worker grid data: {e}")
+        import traceback
+        logging.error(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/stats')
