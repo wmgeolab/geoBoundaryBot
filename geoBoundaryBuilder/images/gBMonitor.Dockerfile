@@ -14,5 +14,4 @@ COPY ./gbWeb/monitor/ /app/monitor/
 COPY ./gbWeb/ /app/web/
 
 EXPOSE 5000
-
 CMD ["python", "/app/monitor/app.py"]
