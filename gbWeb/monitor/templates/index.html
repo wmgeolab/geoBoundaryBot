@@ -592,7 +592,7 @@
         });
 
         function updateWorkerGrid() {
-            fetch('/api/worker-grid')
+            fetch('/monitor/api/worker-grid')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -726,7 +726,7 @@
         }
 
         function updateStats() {
-            fetch('/api/stats')
+            fetch('/monitor/api/stats')
                 .then(response => response.json())
                 .then(data => {
                     // Update task stats
