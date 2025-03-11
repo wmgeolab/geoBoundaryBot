@@ -11,7 +11,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-app = Flask(__name__, static_folder='../static', static_url_path='')
+app = Flask(__name__, static_folder='/app/web', static_url_path='')
 
 # Database Configuration
 DB_SERVICE = os.getenv("DB_SERVICE", "geoboundaries-postgres-service")
