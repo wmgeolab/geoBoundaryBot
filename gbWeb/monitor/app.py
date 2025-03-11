@@ -29,7 +29,7 @@ def get_db_connection():
         port=DB_PORT
     )
 
-@app.route('/api/worker-grid')
+@app.route('/monitor/api/worker-grid')
 def get_worker_grid():
     """Get status for all ISO/ADM combinations"""
     try:
@@ -96,7 +96,7 @@ def get_worker_grid():
         logging.error(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/stats')
+@app.route('/monitor/api/stats')
 def get_stats():
     try:
         with get_db_connection() as conn:
@@ -247,6 +247,10 @@ def index():
 @app.route('/monitor/')
 def monitor():
     return app.send_static_file('monitor/index.html')
+
+@app.route('/monitor/<path:filename>')
+def monitor_static(filename):
+    return app.send_static_file(f'monitor/{filename}')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
