@@ -246,11 +246,7 @@ def index():
 
 @app.route('/monitor/')
 def monitor():
-    return app.send_static_file('monitor/index.html')
-
-@app.route('/monitor/<path:filename>')
-def monitor_static(filename):
-    return app.send_static_file(f'monitor/{filename}')
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
