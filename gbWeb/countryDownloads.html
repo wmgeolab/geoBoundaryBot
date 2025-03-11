@@ -1,0 +1,179 @@
+<!DOCTYPE HTML>
+<!--
+	Verti by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>geoBoundaries</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<link rel="stylesheet" href="assets/css/tabulator.css">
+		<script type="text/javascript" src="assets/js/tabulator.js"></script>
+			<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-9276981-3"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'UA-9276981-3');
+	</script>
+
+  
+	<!-- Global site tag (gtag.js) - Google Ads: 984002936 -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=AW-984002936"></script>
+	<script>
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+
+	gtag('config', 'AW-984002936');
+	</script>
+
+	<!-- Event snippet for Website traffic conversion page -->
+	<script>
+		gtag('event', 'conversion', {'send_to': 'AW-984002936/BycZCJ_8kdMBEPjimtUD'});
+	</script>
+	</head>
+	<body class="is-preload left-sidebar">
+		<div id="page-wrapper">
+
+			<!-- Header & Nav -->
+			<div id="header-wrapper">
+				<header id="header" class="container">
+			
+					<!-- Logo -->
+					<div id="logo">
+						<h1><a href="index.html">geoBoundaries</a></h1>
+						<span><a href="http://geolab.wm.edu">@ William & Mary</a></span>
+					</div>
+					<nav id="nav">
+						<ul>
+							<li>
+								<a href="visualize.html">Visualize Data</a>
+							</li>
+							<li>
+								<a href="index.html#features-wrapper">Download Data</a>
+							</li>
+							<li>
+								<a href="api.html">API</a>
+							</li>
+							
+							<li>
+								<a href="contribute.html">Get Involved</a>
+							</li>
+			
+			
+						</ul>
+					</nav>
+			
+				</header>
+			</div>
+
+			<!-- Main -->
+				<div id="main-wrapper">
+					<div class="container">
+						<div class="row gtr-200">
+							<div class="col-4 col-12-medium">
+								<div id="sidebar">
+
+									<!-- Sidebar -->
+										<section>
+											<h3>Individual Country Files</h3>
+											<p>The geoBoundaries open license (<a href="https://creativecommons.org/licenses/by/4.0/">CC-BY 4.0</a>) country dataset seeks to represent every nation "as they would represent themselves", with no special identification of disputed areas. If you would prefer data that explicitly includes disputed areas, please see the global composite dataset. <b><a href="index.html#usage">Attribution</a> is required for all uses of this dataset</b>. </p>
+											<footer>
+												<div style="overflow:hidden;"><a href="countryDownloads.html" style="width:100%;position:relative;top:20px;padding-top:5px;padding-bottom:-10px;" class="button icon solid fa-flag">Single Country Files <span style="font-size:0.5em;position:relative;top:-15px;line-height:0px;left:30px;"><br />Files for individual countries</span></a></div>
+												<div style="overflow:hidden;"><a href="globalDownloads.html" style="width:100%;position:relative;top:20px;padding-top:5px;padding-bottom:-10px;" class="button icon solid fa-globe">Global Files <span style="font-size:0.5em;position:relative;top:-15px;line-height:0px;left:30px;"><br />A single file for the entire globe</span></a></div>
+												<div style="overflow:hidden;"><a href="simplifiedDownloads.html" style="width:100%;position:relative;top:20px;padding-top:5px;padding-bottom:-10px;" class="button icon solid fa-map">Simplified Files <span style="font-size:0.5em;position:relative;top:-15px;line-height:0px;left:30px;"><br />Smaller files for visualization</span></a></div>
+											</footer>
+										</section>
+
+
+								</div>
+							</div>
+							<div class="col-8 col-12-medium imp-medium">
+								<div id="content">
+
+									<!-- Content -->
+										<article>
+
+
+											<p>	<div id="dataTableRep" style="max-width:100%;">
+
+												Loading...
+						
+											</div></p>
+
+										<script>
+												var downloadSingleIcon = function (cell, formatterParams) {
+													if (typeof cell.getValue() != "undefined") {
+														return "<i class='fa fa-download'></i>";
+													}
+												}
+												var downloadSimpleIcon = function (cell, formatterParams) {
+													if (typeof cell.getValue() != "undefined") {
+														return "<i class='fa fa-save'></i>";
+													}
+												}
+												var interactivePreview = function (cell, formatterParams) {
+													if (typeof cell.getValue() != "undefined") {
+														return "<i class='fa fa-eye'></i>";
+													}
+												}
+												var iconFormatter = function (cell, row, formatterParams) { //plain text value
+													if (typeof cell.getValue() != "undefined") {
+														return "<a href='" + cell.getValue() + "' target='_blank'><img width=50px src='" + cell.getValue() + "'></a>";
+													}
+						
+												};
+												var tableA = new Tabulator("#dataTableRep", {
+													ajaxURL: "https://www.geoboundaries.org/api/current/gbOpen/ALL/ALL/", //ajax URL
+													height: screen.height * 0.75,
+													layout: "fitDataStretch",
+													autoResize:true,
+													resizableColumns: true,
+													responsiveLayout: "collapse",
+													//groupBy: ["Continent", "boundaryName"],
+													//autoColumns:true,
+													columns: [                 //define the table columns
+													{ formatter: downloadSingleIcon, title: "", align: "center", field: "staticDownloadLink", headerVertical: true, responsive: 0, cellClick: function (e, cell) { window.open(encodeURI(cell.getRow().getData()["staticDownloadLink"].replace("https://g", "https://www.g"))) }},	
+													{ title: "Name", field: "boundaryName", visible: true, responsive: 0, headerFilter: 'input', width: "20px", headerVertical: false },
+														{ title: "ISO-3", field: "boundaryISO", visible: true, responsive: 0, headerFilter: 'input', width: "12px", headerVertical: false },
+														{ title: "Type", field: "boundaryType", visible: true, responsive: 0, headerVertical: false },
+														{ title: "Year", width:"10px", field: "boundaryYearRepresented", headerVertical: false, },
+														{ title: "Preview", field: "imagePreview", formatter: iconFormatter, visible: true, variableHeight: true, headerVertical: false, },
+														{ title: "Source", field: "boundarySource", headerVertical: false, responsive: 1, width: "20px", visible: true }
+													]
+												});
+						
+						
+											</script>
+
+										</article>
+
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			<!-- Footer -->
+			<div data-include="_includes/footer.shtml"></div>
+
+			</div>
+
+		<!-- Scripts -->
+
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.dropotron.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+			<script src="assets/js/HTMLInclude.min.js"></script>
+
+	</body>
+</html>

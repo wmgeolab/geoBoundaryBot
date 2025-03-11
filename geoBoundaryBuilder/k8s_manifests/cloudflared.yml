@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: geoboundaries-cloudflared
+  namespace: geoboundaries
+  labels:
+    app: geoboundaries-cloudflared
+spec:
+  securityContext:
+    runAsUser: 71032
+    runAsGroup: 9915
+  containers:
+  - name: cloudflared
+    image: cloudflare/cloudflared:latest
+    imagePullPolicy: Always
+    command: ["cloudflared", "tunnel", "--config", "/sciclone/geograd/geoBoundaries/geoBoundaryBot/geoBoundaryBuilder/k8s_manifests/cloudflared_config.yml", "run", "--protocol", "http2"]
+    env:
+    - name: TUNNEL_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: cloudflared-token
+          key: token
+    volumeMounts:
+    - mountPath: /sciclone
+      name: nfs-mount
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "2"
+        ephemeral-storage: "5Gi"
+      limits:
+        memory: "1Gi"
+        cpu: "2"
+        ephemeral-storage: "5Gi"
+  volumes:
+  - name: nfs-mount
+    nfs:
+      server: "128.239.59.144"
+      path: "/sciclone"

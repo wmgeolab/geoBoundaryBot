@@ -7,7 +7,7 @@ RUN pip install --no-cache-dir \
     psycopg2-binary==2.9.7 \
     Werkzeug==2.3.7
 
-COPY ./geoBoundaryBuilder/monitor /app/
+COPY ./gbWeb/ /app/
 
 EXPOSE 5000
 

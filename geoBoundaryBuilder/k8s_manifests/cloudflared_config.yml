@@ -1,0 +1,7 @@
+tunnel: cfd7342a-2b40-47ad-b8bd-c2f5fb974cee
+ingress:
+  - hostname: geoboundaries-dev.org
+    service: http://geoboundaries-monitor-service.geoboundaries.svc.cluster.local:80  # Internal service (adjust IP/port)
+  - hostname: www.geoboundaries-dev.org
+    service: http://geoboundaries-monitor-service.geoboundaries.svc.cluster.local:80  # Internal service (adjust IP/port)
+  - service: http_status:404  # Default rule for unmatched requests

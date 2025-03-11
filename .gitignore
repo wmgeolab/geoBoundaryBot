@@ -1,6 +1,7 @@
 tmp
 __pycache__
 geoBoundaryBuilder/buildLog
+gbWeb/api
 
 *.swp
 *.gpkg

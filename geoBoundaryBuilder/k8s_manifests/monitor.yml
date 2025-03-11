@@ -15,6 +15,11 @@ spec:
     imagePullPolicy: Always
     ports:
     - containerPort: 5000
+    resources:
+      requests:
+        ephemeral-storage: "5Gi"
+      limits:
+        ephemeral-storage: "5Gi"
     env:
     - name: DB_SERVICE
       value: "geoboundaries-postgres-service"
@@ -39,10 +44,9 @@ metadata:
   name: geoboundaries-monitor-service
   namespace: geoboundaries
 spec:
-  type: NodePort
+  type: ClusterIP
+  selector:
+    app: geoboundaries-monitor
   ports:
   - port: 80
     targetPort: 5000
-    nodePort: 30081  # Monitor dashboard port
-  selector:
-    app: geoboundaries-monitor
