@@ -7,7 +7,11 @@ RUN pip install --no-cache-dir \
     psycopg2-binary==2.9.7 \
     Werkzeug==2.3.7
 
-COPY ./gbWeb/ /app/
+# Copy the monitor app
+COPY ./gbWeb/monitor/ /app/monitor/
+
+# Copy the static files
+COPY ./gbWeb/ /app/static/
 
 EXPOSE 5000
 

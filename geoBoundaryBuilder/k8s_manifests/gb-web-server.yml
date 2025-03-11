@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: geoboundaries-monitor
+  name: geoboundaries-web
   namespace: geoboundaries
   labels:
     app: geoboundaries-monitor

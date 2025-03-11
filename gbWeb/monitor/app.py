@@ -11,7 +11,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-app = Flask(__name__, static_folder='/app')
+app = Flask(__name__, static_folder='../static', static_url_path='')
 
 # Database Configuration
 DB_SERVICE = os.getenv("DB_SERVICE", "geoboundaries-postgres-service")
@@ -243,6 +243,10 @@ def get_stats():
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
+
+@app.route('/monitor/')
+def monitor():
+    return app.send_static_file('monitor/index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
