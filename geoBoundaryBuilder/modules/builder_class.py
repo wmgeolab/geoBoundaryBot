@@ -816,7 +816,7 @@ class builder:
                     if("Open Data Commons Open Database" in self.metaDataLib["boundaryLicense"]):
                         out = out + "3.In addition, the source of this file further requires attribution as per the OSM \n"
                         out = out + "Foundation Licence/Attribution Guidelines\n" 
-                        out = out + "(https://osmfoundation.org/wiki/Licence/Attribution_Guidelines).\n"
+                        out = out + "(https://osmfoundation.org/wiki/Licence/Attribution_Guidelines).\n\n"
                     else:
                         out = out + "Additionally, we recommend citation of the source(s) noted in this metadata file.\n\n"
                 if(i == "boundaryISO"):
