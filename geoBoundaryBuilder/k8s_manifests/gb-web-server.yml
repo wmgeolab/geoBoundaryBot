@@ -32,11 +32,17 @@ spec:
     volumeMounts:
     - mountPath: /sciclone
       name: nfs-mount
+    - mountPath: /app/web
+      name: gbweb-mount
   volumes:
   - name: nfs-mount
     nfs:
       server: "128.239.59.144"
       path: "/sciclone"
+  - name: gbweb-mount
+    nfs:
+      server: "128.239.59.144"
+      path: /sciclone/geograd/geoBoundaries/geoBoundaryBot/gbWeb
 ---
 apiVersion: v1
 kind: Service

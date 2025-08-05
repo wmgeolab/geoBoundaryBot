@@ -50,7 +50,7 @@ failed_pod_count = 0
 # Load Kubernetes Configuration
 def load_kubernetes_config():
     try:
-        config_file = "/sciclone/geograd/geoBoundaries/.kube/config"
+        config_file = "/home/dsmillerrunfol/.kube/config"
         if os.path.exists(config_file):
             config.load_kube_config(config_file=config_file)
             logging.info(f"Kubernetes configuration loaded from: {config_file}")

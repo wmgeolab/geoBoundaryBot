@@ -14,12 +14,12 @@ spec:
       command: ["/bin/sh", "-c"] # Keep the container running
       args:
         - |
-          export KUBECONFIG=/sciclone/geograd/geoBoundaries/.kube/config; 
+          export KUBECONFIG=/home/dsmillerunfol/.kube/config; 
           echo "Pod is ready for interactive jobs. Use kubectl exec to interact."; 
           while true; do sleep 3600; done
       env:
         - name: KUBECONFIG
-          value: /sciclone/geograd/geoBoundaries/.kube/config
+          value: /home/dsmillerunfol/.kube/config
       resources:
         requests:
           memory: "16Gi"
@@ -30,8 +30,14 @@ spec:
       volumeMounts:
         - name: nfs-mount
           mountPath: /sciclone/geograd/geoBoundaries
+        - name: home-mount
+          mountPath: /home
   volumes:
     - name: nfs-mount
       nfs:
         server: 128.239.59.144 
         path: /sciclone/geograd/geoBoundaries
+    - name: home-mount
+      nfs:
+        server: 128.239.56.166
+        path: /sciclone/home/

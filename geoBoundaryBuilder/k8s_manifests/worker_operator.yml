@@ -26,7 +26,7 @@ spec:
       command: ["/bin/bash", "-c"]
       args:
         - |
-          export KUBECONFIG=/sciclone/geograd/geoBoundaries/.kube && \
+          export KUBECONFIG=/home/dsmillerunfol/.kube/config && \
           cd /sciclone/geograd/geoBoundaries/geoBoundaryBot/geoBoundaryBuilder/modules/
           python worker_operator.py
       env:
@@ -41,8 +41,14 @@ spec:
       volumeMounts:
         - name: sciclone-volume
           mountPath: /sciclone  # Mount kubeconfig directory
+        - name: home-mount
+          mountPath: /home
   volumes:
     - name: sciclone-volume
       nfs:
         server: 128.239.59.144
         path: /sciclone
+    - name: home-mount
+      nfs:
+        server: 128.239.56.166
+        path: /sciclone/home/

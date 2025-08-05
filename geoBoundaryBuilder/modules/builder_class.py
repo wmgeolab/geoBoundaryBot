@@ -812,7 +812,13 @@ class builder:
                     out = out + "      PLoS ONE 15(4): e0231866. https://doi.org/10.1371/journal.pone.0231866\n"
                     out = out + "   2. Providing a link to geoboundaries.org - i.e., 'Administrative boundaries courtesy \n"
                     out = out + "      of geoBoundaries.org'\n"
-                    out = out + "Additionally, we recommend citation of the source(s) noted in this metadata file.\n\n"
+
+                    if("Open Data Commons Open Database" in self.metaDataLib["boundaryLicense"]):
+                        out = out + "3.In addition, the source of this file further requires attribution as per the OSM \n"
+                        out = out + "Foundation Licence/Attribution Guidelines\n" 
+                        out = out + "(https://osmfoundation.org/wiki/Licence/Attribution_Guidelines).\n"
+                    else:
+                        out = out + "Additionally, we recommend citation of the source(s) noted in this metadata file.\n\n"
                 if(i == "boundaryISO"):
                     out = "ISO-3166-1 (Alpha-3): " + str(self.metaDataLib["boundaryISO"])
                 if(i == "boundaryYear"):

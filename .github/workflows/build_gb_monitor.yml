@@ -3,7 +3,7 @@ run-name: gB Monitor Build
 on:
   push:
     branches: ['main']
-    paths: ['geoBoundaryBuilder/images/**','geoBoundaryBuilder/monitor/**','geoBoundaryBuilder/monitor/templates/**']
+    paths: ['geoBoundaryBuilder/images/**','geoBoundaryBuilder/monitor/**','geoBoundaryBuilder/monitor/templates/**','geoBoundaryBuilder/gbWeb/**']
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
