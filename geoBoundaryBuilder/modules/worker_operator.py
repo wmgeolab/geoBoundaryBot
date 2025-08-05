@@ -26,7 +26,7 @@ file_handler = TimedRotatingFileHandler(
     log_file, 
     when='midnight', 
     interval=1, 
-    backupCount=30  # Keep logs for 30 days
+    backupCount=3  # Keep logs for 30 days
 )
 file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
 logging.getLogger().addHandler(file_handler)
@@ -40,7 +40,7 @@ DB_PORT = 5432
 
 # Pod Configuration
 NAMESPACE = "geoboundaries"
-MAX_RUNNING_PODS = 1  # Limit the number of active worker pods
+MAX_RUNNING_PODS = 15  # Limit the number of active worker pods
 TASK_DIR = "/sciclone/geograd/geoBoundaries/database/geoBoundaries/sourceData/gbOpen"
 MAX_FAILED_PODS = 3  # Maximum failed pods before stopping task controller
 

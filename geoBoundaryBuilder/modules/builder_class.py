@@ -1,6 +1,7 @@
 import zipfile
 import hashlib 
 import os
+os.environ["OGR_GEOJSON_MAX_OBJ_SIZE"] = "0"
 import shutil
 import geopandas as gpd
 import datetime
@@ -814,7 +815,7 @@ class builder:
                     out = out + "      of geoBoundaries.org'\n"
 
                     if("Open Data Commons Open Database" in self.metaDataLib["boundaryLicense"]):
-                        out = out + "3.In addition, the source of this file further requires attribution as per the OSM \n"
+                        out = out + "3. In addition, the source of this file further requires attribution as per the OSM \n"
                         out = out + "Foundation Licence/Attribution Guidelines\n" 
                         out = out + "(https://osmfoundation.org/wiki/Licence/Attribution_Guidelines).\n\n"
                     else:
@@ -851,8 +852,23 @@ class builder:
             cu.write(self.citationUseConstructor())
 
         #Save intermediary geoJSON
-        self.logger.info("Building shapefiles, geojson, topojson (Full).")
-        self.geomDta.to_file(tmpJson, driver="GeoJSON", crs="EPSG:4326")
+        logStr = "Building shapefiles, geojson, topojson (Full) with: " + str(tmpJson)
+        self.logger.info(logStr)
+        try:
+            self.geomDta.to_file(tmpJson, driver="GeoJSON", crs="EPSG:4326")
+            self.logger.info("Intermediary GeoJSON export succeeded.")
+        except Exception as e:
+            self.logger.info(f"Intermediary GeoJSON export failed: {e}")
+            self.logger.info("Coercing all non-geometry fields to UTF-8 strings...")
+
+            for col in self.geomDta.columns:
+                if col != self.geomDta.geometry.name:
+                    self.geomDta[col] = self.geomDta[col].apply(
+                        lambda x: x.decode('utf-8', errors='replace') if isinstance(x, bytes) else str(x)
+                    )
+
+            self.geomDta.to_file(tmpJson, driver="GeoJSON", crs="EPSG:4326")
+            self.logger.info("Intermediary GeoJSON export succeeded after coercion.")
 
         writeRet = []
         self.logger.info("Debug - File paths:")

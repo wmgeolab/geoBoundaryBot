@@ -504,7 +504,7 @@
             if (status === 'SUCCESS' || status.includes('SUCCESS') || status.includes('COMPLETE')) {
                 return '#4CAF50';  // Green
             }
-            if (status === 'RUNNING' || status.includes('RUNNING')) {
+            if (status === 'RUNNING' || status.includes('RUNNING') || status === 'PROCESSING' || status.includes('PROCESSING') || status.includes('STARTING')) {
                 return '#FFC107';  // Amber
             }
             if (status === 'ERROR' || status.includes('ERROR') || status.includes('FAIL')) {

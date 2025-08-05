@@ -24,16 +24,47 @@ spec:
       value: "geoboundaries"  # Database to be created on first run
     - name: POSTGRES_HOST_AUTH_METHOD
       value: "trust"  # Allow connections without a password
+    args:
+      - "-c"
+      - "max_connections=1000"
+      - "-c"
+      - "idle_in_transaction_session_timeout=60000"
+      - "-c"
+      - "statement_timeout=30000"
+      - "-c"
+      - "log_min_duration_statement=1000"
+      - "-c"
+      - "work_mem=16MB"
+      - "-c"
+      - "maintenance_work_mem=512MB"
+      - "-c"
+      - "shared_buffers=8GB"
+      - "-c"
+      - "effective_cache_size=24GB"
+      - "-c"
+      - "wal_buffers=16MB"
+      - "-c"
+      - "max_wal_size=2GB"
+      - "-c"
+      - "min_wal_size=256MB"
+      - "-c"
+      - "checkpoint_timeout=10min"
+      - "-c"
+      - "max_worker_processes=16"
+      - "-c"
+      - "max_parallel_workers=8"
+      - "-c"
+      - "max_parallel_workers_per_gather=4"
     volumeMounts:
     - name: postgres-data
       mountPath: /var/lib/postgresql/data  # Persistent data directory
     resources:
       requests:
-        memory: "8Gi"
-        cpu: "2"
+        memory: "32Gi"
+        cpu: "16"
       limits:
-        memory: "16Gi"
-        cpu: "4"
+        memory: "64Gi"
+        cpu: "32"
   volumes:
   - name: postgres-data
     nfs:

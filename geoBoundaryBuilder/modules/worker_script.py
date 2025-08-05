@@ -1,5 +1,6 @@
 import sys
 import os
+os.environ["OGR_GEOJSON_MAX_OBJ_SIZE"] = "0"
 import zipfile
 import time
 import psycopg2
