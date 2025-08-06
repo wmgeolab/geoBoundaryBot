@@ -1499,7 +1499,6 @@ input, select, textarea {
 	form input[type="password"],
 	form select,
 	form textarea {
-		-webkit-appearance: none;
 		display: block;
 		width: 100%;
 		border-radius: 8px;
@@ -1631,7 +1630,6 @@ input, select, textarea {
 		-webkit-transition: background-color .25s ease-in-out;
 		-ms-transition: background-color .25s ease-in-out;
 		transition: background-color .25s ease-in-out;
-		-webkit-appearance: none;
 		position: relative;
 		display: inline-block;
 		background: #0090c5;
@@ -2700,7 +2698,9 @@ input, select, textarea {
 	.tab a:hover { text-decoration: underline; }
 	.tab.active { background: #fff; padding-top: 6px; position: relative; top: 1px; border-color: #666; }
 	.tab a.active { font-weight: bold; }
-	.tab-container .panel-container { background: #fff; border: solid #666 1px; padding: 10px; -moz-border-radius: 0 4px 4px 4px; -webkit-border-radius: 0 4px 4px 4px; }
+	.tab-container .panel-container { background: #fff; border: solid #666 1px; padding: 10px; 	-moz-border-radius: 0 4px 4px 4px;
+		-webkit-border-radius: 0 4px 4px 4px;
+		border-radius: 0 4px 4px 4px; }
 
 	code {
 		background: rgba(230, 235, 237, 0.25);

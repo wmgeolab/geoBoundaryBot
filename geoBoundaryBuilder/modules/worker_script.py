@@ -61,7 +61,7 @@ def connect_to_db(max_attempts=10, retry_delay=15):
                 logging.error("Failed to connect to database after maximum attempts.")
                 raise
 
-def update_status_in_db(conn, status_type, status, timestamp):
+def update_status_in_db(status_type, status, timestamp):
     """
     Update or insert a status record in the worker_status table
     """
@@ -236,40 +236,41 @@ def update_status_in_db(conn, status_type, status, timestamp):
                 else:
                     logging.info(f"Metadata file not found at: {meta_path}")
         
-        with conn.cursor() as cur:
-            # First, try to alter table to add SOURCE_DATE column if it doesn't exist
-            try:
-                cur.execute("""
-                    ALTER TABLE worker_status 
-                    ADD COLUMN IF NOT EXISTS "SOURCE_DATE" TIMESTAMP WITH TIME ZONE
-                """)
+        with connect_to_db() as conn:
+            with conn.cursor() as cur:
+                # First, try to alter table to add SOURCE_DATE column if it doesn't exist
+                try:
+                    cur.execute("""
+                        ALTER TABLE worker_status 
+                        ADD COLUMN IF NOT EXISTS "SOURCE_DATE" TIMESTAMP WITH TIME ZONE
+                    """)
+                    conn.commit()
+                except Exception as e:
+                    logging.warning(f"Could not add SOURCE_DATE column: {e}")
+                    conn.rollback()
+                
+                # Debug log the values being inserted
+                logging.info(f"Inserting values - STATUS_TYPE: {status_type}, STATUS: {status}, TIME: {timestamp}, SOURCE_DATE: {source_date}")
+                
+                # Upsert query including SOURCE_DATE
+                upsert_query = """
+                INSERT INTO worker_status ("STATUS_TYPE", "STATUS", "TIME", "SOURCE_DATE") 
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT ("STATUS_TYPE") 
+                DO UPDATE SET 
+                    "STATUS" = EXCLUDED."STATUS", 
+                    "TIME" = EXCLUDED."TIME",
+                    "SOURCE_DATE" = EXCLUDED."SOURCE_DATE"
+                """
+                
+                # Execute the query and verify the result
+                cur.execute(upsert_query, (status_type, status, timestamp, source_date))
                 conn.commit()
-            except Exception as e:
-                logging.warning(f"Could not add SOURCE_DATE column: {e}")
-                conn.rollback()
-            
-            # Debug log the values being inserted
-            logging.info(f"Inserting values - STATUS_TYPE: {status_type}, STATUS: {status}, TIME: {timestamp}, SOURCE_DATE: {source_date}")
-            
-            # Upsert query including SOURCE_DATE
-            upsert_query = """
-            INSERT INTO worker_status ("STATUS_TYPE", "STATUS", "TIME", "SOURCE_DATE") 
-            VALUES (%s, %s, %s, %s)
-            ON CONFLICT ("STATUS_TYPE") 
-            DO UPDATE SET 
-                "STATUS" = EXCLUDED."STATUS", 
-                "TIME" = EXCLUDED."TIME",
-                "SOURCE_DATE" = EXCLUDED."SOURCE_DATE"
-            """
-            
-            # Execute the query and verify the result
-            cur.execute(upsert_query, (status_type, status, timestamp, source_date))
-            conn.commit()
-            
-            # Verify the update
-            cur.execute('SELECT "SOURCE_DATE" FROM worker_status WHERE "STATUS_TYPE" = %s', (status_type,))
-            result = cur.fetchone()
-            logging.info(f"Verified SOURCE_DATE after update for {status_type}: {result[0] if result else None}")
+                
+                # Verify the update
+                cur.execute('SELECT "SOURCE_DATE" FROM worker_status WHERE "STATUS_TYPE" = %s', (status_type,))
+                result = cur.fetchone()
+                logging.info(f"Verified SOURCE_DATE after update for {status_type}: {result[0] if result else None}")
     except Exception as e:
         logging.error(f"Error updating worker_status in database: {e}")
         conn.rollback()
@@ -279,15 +280,16 @@ def update_tasks_db(conn, iso, adm, error_message):
     Update tasks database with error message
     """
     try:
-        with conn.cursor() as cur:
-            update_query = """
-            UPDATE tasks
-            SET error_message = %s
-            WHERE iso = %s AND adm = %s
-            """
-            cur.execute(update_query, (error_message, iso, adm))
-            conn.commit()
-            logging.info(f"Updated tasks database for {iso} {adm}: {error_message}")
+        with connect_to_db() as conn:
+            with conn.cursor() as cur:
+                update_query = """
+                UPDATE tasks
+                SET error_message = %s
+                WHERE iso = %s AND adm = %s
+                """
+                cur.execute(update_query, (error_message, iso, adm))
+                conn.commit()
+                logging.info(f"Updated tasks database for {iso} {adm}: {error_message}")
     except Exception as e:
         logging.error(f"Error updating tasks database: {e}")
         conn.rollback()
@@ -315,17 +317,17 @@ def format_elapsed_time(start_time):
 
 try:
     # Establish database connection
-    conn = connect_to_db()
+    # No global connection; connections will be opened only when needed for DB writes.
 
     # Record start time for elapsed time calculation
     start_time = datetime.now()
-    update_status_in_db(conn, status_type, "STARTING_WORKER_SCRIPT", start_time)
+    update_status_in_db(status_type, "STARTING_WORKER_SCRIPT", start_time)
 
     # Process the single product type
     build_results = []
     try:
         logging.info(f"Processing {iso} {adm} for gbOpen")
-        update_status_in_db(conn, status_type, "PROCESSING", datetime.now())
+        update_status_in_db(status_type, "PROCESSING", datetime.now())
 
         # Initialize builder
         bnd = builder(iso, adm, "gbOpen", GB_DIR, LOG_DIR, TMP_DIR, isoList, licenseList)
@@ -345,7 +347,7 @@ try:
 
         for stage_method, stage_status in stages:
             logging.info(f"Running stage: {stage_method}")
-            update_status_in_db(conn, status_type, stage_status, datetime.now())
+            update_status_in_db(status_type, stage_status, datetime.now())
             
             # Call the stage method dynamically
             method = getattr(bnd, stage_method)
@@ -353,18 +355,19 @@ try:
             
             if "ERROR" in str(result):
                 logging.error(f"Error in {stage_method}: {result}")
-                update_status_in_db(conn, status_type, f"ERROR_{stage_status}", datetime.now())
+                update_status_in_db(status_type, f"ERROR_{stage_status}", datetime.now())
                 # Update tasks database with the error
-                with conn.cursor() as cur:
-                    update_query = """
-                    UPDATE tasks
-                    SET status = 'ERROR',
-                        status_time = %s,
-                        status_detail = %s
-                    WHERE iso = %s AND adm = %s
-                    """
-                    cur.execute(update_query, (datetime.now(), str(result), iso, adm))
-                    conn.commit()
+                with connect_to_db() as conn:
+                    with conn.cursor() as cur:
+                        update_query = """
+                        UPDATE tasks
+                        SET status = 'ERROR',
+                            status_time = %s,
+                            status_detail = %s
+                        WHERE iso = %s AND adm = %s
+                        """
+                        cur.execute(update_query, (datetime.now(), str(result), iso, adm))
+                        conn.commit()
                 build_results.append([iso, adm, "gbOpen", result, f"E{stage_status[0]}"])
                 break
         else:
@@ -375,20 +378,20 @@ try:
             elapsed_time = format_elapsed_time(start_time)
             
             # Update both worker_status and tasks tables
-            with conn.cursor() as cur:
-                # Update worker status with completion time
-                update_status_in_db(conn, status_type, f"COMPLETE: {elapsed_time}", datetime.now())
-                
-                # Update tasks table
-                update_query = """
-                UPDATE tasks
-                SET status = 'COMPLETE',
-                    status_time = %s,
-                    status_detail = %s
-                WHERE taskid = %s
-                """
-                cur.execute(update_query, (datetime.now(), f"Completed in {elapsed_time}", taskid))
-                conn.commit()
+            with connect_to_db() as conn:
+                with conn.cursor() as cur:
+                    # Update worker status with completion time
+                    update_status_in_db(status_type, f"COMPLETE: {elapsed_time}", datetime.now())
+                    # Update tasks table
+                    update_query = """
+                    UPDATE tasks
+                    SET status = 'COMPLETE',
+                        status_time = %s,
+                        status_detail = %s
+                    WHERE taskid = %s
+                    """
+                    cur.execute(update_query, (datetime.now(), f"Completed in {elapsed_time}", taskid))
+                    conn.commit()
 
     except Exception as product_error:
         error_msg = f"Error processing gbOpen: {product_error}"
@@ -397,22 +400,21 @@ try:
         build_results.append([iso, adm, "gbOpen", str(product_error), error_code])
         
         # Update both status tables
-        with conn.cursor() as cur:
-            # Update tasks table
-            update_query = """
-            UPDATE tasks
-            SET status = 'ERROR',
-                status_time = %s,
-                status_detail = %s
-            WHERE taskid = %s
-            """
-            cur.execute(update_query, (datetime.now(), error_msg, taskid))
-            
-            # Update worker status
-            status_msg = f"ERROR_{error_code}: {error_msg}"
-            update_status_in_db(conn, status_type, status_msg, datetime.now())
-            
-            conn.commit()
+        with connect_to_db() as conn:
+            with conn.cursor() as cur:
+                # Update tasks table
+                update_query = """
+                UPDATE tasks
+                SET status = 'ERROR',
+                    status_time = %s,
+                    status_detail = %s
+                WHERE taskid = %s
+                """
+                cur.execute(update_query, (datetime.now(), error_msg, taskid))
+                # Update worker status
+                status_msg = f"ERROR_{error_code}: {error_msg}"
+                update_status_in_db(status_type, status_msg, datetime.now())
+                conn.commit()
 
     # Final status update with error code if present
     if build_results:
@@ -421,7 +423,7 @@ try:
             final_status = f"ERROR_{result[4]}: {result[3]}"  # Include both error code and message
         else:
             final_status = "COMPLETE"
-        update_status_in_db(conn, status_type, final_status, datetime.now())
+        update_status_in_db(status_type, final_status, datetime.now())
     
     # Log build results
     for result in build_results:
@@ -429,7 +431,7 @@ try:
 
 except Exception as main_error:
     logging.error(f"Critical error in worker script: {main_error}")
-    update_status_in_db(conn, status_type, f"WORKER_SCRIPT_ERROR: {str(main_error)}", datetime.now())
+    update_status_in_db(status_type, f"WORKER_SCRIPT_ERROR: {str(main_error)}", datetime.now())
     update_tasks_db(conn, iso, adm, str(main_error))
     raise
 

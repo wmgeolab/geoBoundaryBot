@@ -40,7 +40,7 @@ DB_PORT = 5432
 
 # Pod Configuration
 NAMESPACE = "geoboundaries"
-MAX_RUNNING_PODS = 15  # Limit the number of active worker pods
+MAX_RUNNING_PODS = 2  # Limit the number of active worker pods
 TASK_DIR = "/sciclone/geograd/geoBoundaries/database/geoBoundaries/sourceData/gbOpen"
 MAX_FAILED_PODS = 3  # Maximum failed pods before stopping task controller
 

@@ -85,6 +85,11 @@ def populate_tasks_table(conn):
     """Iterates over files in the TASK_DIR and populates the 'Tasks' table."""
     tasks_added = 0
     with conn.cursor() as cur:
+        insert_query = sql.SQL("""
+            INSERT INTO Tasks (taskID, ISO, ADM, time_added, filesize, status, status_time)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """)
+        tasks_to_insert = []
         for filename in os.listdir(TASK_DIR):
             if filename.endswith(".zip"):
                 try:
@@ -103,17 +108,16 @@ def populate_tasks_table(conn):
                         logging.info(f"Record for ISO: {iso}, ADM: {adm} already has a ready task. Skipping insertion.")
                         continue  # Skip to the next file
 
-                    # Insert a new task into the table
-                    insert_query = sql.SQL("""
-                        INSERT INTO Tasks (taskID, ISO, ADM, time_added, filesize, status, status_time)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    """)
-                    cur.execute(insert_query, (task_id, iso, adm, datetime.now(), file_size, "ready", datetime.now()))
+                    # Prepare batch insert
+                    tasks_to_insert.append((task_id, iso, adm, datetime.now(), file_size, "ready", datetime.now()))
                     tasks_added += 1
-                    logging.info(f"Task {task_id} for {filename} added successfully.")
+                    logging.info(f"Task {task_id} for {filename} prepared for batch insert.")
 
                 except Exception as e:
                     logging.error(f"Error processing file {filename}: {e}")
+        if tasks_to_insert:
+            cur.executemany(insert_query, tasks_to_insert)
+            logging.info(f"Batch inserted {len(tasks_to_insert)} tasks.")
         conn.commit()
     return tasks_added
 
@@ -156,7 +160,7 @@ if __name__ == "__main__":
     with connect_to_db() as initial_conn:
         last_queue_time = get_last_queue_status_time(initial_conn)
     
-    queue_interval = timedelta(hours=1)
+    queue_interval = timedelta(hours=72)
     
     while True:
         current_time = datetime.now()
@@ -184,12 +188,11 @@ if __name__ == "__main__":
         if current_time - last_queue_time >= queue_interval:
             try:
                 logging.info("Running populate_tasks_table...")
-                
                 with connect_to_db() as conn:
                     # Create tasks table if not exists
                     create_tasks_table(conn)
                     
-                    # Populate tasks and count
+                    # Populate tasks and count (batch insert)
                     tasks_added = populate_tasks_table(conn)
                     
                     # Update queue status in database
@@ -199,15 +202,11 @@ if __name__ == "__main__":
                         SET "TIME" = %s, "STATUS" = %s 
                         WHERE "STATUS_TYPE" = 'QUEUE_STATUS'
                         """
-                        status_message = f"Queue population successful. Tasks added: {tasks_added}"
+                        status_message = f"Database population completed. Tasks added: {tasks_added}"
                         cur.execute(status_query, (current_time, status_message))
-                        conn.commit()
-                    
-                    logging.info(f"Database population completed. Tasks added: {tasks_added}")
-                
-                # Update last queue population time
-                last_queue_time = current_time
-            
+                    conn.commit()
+                    # Update last queue population time
+                    last_queue_time = current_time
             except Exception as e:
                 # Log error and update status
                 logging.error(f"Queue population failed: {e}")
@@ -226,4 +225,4 @@ if __name__ == "__main__":
                     logging.error(f"Could not update status in database: {db_error}")
         
         # Sleep to reduce CPU usage and provide consistent heartbeat
-        time.sleep(15)  # 15-second heartbeat
+        time.sleep(1800)  # 1800-second heartbeat

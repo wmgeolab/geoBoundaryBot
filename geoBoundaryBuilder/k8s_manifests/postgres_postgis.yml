@@ -26,11 +26,11 @@ spec:
       value: "trust"  # Allow connections without a password
     args:
       - "-c"
-      - "max_connections=1000"
+      - "max_connections=300"
       - "-c"
-      - "idle_in_transaction_session_timeout=60000"
+      - "idle_in_transaction_session_timeout=21600000"
       - "-c"
-      - "statement_timeout=30000"
+      - "statement_timeout=1800000"
       - "-c"
       - "log_min_duration_statement=1000"
       - "-c"

@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: worker-operator
+  namespace: geoboundaries
+  labels:
+    app: worker-operator
+spec:
+  restartPolicy: Never  # Restart policy at the Pod level
+  securityContext:
+    runAsUser: 71032    # User ID for accessing NFS
+    runAsGroup: 9915    # Group ID for accessing NFS
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - dss
+            - d3i00.sciclone.wm.edu
+  containers:
+    - name: worker-operator
+      image: ghcr.io/wmgeolab/gb-base:latest
+      command: ["/bin/bash", "-c"]
+      args:
+        - |
+          export KUBECONFIG=/home/dsmillerunfol/.kube/config && \
+          cd /sciclone/geograd/geoBoundaries/geoBoundaryBot/geoBoundaryBuilder/modules/
+          python build_csv_api_cgaz.py
+      env:
+        - name: DB_SERVICE
+          value: "geoboundaries-postgres-service"
+        - name: DB_NAME
+          value: "geoboundaries"
+        - name: DB_USER
+          value: "geoboundaries"
+        - name: DB_PASSWORD
+          value: ""
+      volumeMounts:
+        - name: sciclone-volume
+          mountPath: /sciclone  # Mount kubeconfig directory
+        - name: home-mount
+          mountPath: /home
+  volumes:
+    - name: sciclone-volume
+      nfs:
+        server: 128.239.59.144
+        path: /sciclone
+    - name: home-mount
+      nfs:
+        server: 128.239.56.166
+        path: /sciclone/home/
