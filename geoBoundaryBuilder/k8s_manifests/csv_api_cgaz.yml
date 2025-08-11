@@ -31,10 +31,10 @@ spec:
           python build_csv_api_cgaz.py
       resources:
         requests:
-          cpu: "4"
+          cpu: "32"
           memory: "256Gi"
         limits:
-          cpu: "8"
+          cpu: "64"
           memory: "512Gi"
       env:
         - name: DB_SERVICE

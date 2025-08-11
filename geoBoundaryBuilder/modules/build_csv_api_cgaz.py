@@ -9,7 +9,7 @@ import pandas as pd
 import re
 import json
 import shutil
-
+import zipfile
 
 
 #CSV Ouput file:
@@ -21,6 +21,9 @@ GB_DIR = "/sciclone/geograd/geoBoundaries/database/geoBoundariesDev/"
 url_static_base = "https://www.geoboundaries-dev.org/data/static/"
 url_current_base = "https://www.geoboundaries-dev.org/data/current/"
 apiPath = "/sciclone/geograd/geoBoundaries/geoBoundaryBot/gbWeb/api/current/gbOpen/"
+
+#For hashing
+EXCLUDED_META_FIELDS = ("buildDate", "sourceDataUpdateDate")
 
 # Logging setup
 log_dir = "/sciclone/geograd/geoBoundaries/logs/final_build_worker/"
@@ -185,21 +188,30 @@ def main():
                     metaLine = metaLine.replace("nan","")
 
                     # Add static link and copy file over appropriately
-                    def hash_file(file_path: str) -> str:
-                        hasher = hashlib.sha256()
-                        with open(file_path, 'rb') as f:
-                            for chunk in iter(lambda: f.read(8192), b''):
-                                hasher.update(chunk)
-                        return hasher.hexdigest()
+                    def hash_meta(meta: dict) -> str:
+                        meta_copy = {k: v for k, v in meta.items() if k not in EXCLUDED_META_FIELDS}
+                        meta_str = json.dumps(meta_copy, sort_keys=True)
+                        return hashlib.sha256(meta_str.encode('utf-8')).hexdigest()
+
+                    def hash_meta_from_zip(zip_path: str, iso: str, level: str) -> str:
+                        target_file_name = f"geoBoundaries-{iso}-{level}-metaData.json"
+                        with zipfile.ZipFile(zip_path, 'r') as z:
+                            with z.open(target_file_name) as f:
+                                zip_meta = json.load(f)
+                        return hash_meta(zip_meta)
+
+
                     static_file_path = path + "/" + "geoBoundaries-" + meta['boundaryISO'] + "-" + meta["boundaryType"] + "-all.zip"
-                    unique_static_link = hash_file(static_file_path)
-                    static_link_file = "geoBoundaries-" + meta['boundaryISO'] + "-" + meta["boundaryType"] + "-all-" + unique_static_link + ".zip"
+                    unique_static_link = hash_meta(meta)
+                    static_link_file = f"geoBoundaries-{meta['boundaryISO']}-{meta['boundaryType']}-all-{unique_static_link}.zip"
+
+
 
                     dest_path = "/sciclone/geograd/geoBoundaries/geoBoundaryBot/gbWeb/data/static/" + static_link_file
                     need_copy = True
                     if os.path.exists(dest_path):
                         # Compare hashes to confirm if files are the same
-                        dest_hash = hash_file(dest_path)
+                        dest_hash = hash_meta_from_zip(static_file_path, meta["boundaryISO"], meta["boundaryType"])
                         if dest_hash == unique_static_link:
                             logging.info(f"Static file already exists and is identical: {dest_path}. Skipping copy.")
                             need_copy = False
@@ -260,7 +272,6 @@ def main():
                         "minAreaSqKM": str(meta["minAreaSqKM"]),
                         "maxAreaSqKM": str(meta["maxAreaSqKM"]),
                         "staticDownloadLink": url_static_base + static_link_file,
-                        # The following fields should be constructed based on your project conventions:
                         "gjDownloadURL": url_current_base + meta['boundaryISO'] + "/" + meta["boundaryType"] + "/geoBoundaries-" + meta['boundaryISO'] + "-" + meta["boundaryType"] + ".geojson",
                         "tjDownloadURL": url_current_base + meta['boundaryISO'] + "/" + meta["boundaryType"] + "/geoBoundaries-" + meta['boundaryISO'] + "-" + meta["boundaryType"] + ".topojson",
                         "imagePreview": url_current_base + meta['boundaryISO'] + "/" + meta["boundaryType"] + "/geoBoundaries-" + meta['boundaryISO'] + "-" + meta["boundaryType"] + "-PREVIEW.png",
