@@ -49,9 +49,13 @@ DB_PORT = 5432
 
 
 def fast_copy(src, dst, buffer_size=16 * 1024 * 1024):  # 16 MB buffer
+    import os
+    import sys
+    file_name = os.path.basename(src)
     total_size = os.path.getsize(src)
     copied = 0
     bar_length = 40
+    print(f"Copying file: {file_name}")
     with open(src, 'rb') as fsrc, open(dst, 'wb') as fdst:
         while True:
             buf = fsrc.read(buffer_size)
@@ -62,7 +66,7 @@ def fast_copy(src, dst, buffer_size=16 * 1024 * 1024):  # 16 MB buffer
             percent = copied / total_size
             filled_len = int(bar_length * percent)
             bar = '=' * filled_len + '-' * (bar_length - filled_len)
-            sys.stdout.write(f'\rCopying: |{bar}| {percent:.0%} ({copied // (1024*1024)}MB/{total_size // (1024*1024)}MB)')
+            sys.stdout.write(f'\r{file_name}: |{bar}| {percent:.0%} ({copied // (1024*1024)}MB/{total_size // (1024*1024)}MB)')
             sys.stdout.flush()
         sys.stdout.write('\n')
 
@@ -101,9 +105,25 @@ def get_ready_task_count():
             logging.error(f"Error counting ready tasks: {e}")
         return None
 
+def normalize_meta_dict(meta):
+    # Always ignore these fields for hashing
+    ignore_fields = {"sourceDataUpdateDate", "buildDate"}
+    norm = {}
+    for k, v in meta.items():
+        if k in ignore_fields:
+            continue
+        if isinstance(v, str):
+            v_clean = v.replace('"', '').replace("'", "").replace(',', '').strip().lower()
+            v_clean = ' '.join(v_clean.split())  # Collapse whitespace
+            norm[k] = v_clean
+        else:
+            norm[k] = v
+    return norm
+
 def hash_meta(meta: dict) -> str:
     meta_copy = {k: v for k, v in meta.items() if k not in EXCLUDED_META_FIELDS}
-    meta_str = json.dumps(meta_copy, sort_keys=True)
+    meta_norm = normalize_meta_dict(meta_copy)
+    meta_str = json.dumps(meta_norm, sort_keys=True)
     return hashlib.sha256(meta_str.encode('utf-8')).hexdigest()
 
 def hash_meta_from_zip(zip_path: str, iso: str, level: str) -> str:
@@ -116,6 +136,9 @@ def hash_meta_from_zip(zip_path: str, iso: str, level: str) -> str:
 def process_metadata(args):
     import threading
     path, metaSearch, isoDetails = args
+    thread_name = threading.current_thread().name
+    with log_lock:
+        logging.info(f"Thread {thread_name} started: path={path}, metaSearch={metaSearch}")
     # Extract ISO/ADM from path/metaSearch
     iso = None
     adm = None
@@ -129,7 +152,8 @@ def process_metadata(args):
         # Fallback if meta can't be loaded
         iso = 'UNKNOWN'
         adm = 'UNKNOWN'
-    thread_name = threading.current_thread().name
+        with log_lock:
+            logging.error(f"Thread {thread_name} failed to load meta: {e}")
     jsonDict = defaultdict(list)
     try:
         json_path = path + "/" + metaSearch[0]
@@ -167,12 +191,21 @@ def process_metadata(args):
         static_link_file = f"geoBoundaries-{meta['boundaryISO']}-{meta['boundaryType']}-all-{unique_static_link}.zip"
         dest_path = "/sciclone/geograd/geoBoundaries/geoBoundaryBot/gbWeb/data/static/" + static_link_file
         need_copy = True
-        # No locking needed: each thread writes a unique static file
+        # Simplified: Only check if destination file exists, hash in file name matches, and zip is valid
         if os.path.exists(dest_path):
-            dest_hash = hash_meta_from_zip(static_file_path, meta["boundaryISO"], meta["boundaryType"])
-            if dest_hash == unique_static_link:
+            try:
+                with zipfile.ZipFile(dest_path, 'r') as z:
+                    # Try listing files to check zip validity
+                    z.testzip()
+                with log_lock:
+                    logging.info(f"HASH: No copy needed for {dest_path} (file exists, hash in name matches, zip is valid)")
                 need_copy = False
+            except Exception as e:
+                with log_lock:
+                    logging.warning(f"HASH: Destination zip exists but is invalid or corrupted: {dest_path}, error: {e}. Will overwrite.")
         if need_copy:
+            with log_lock:
+                logging.info(f"HASH: Copying static file to {dest_path} (does not exist, hash in name does not match, or zip invalid)")
             try:
                 fast_copy(static_file_path, dest_path)
                 with log_lock:
@@ -181,20 +214,24 @@ def process_metadata(args):
                 err_msg = f"Failed to copy static file {static_file_path}: {e}"
                 with log_lock:
                     logging.error(err_msg)
-        metaLine = metaLine + url_static_base + static_link_file + '"\n'
+
+        meta['staticDownloadLink'] = url_static_base + static_link_file
+        metaLine = metaLine + meta['staticDownloadLink'] + '"\n'
         # Upsert into boundary_meta
+        with log_lock:
+            logging.info(f"Thread {thread_name}: upserting metadata for ISO={meta.get('boundaryISO','?')}, ADM={meta.get('boundaryType','?')}")
         try:
             with connect_to_db() as conn:
                 with conn.cursor() as cur:
                     cur.execute("""
                         INSERT INTO boundary_meta (
-                            boundaryISO, boundaryType, boundaryID, boundaryYear, boundarySource, boundaryCanonical, boundaryLicense, licenseDetail, licenseSource, boundarySourceURL, sourceDataUpdateDate, buildDate, admUnitCount, meanVertices, minVertices, maxVertices, meanPerimeterLengthKM, maxPerimeterLengthKM, minPerimeterLengthKM, meanAreaSqKM, minAreaSqKM, maxAreaSqKM
+                            boundaryISO, boundaryType, boundaryID, boundaryYear, boundarySource, boundaryCanonical, boundaryLicense, licenseDetail, licenseSource, boundarySourceURL, sourceDataUpdateDate, buildDate, admUnitCount, meanVertices, minVertices, maxVertices, meanPerimeterLengthKM, maxPerimeterLengthKM, minPerimeterLengthKM, meanAreaSqKM, minAreaSqKM, maxAreaSqKM, staticdownloadlink
                         ) VALUES (
-                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                         )
                         ON CONFLICT (boundaryISO, boundaryType) DO UPDATE SET
                             boundaryID=EXCLUDED.boundaryID,
-                            boundaryYear=EXCLUDED.boundaryYear,  # Now text, not int
+                            boundaryYear=EXCLUDED.boundaryYear,
                             boundarySource=EXCLUDED.boundarySource,
                             boundaryCanonical=EXCLUDED.boundaryCanonical,
                             boundaryLicense=EXCLUDED.boundaryLicense,
@@ -212,13 +249,14 @@ def process_metadata(args):
                             minPerimeterLengthKM=EXCLUDED.minPerimeterLengthKM,
                             meanAreaSqKM=EXCLUDED.meanAreaSqKM,
                             minAreaSqKM=EXCLUDED.minAreaSqKM,
-                            maxAreaSqKM=EXCLUDED.maxAreaSqKM
+                            maxAreaSqKM=EXCLUDED.maxAreaSqKM,
+                            staticdownloadlink=EXCLUDED.staticdownloadlink
                     """,
                         (
                             meta['boundaryISO'],
                             meta['boundaryType'],
                             meta['boundaryID'],
-                            meta['boundaryYear'] if meta['boundaryYear'] else '',  # Always text, not int
+                            meta['boundaryYear'] if meta['boundaryYear'] else '',
                             meta['boundarySource'],
                             bndCan,
                             meta['boundaryLicense'],
@@ -236,10 +274,13 @@ def process_metadata(args):
                             float(meta['minPerimeterLengthKM']) if meta['minPerimeterLengthKM'] else None,
                             float(meta['meanAreaSqKM']) if meta['meanAreaSqKM'] else None,
                             float(meta['minAreaSqKM']) if meta['minAreaSqKM'] else None,
-                            float(meta['maxAreaSqKM']) if meta['maxAreaSqKM'] else None
+                            float(meta['maxAreaSqKM']) if meta['maxAreaSqKM'] else None,
+                            meta['staticDownloadLink']
                         )
                     )
                     conn.commit()
+                    with log_lock:
+                        logging.info(f"Thread {thread_name}: Upsert committed for ISO={meta.get('boundaryISO','?')}, ADM={meta.get('boundaryType','?')}")
         except Exception as e:
             with log_lock:
                 logging.error(f"Failed to upsert meta for {meta['boundaryISO']}-{meta['boundaryType']}: {e}")
@@ -280,8 +321,10 @@ def process_metadata(args):
         }
         api_dir = os.path.join(apiPath, meta['boundaryISO'], meta['boundaryType'])
         os.makedirs(api_dir, exist_ok=True)
-        # No locking needed: each thread writes a unique API JSON file
         api_json_path = os.path.join(api_dir, "index.json")
+        with log_lock:
+            logging.info(f"Thread {thread_name}: Writing API JSON to {api_json_path}")
+        # No locking needed: each thread writes a unique API JSON file
         try:
             with open(api_json_path, "w", encoding="utf-8") as jf:
                 json.dump(api_json, jf, ensure_ascii=False, indent=2)
@@ -290,6 +333,8 @@ def process_metadata(args):
             with log_lock:
                 logging.error(err_msg)
         jsonDict[meta['boundaryISO']].append(api_json)
+        with log_lock:
+            logging.info(f"Thread {thread_name} completed.")
         return meta['boundaryISO'], api_json
     except Exception as e:
         err_msg = f"Error processing {path}: {e}"
@@ -298,6 +343,8 @@ def process_metadata(args):
         return None
 
 def main():
+    with log_lock:
+        logging.info("Starting main function.")
     # Ensure boundary_meta table exists
     try:
         with connect_to_db() as conn:
@@ -307,7 +354,7 @@ def main():
                   boundaryISO             text NOT NULL,
                   boundaryType            text NOT NULL,
                   boundaryID              text,
-                  boundaryYear            integer,
+                  boundaryYear            text,
                   boundarySource          text,
                   boundaryCanonical       text,
                   boundaryLicense         text,
@@ -326,6 +373,7 @@ def main():
                   meanAreaSqKM            numeric,
                   minAreaSqKM             numeric,
                   maxAreaSqKM             numeric,
+                  staticdownloadlink      text,
                   PRIMARY KEY (boundaryISO, boundaryType)
                 );
                 """)
@@ -338,6 +386,8 @@ def main():
         raise
     # Load ISO codes
     try:
+        with log_lock:
+            logging.info("Loading ISO code details...")
         isoDetails = pd.read_csv("../../dta/iso_3166_1_alpha_3.csv", encoding='utf-8')
         with log_lock:
             logging.info("Loaded ISO code details.")
@@ -346,22 +396,34 @@ def main():
             logging.error(f"Failed to load ISO codes: {e}")
         raise
     # Gather all metaData.json files
+    with log_lock:
+        logging.info("Searching for metadata files...")
     meta_tasks = []
     for (path, dirname, filenames) in os.walk(GB_DIR + "releaseData/gbOpen"):
         metaSearch = [x for x in filenames if re.search('metaData.json', x)]
         if len(metaSearch) == 1 and "ADM" in path:
             meta_tasks.append((path, metaSearch, isoDetails))
+    with log_lock:
+        logging.info(f"Found {len(meta_tasks)} metadata file groups.")
     # Parallel processing
     jsonDict = defaultdict(list)
+    # Production-scale parallelism
     with ThreadPoolExecutor(max_workers=30) as executor:
+        with log_lock:
+            logging.info(f"Launching ThreadPoolExecutor for metadata processing with {len(meta_tasks)} tasks...")
         futures = {executor.submit(process_metadata, args): args for args in meta_tasks}
         for future in as_completed(futures):
-            result = future.result()
-            if result:
-                iso, api_json = result
-                jsonDict[iso].append(api_json)
+            try:
+                future.result()
+            except Exception as exc:
+                with log_lock:
+                    logging.error(f"Thread raised an exception: {exc}")
+        with log_lock:
+            logging.info("All threads completed. Proceeding to CSV export.")
     # Export metadata table to CSV
     try:
+        with log_lock:
+            logging.info("Exporting metadata table to CSV...")
         with connect_to_db() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
@@ -420,26 +482,78 @@ def main():
             out_path = os.path.join(out_dir, "index.json")
             with open(out_path, "w", encoding="utf-8") as f:
                 json.dump(adm_entries, f, ensure_ascii=False, indent=2)
-        # ALL/ALL - every boundary in the world
-        all_jsons = []
-        for iso_entries in jsonDict.values():
-            all_jsons.extend(iso_entries)
-        global_all_dir = os.path.join(apiPath, "ALL")
-        global_all_all = os.path.join(global_all_dir, "ALL")
-        os.makedirs(global_all_dir, exist_ok=True)
-        os.makedirs(global_all_all, exist_ok=True)
-        global_all_path = os.path.join(global_all_all, "index.json")
-        with open(global_all_path, "w", encoding="utf-8") as f:
-            json.dump(all_jsons, f, ensure_ascii=False, indent=2)
-        # ALL/ADMX - every boundary in the world at a specific ADMX
+        # ALL/ALL and ALL/ADM* - build from boundary_meta DB
+        import psycopg2.extras
         adm_levels = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
-        for adm in adm_levels:
-            adm_entries = [j for j in all_jsons if j["boundaryType"] == adm]
-            out_dir = os.path.join(apiPath, "ALL", adm)
-            os.makedirs(out_dir, exist_ok=True)
-            out_path = os.path.join(out_dir, "index.json")
-            with open(out_path, "w", encoding="utf-8") as f:
-                json.dump(adm_entries, f, ensure_ascii=False, indent=2)
+        try:
+            with connect_to_db() as conn:
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    # ALL/ALL
+                    cur.execute("SELECT * FROM boundary_meta")
+                    all_rows = cur.fetchall()
+                    global_all_dir = os.path.join(apiPath, "ALL")
+                    global_all_all = os.path.join(global_all_dir, "ALL")
+                    os.makedirs(global_all_dir, exist_ok=True)
+                    os.makedirs(global_all_all, exist_ok=True)
+                    global_all_path = os.path.join(global_all_all, "index.json")
+                    # Define the expected field order and capitalization
+                    api_fields = [
+                        "boundaryID", "boundaryName", "boundaryISO", "boundaryYearRepresented", "boundaryType", "boundaryCanonical", "boundarySource", "boundaryLicense", "licenseDetail", "licenseSource", "boundarySourceURL", "sourceDataUpdateDate", "buildDate", "Continent", "UNSDG-region", "UNSDG-subregion", "worldBankIncomeGroup", "admUnitCount", "meanVertices", "minVertices", "maxVertices", "meanPerimeterLengthKM", "minPerimeterLengthKM", "maxPerimeterLengthKM", "meanAreaSqKM", "minAreaSqKM", "maxAreaSqKM", "staticDownloadLink", "gjDownloadURL", "tjDownloadURL", "imagePreview", "simplifiedGeometryGeoJSON"
+                    ]
+                    # Helper to map DB row to API JSON format (requires isoMeta for boundaryName, etc.)
+                    def db_row_to_api_json(row):
+                        # If you have a lookup for boundaryName/Continent/etc. from ISO, do it here; for now, use DB fields or empty string
+                        return {
+                            "boundaryID": row.get("boundaryid", ""),
+                            "boundaryName": row.get("boundarycanonical", ""),  # Placeholder, ideally use ISO lookup
+                            "boundaryISO": row.get("boundaryiso", ""),
+                            "boundaryYearRepresented": row.get("boundaryyear", ""),
+                            "boundaryType": row.get("boundarytype", ""),
+                            "boundaryCanonical": row.get("boundarycanonical", ""),
+                            "boundarySource": row.get("boundarysource", ""),
+                            "boundaryLicense": row.get("boundarylicense", ""),
+                            "licenseDetail": row.get("licensedetail", ""),
+                            "licenseSource": row.get("licensesource", ""),
+                            "boundarySourceURL": row.get("boundarysourceurl", ""),
+                            "sourceDataUpdateDate": row.get("sourcedataupdatedate", ""),
+                            "buildDate": row.get("builddate", ""),
+                            "Continent": row.get("continent", ""),
+                            "UNSDG-region": row.get("unsdg-region", ""),
+                            "UNSDG-subregion": row.get("unsdg-subregion", ""),
+                            "worldBankIncomeGroup": row.get("worldbankincomegroup", ""),
+                            "admUnitCount": str(row.get("admunitcount", "")),
+                            "meanVertices": str(row.get("meanvertices", "")),
+                            "minVertices": str(row.get("minvertices", "")),
+                            "maxVertices": str(row.get("maxvertices", "")),
+                            "meanPerimeterLengthKM": str(row.get("meanperimeterlengthkm", "")),
+                            "minPerimeterLengthKM": str(row.get("minperimeterlengthkm", "")),
+                            "maxPerimeterLengthKM": str(row.get("maxperimeterlengthkm", "")),
+                            "meanAreaSqKM": str(row.get("meanareasqkm", "")),
+                            "minAreaSqKM": str(row.get("minareasqkm", "")),
+                            "maxAreaSqKM": str(row.get("maxareasqkm", "")),
+                            "staticDownloadLink": row.get("staticdownloadlink", ""),
+                            "gjDownloadURL": row.get("gjdownloadurl", ""),
+                            "tjDownloadURL": row.get("tjdownloadurl", ""),
+                            "imagePreview": row.get("imagepreview", ""),
+                            "simplifiedGeometryGeoJSON": row.get("simplifiedgeometrygeojson", "")
+                        }
+                    # ALL/ALL
+                    with open(global_all_path, "w", encoding="utf-8") as f:
+                        json.dump([db_row_to_api_json(r) for r in all_rows], f, ensure_ascii=False, indent=2)
+                    # ALL/ADMX
+                    for adm in adm_levels:
+                        cur.execute("SELECT * FROM boundary_meta WHERE boundarytype = %s", (adm,))
+                        adm_rows = cur.fetchall()
+                        out_dir = os.path.join(apiPath, "ALL", adm)
+                        os.makedirs(out_dir, exist_ok=True)
+                        out_path = os.path.join(out_dir, "index.json")
+                        with open(out_path, "w", encoding="utf-8") as f:
+                            json.dump([db_row_to_api_json(r) for r in adm_rows], f, ensure_ascii=False, indent=2)
+            with log_lock:
+                logging.info("ALL/ALL and ALL/ADM* API index.json files built from boundary_meta DB.")
+        except Exception as e:
+            with log_lock:
+                logging.error(f"Failed to build ALL/ALL and ALL/ADM* API index.json files from DB: {e}")
         with log_lock:
             logging.info("API index.json files built.")
     except Exception as e:
