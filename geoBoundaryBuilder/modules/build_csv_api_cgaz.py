@@ -121,13 +121,41 @@ def main():
             except Exception as e:
                 logging.warning(f"Could not delete old CSV: {e}")
 
-            # Create headers for metadata CSV
+            # Create boundary_meta table if not exists
             try:
-                with open(outputMetaCSV, 'w') as f:
-                    f.write("boundaryID,boundaryName,boundaryISO,boundaryYearRepresented,boundaryType,boundaryCanonical,boundarySource,boundaryLicense,licenseDetail,licenseSource,boundarySourceURL,sourceDataUpdateDate,buildDate,Continent,UNSDG-region,UNSDG-subregion,worldBankIncomeGroup,admUnitCount,meanVertices,minVertices,maxVertices,meanPerimeterLengthKM,minPerimeterLengthKM,maxPerimeterLengthKM,meanAreaSqKM,minAreaSqKM,maxAreaSqKM,staticDownloadLink\n")
-                logging.info(f"Wrote headers to {outputMetaCSV}")
+                with connect_to_db() as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("""
+                        CREATE TABLE IF NOT EXISTS boundary_meta (
+                          boundaryISO             text NOT NULL,
+                          boundaryType            text NOT NULL,
+                          boundaryID              text,
+                          boundaryYear            integer,
+                          boundarySource          text,
+                          boundaryCanonical       text,
+                          boundaryLicense         text,
+                          licenseDetail           text,
+                          licenseSource           text,
+                          boundarySourceURL       text,
+                          sourceDataUpdateDate    timestamptz,
+                          buildDate               timestamptz,
+                          admUnitCount            integer,
+                          meanVertices            numeric,
+                          minVertices             integer,
+                          maxVertices             integer,
+                          meanPerimeterLengthKM   numeric,
+                          maxPerimeterLengthKM    numeric,
+                          minPerimeterLengthKM    numeric,
+                          meanAreaSqKM            numeric,
+                          minAreaSqKM             numeric,
+                          maxAreaSqKM             numeric,
+                          PRIMARY KEY (boundaryISO, boundaryType)
+                        );
+                        """)
+                        conn.commit()
+                logging.info("Ensured boundary_meta table exists.")
             except Exception as e:
-                logging.error(f"Failed to write CSV headers: {e}")
+                logging.error(f"Failed to create boundary_meta table: {e}")
                 raise
         
             # Load in ISO codes
@@ -230,12 +258,67 @@ def main():
                     # Newline
                     metaLine = metaLine + '"\n'
 
+                    # Insert or update metadata row in boundary_meta
                     try:
-                        with open(outputMetaCSV, mode='a', encoding='utf-8') as f:
-                            f.write(metaLine)
-                        logging.info(f"Appended metadata for {meta['boundaryID']} to CSV.")
+                        with connect_to_db() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO boundary_meta (
+                                        boundaryISO, boundaryType, boundaryID, boundaryYear, boundarySource, boundaryCanonical, boundaryLicense, licenseDetail, licenseSource, boundarySourceURL, sourceDataUpdateDate, buildDate, admUnitCount, meanVertices, minVertices, maxVertices, meanPerimeterLengthKM, maxPerimeterLengthKM, minPerimeterLengthKM, meanAreaSqKM, minAreaSqKM, maxAreaSqKM
+                                    ) VALUES (
+                                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                                    )
+                                    ON CONFLICT (boundaryISO, boundaryType) DO UPDATE SET
+                                        boundaryID=EXCLUDED.boundaryID,
+                                        boundaryYear=EXCLUDED.boundaryYear,
+                                        boundarySource=EXCLUDED.boundarySource,
+                                        boundaryCanonical=EXCLUDED.boundaryCanonical,
+                                        boundaryLicense=EXCLUDED.boundaryLicense,
+                                        licenseDetail=EXCLUDED.licenseDetail,
+                                        licenseSource=EXCLUDED.licenseSource,
+                                        boundarySourceURL=EXCLUDED.boundarySourceURL,
+                                        sourceDataUpdateDate=EXCLUDED.sourceDataUpdateDate,
+                                        buildDate=EXCLUDED.buildDate,
+                                        admUnitCount=EXCLUDED.admUnitCount,
+                                        meanVertices=EXCLUDED.meanVertices,
+                                        minVertices=EXCLUDED.minVertices,
+                                        maxVertices=EXCLUDED.maxVertices,
+                                        meanPerimeterLengthKM=EXCLUDED.meanPerimeterLengthKM,
+                                        maxPerimeterLengthKM=EXCLUDED.maxPerimeterLengthKM,
+                                        minPerimeterLengthKM=EXCLUDED.minPerimeterLengthKM,
+                                        meanAreaSqKM=EXCLUDED.meanAreaSqKM,
+                                        minAreaSqKM=EXCLUDED.minAreaSqKM,
+                                        maxAreaSqKM=EXCLUDED.maxAreaSqKM;
+                                """,
+                                (
+                                    meta['boundaryISO'],
+                                    meta['boundaryType'],
+                                    meta['boundaryID'],
+                                    int(meta['boundaryYear']) if meta['boundaryYear'] else None,
+                                    meta['boundarySource'],
+                                    bndCan,
+                                    meta['boundaryLicense'],
+                                    meta['licenseDetail'],
+                                    meta['licenseSource'],
+                                    meta['boundarySourceURL'],
+                                    meta['sourceDataUpdateDate'],
+                                    meta['buildDate'],
+                                    int(meta['admUnitCount']) if meta['admUnitCount'] else None,
+                                    float(meta['meanVertices']) if meta['meanVertices'] else None,
+                                    int(meta['minVertices']) if meta['minVertices'] else None,
+                                    int(meta['maxVertices']) if meta['maxVertices'] else None,
+                                    float(meta['meanPerimeterLengthKM']) if meta['meanPerimeterLengthKM'] else None,
+                                    float(meta['maxPerimeterLengthKM']) if meta['maxPerimeterLengthKM'] else None,
+                                    float(meta['minPerimeterLengthKM']) if meta['minPerimeterLengthKM'] else None,
+                                    float(meta['meanAreaSqKM']) if meta['meanAreaSqKM'] else None,
+                                    float(meta['minAreaSqKM']) if meta['minAreaSqKM'] else None,
+                                    float(meta['maxAreaSqKM']) if meta['maxAreaSqKM'] else None
+                                )
+                                )
+                                conn.commit()
+                        logging.info(f"Upserted metadata for {meta['boundaryISO']}-{meta['boundaryType']}")
                     except Exception as e:
-                        logging.error(f"Failed to write metaLine for {meta['boundaryID']}: {e}")
+                        logging.error(f"Failed to upsert meta for {meta['boundaryISO']}-{meta['boundaryType']}: {e}")
 
                     # Write the new API JSON dynamically using meta and isoMeta values
 
@@ -298,6 +381,57 @@ def main():
                                 conn.commit()
                     except Exception as db_exc:
                         logging.error(f"Failed to update status table with error: {db_exc}")
+
+            # After all upserts, export full table to outputMetaCSV
+            try:
+                with connect_to_db() as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT * FROM boundary_meta ORDER BY boundaryISO, boundaryType;")
+                        rows = cur.fetchall()
+                        colnames = [desc[0] for desc in cur.description]
+                # Write CSV
+                with open(outputMetaCSV, 'w', encoding='utf-8') as f:
+                    # Write header (add Continent, UNSDG-region, etc. by joining isoDetails)
+                    f.write("boundaryID,boundaryName,boundaryISO,boundaryYearRepresented,boundaryType,boundaryCanonical,boundarySource,boundaryLicense,licenseDetail,licenseSource,boundarySourceURL,sourceDataUpdateDate,buildDate,Continent,UNSDG-region,UNSDG-subregion,worldBankIncomeGroup,admUnitCount,meanVertices,minVertices,maxVertices,meanPerimeterLengthKM,minPerimeterLengthKM,maxPerimeterLengthKM,meanAreaSqKM,minAreaSqKM,maxAreaSqKM,staticDownloadLink\n")
+                    for row in rows:
+                        # Lookup ISO meta
+                        iso = row[colnames.index('boundaryISO')]
+                        iso_row = isoDetails[isoDetails["Alpha-3code"] == iso]
+                        # Compose CSV line
+                        f.write(",".join([
+                            f'"{row[colnames.index("boundaryID")]}"',
+                            f'"{iso_row["Name"].values[0] if not iso_row.empty else ""}"',
+                            f'"{row[colnames.index("boundaryISO")]}"',
+                            f'"{row[colnames.index("boundaryYear")] if row[colnames.index("boundaryYear")] is not None else ""}"',
+                            f'"{row[colnames.index("boundaryType")]}"',
+                            f'"{row[colnames.index("boundaryCanonical")]}"',
+                            f'"{row[colnames.index("boundarySource")]}"',
+                            f'"{row[colnames.index("boundaryLicense")]}"',
+                            f'"{row[colnames.index("licenseDetail")]}"',
+                            f'"{row[colnames.index("licenseSource")]}"',
+                            f'"{row[colnames.index("boundarySourceURL")]}"',
+                            f'"{row[colnames.index("sourceDataUpdateDate")]}"',
+                            f'"{row[colnames.index("buildDate")]}"',
+                            f'"{iso_row["Continent"].values[0] if not iso_row.empty else ""}"',
+                            f'"{iso_row["UNSDG-region"].values[0] if not iso_row.empty else ""}"',
+                            f'"{iso_row["UNSDG-subregion"].values[0] if not iso_row.empty else ""}"',
+                            f'"{iso_row["worldBankIncomeGroup"].values[0] if not iso_row.empty else ""}"',
+                            f'"{row[colnames.index("admUnitCount")]}"',
+                            f'"{row[colnames.index("meanVertices")]}"',
+                            f'"{row[colnames.index("minVertices")]}"',
+                            f'"{row[colnames.index("maxVertices")]}"',
+                            f'"{row[colnames.index("meanPerimeterLengthKM")]}"',
+                            f'"{row[colnames.index("minPerimeterLengthKM")]}"',
+                            f'"{row[colnames.index("maxPerimeterLengthKM")]}"',
+                            f'"{row[colnames.index("meanAreaSqKM")]}"',
+                            f'"{row[colnames.index("minAreaSqKM")]}"',
+                            f'"{row[colnames.index("maxAreaSqKM")]}"',
+                            # staticDownloadLink cannot be reconstructed here; leave blank or reconstruct if hash logic is available
+                            '""'
+                        ]) + "\n")
+                logging.info(f"Exported metadata table to {outputMetaCSV}")
+            except Exception as e:
+                logging.error(f"Failed to export metadata table to CSV: {e}")
 
             #Build the "ALL" cases for each ISO in the API
             for iso, adm_entries in jsonDict.items():
