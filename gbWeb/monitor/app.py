@@ -285,15 +285,24 @@ def serve_api(subpath):
     app.logger.warning(f"File not found: {full_path}")
     return "Not Found", 404
 
-# Default route for the root
-@app.route('/')
-def index():
-    return app.send_static_file('index.html')
-
-# Serve static files from the web directory
+# Serve static files and handle the root path
+@app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_web(path):
-    return app.send_static_file(path)
+    # Handle root path
+    if not path:
+        return app.send_static_file('index.html')
+    
+    # Check if the path is an API request
+    if path.startswith('api/current/gbOpen/'):
+        return serve_api(path[len('api/current/gbOpen/'):])
+    
+    # Try to serve the static file
+    try:
+        return app.send_static_file(path)
+    except Exception as e:
+        app.logger.error(f"Error serving static file {path}: {str(e)}")
+        return "Not Found", 404
 
 if __name__ == '__main__':
     # Enable debug mode for auto-reload and better error messages

@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Custom icon (white, slightly curvy)" preserveAspectRatio="xMidYMid meet">
-  <title>Custom icon (white, slightly curvy)</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="77" height="77" viewBox="0 0 512 512" role="img" aria-label="Custom icon (white, slightly curvy, 15%)" preserveAspectRatio="xMidYMid meet">
+  <title>Custom icon (white, slightly curvy, 15%)</title>
   <defs>
-    <!-- Gentle organic edge: tweak 'scale' (0.6–1.5) and baseFrequency (0.006–0.02) to taste -->
     <filter id="wiggle" x="-2%" y="-2%" width="104%" height="104%" color-interpolation-filters="sRGB">
       <feTurbulence type="fractalNoise" baseFrequency="0.01 0.015" numOctaves="2" seed="3" result="noise"/>
       <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.9" xChannelSelector="R" yChannelSelector="G"/>
