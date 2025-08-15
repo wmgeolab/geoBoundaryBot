@@ -20,6 +20,7 @@ RUN pip install --no-cache-dir watchdog
 ENV FLASK_APP=/app/monitor/app.py
 ENV FLASK_ENV=development
 
+
 EXPOSE 5000
 
 # Use the Flask development server with auto-reload
