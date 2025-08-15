@@ -1,11 +1,13 @@
 import os
-import sys
+import json
 import logging
 import threading
-import json
 import psycopg2
-import pandas as pd
 import psycopg2.extras
+from decimal import Decimal
+import pandas as pd
+from datetime import datetime, date
+from typing import Any, Dict, List, Union
 
 def connect_to_db():
     # You may want to import DB config from a shared location
@@ -38,7 +40,8 @@ def export_metadata_csv():
             with conn.cursor() as cur:
                 cur.execute("SELECT * FROM boundary_meta")
                 rows = cur.fetchall()
-                colnames = [desc[0] for desc in cur.description]
+                # Get column names and convert to camelCase
+                colnames = [to_camel_case(desc[0]) for desc in cur.description]
                 df = pd.DataFrame(rows, columns=colnames)
                 df.to_csv(outputMetaCSV, index=False)
         with log_lock:
@@ -47,6 +50,50 @@ def export_metadata_csv():
         with log_lock:
             logging.error(f"Failed to export metadata table to CSV: {e}")
 
+def to_camel_case(snake_str: str) -> str:
+    """Convert snake_case to camelCase with specific exceptions for ID, ISO, URL, KM, Sq."""
+    # Handle special cases first
+    special_cases = {
+        'boundaryiso': 'boundaryISO',
+        'boundaryid': 'boundaryID',
+        'boundaryurl': 'boundaryURL',
+        'sqkm': 'SqKM',
+        'km': 'KM'
+    }
+    
+    # Check for special cases
+    lower_str = snake_str.lower()
+    if lower_str in special_cases:
+        return special_cases[lower_str]
+    
+    # Handle boundarySource, boundaryType, etc.
+    if snake_str.startswith('boundary'):
+        return 'boundary' + snake_str[8:].title()
+    
+    # For other fields, convert to camelCase
+    components = snake_str.split('_')
+    return components[0].lower() + ''.join(x.title() for x in components[1:])
+
+def convert_db_row_to_api_format(row: dict) -> dict:
+    """Convert a database row to API format with proper camelCase field names."""
+    if not row:
+        return {}
+    return {to_camel_case(k): v for k, v in row.items()}
+
+def convert_datetime_to_iso(obj: Any) -> Any:
+    """Convert datetime, date, and Decimal objects to JSON-serializable types."""
+    if obj is None:
+        return None
+    elif isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    elif isinstance(obj, Decimal):
+        return float(obj)
+    elif isinstance(obj, dict):
+        return {k: convert_datetime_to_iso(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [convert_datetime_to_iso(item) for item in obj]
+    return obj
+
 def build_api_index_json():
     adm_levels = ["ADM0", "ADM1", "ADM2", "ADM3", "ADM4", "ADM5"]
     try:
@@ -54,7 +101,7 @@ def build_api_index_json():
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 # ALL/ALL
                 cur.execute("SELECT * FROM boundary_meta")
-                all_rows = cur.fetchall()
+                all_rows = [convert_datetime_to_iso(convert_db_row_to_api_format(row)) for row in cur.fetchall()]
                 global_all_dir = os.path.join(apiPath, "ALL")
                 global_all_all = os.path.join(global_all_dir, "ALL")
                 os.makedirs(global_all_dir, exist_ok=True)
@@ -64,24 +111,67 @@ def build_api_index_json():
                     json.dump(all_rows, f, ensure_ascii=False, indent=2)
                 # ALL/ADM* (per admin level)
                 for adm in adm_levels:
-                    cur.execute("SELECT * FROM boundary_meta WHERE boundaryType = %s", (adm,))
-                    adm_rows = cur.fetchall()
+                    cur.execute("SELECT * FROM boundary_meta WHERE boundarytype = %s", (adm.upper(),))
+                    adm_rows = [convert_datetime_to_iso(convert_db_row_to_api_format(row)) for row in cur.fetchall()]
                     adm_dir = os.path.join(global_all_dir, adm)
                     os.makedirs(adm_dir, exist_ok=True)
                     adm_path = os.path.join(adm_dir, "index.json")
                     with open(adm_path, "w", encoding="utf-8") as f:
                         json.dump(adm_rows, f, ensure_ascii=False, indent=2)
                 # Per-ISO/ALL (for each ISO)
-                cur.execute("SELECT DISTINCT boundaryISO FROM boundary_meta")
-                all_isos = [row["boundaryISO"] for row in cur.fetchall()]
+                cur.execute("SELECT DISTINCT boundaryiso FROM boundary_meta WHERE boundaryiso IS NOT NULL")
+                iso_rows = cur.fetchall()
+                all_isos = [row["boundaryiso"] for row in iso_rows if row and "boundaryiso" in row and row["boundaryiso"]]
+                
+                if not all_isos:
+                    with log_lock:
+                        logging.warning("No boundaryISO values found in boundary_meta table")
+                
                 for iso in all_isos:
-                    cur.execute("SELECT * FROM boundary_meta WHERE boundaryISO = %s", (iso,))
-                    iso_rows = cur.fetchall()
-                    out_dir = os.path.join(apiPath, iso, "ALL")
-                    os.makedirs(out_dir, exist_ok=True)
-                    out_path = os.path.join(out_dir, "index.json")
-                    with open(out_path, "w", encoding="utf-8") as f:
-                        json.dump(iso_rows, f, ensure_ascii=False, indent=2)
+                    try:
+                        # Get all records for this ISO
+                        cur.execute("SELECT * FROM boundary_meta WHERE boundaryiso = %s", (iso,))
+                        rows = cur.fetchall()
+                        if not rows:
+                            continue
+                            
+                        # Create ISO/ALL/index.json
+                        iso_rows = [convert_datetime_to_iso(convert_db_row_to_api_format(row)) for row in rows]
+                        out_dir = os.path.join(apiPath, str(iso), "ALL")
+                        os.makedirs(out_dir, exist_ok=True)
+                        out_path = os.path.join(out_dir, "index.json")
+                        with open(out_path, "w", encoding="utf-8") as f:
+                            json.dump(iso_rows, f, ensure_ascii=False, indent=2)
+                        
+                        # Create ISO/ADM*/index.json for each ADM level
+                        for adm in adm_levels:
+                            try:
+                                # Find the row for this ADM level
+                                adm_row = next(
+                                    (row for row in rows if row.get("boundarytype", "").upper() == adm),
+                                    None
+                                )
+                                
+                                if not adm_row:
+                                    continue
+                                    
+                                # Convert to API format and handle datetime/Decimal
+                                adm_data = convert_datetime_to_iso(convert_db_row_to_api_format(adm_row))
+                                
+                                adm_dir = os.path.join(apiPath, str(iso), adm)
+                                os.makedirs(adm_dir, exist_ok=True)
+                                adm_path = os.path.join(adm_dir, "index.json")
+                                with open(adm_path, "w", encoding="utf-8") as f:
+                                    # Dump single object without array brackets
+                                    json.dump(adm_data, f, ensure_ascii=False, indent=2)
+                                    
+                            except Exception as adm_error:
+                                with log_lock:
+                                    logging.error(f"Error processing {iso}/{adm}: {str(adm_error)}")
+                                    
+                    except Exception as e:
+                        with log_lock:
+                            logging.error(f"Error processing ISO {iso}: {str(e)}")
         with log_lock:
             logging.info(f"API index.json files built in {apiPath}")
     except Exception as e:

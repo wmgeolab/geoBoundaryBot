@@ -34,6 +34,8 @@ spec:
       name: nfs-mount
     - mountPath: /app/web
       name: gbweb-mount
+    - mountPath: /app/monitor
+      name: gbmonitor-mount
   volumes:
   - name: nfs-mount
     nfs:
@@ -43,6 +45,11 @@ spec:
     nfs:
       server: "128.239.59.144"
       path: /sciclone/geograd/geoBoundaries/geoBoundaryBot/gbWeb
+  - name: gbmonitor-mount
+    nfs:
+      server: "128.239.59.144"
+      path: /sciclone/geograd/geoBoundaries/geoBoundaryBot/gbWeb/monitor
+
 ---
 apiVersion: v1
 kind: Service

@@ -1,9 +1,11 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, send_from_directory, request, abort, send_file
 import psycopg2
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import os
 import logging
+from pathlib import Path
+import json
 
 # Configure logging
 logging.basicConfig(
@@ -248,5 +250,51 @@ def index():
 def monitor():
     return render_template('index.html')
 
+# Serve API files with proper content type
+@app.route('/api/current/gbOpen/<path:subpath>')
+def serve_api(subpath):
+    # Remove trailing slash if present
+    clean_path = subpath.rstrip('/')
+    # Build the full path to the requested resource
+    full_path = Path('/app/web/api/current/gbOpen') / clean_path
+    
+    app.logger.info(f"API request for: {clean_path}")
+    app.logger.info(f"Full path: {full_path}")
+    
+    # If path is a directory, look for index.json
+    if full_path.is_dir():
+        index_json = full_path / 'index.json'
+        app.logger.info(f"Checking for index.json at: {index_json}")
+        if index_json.exists() and index_json.is_file():
+            app.logger.info("Serving index.json")
+            return send_file(
+                str(index_json),
+                mimetype='application/json',
+                as_attachment=False
+            )
+    # If path is a file, serve it directly
+    elif full_path.exists() and full_path.is_file():
+        app.logger.info(f"Serving file: {full_path}")
+        return send_file(
+            str(full_path),
+            mimetype='application/json',
+            as_attachment=False
+        )
+    
+    # If we get here, the file/directory doesn't exist
+    app.logger.warning(f"File not found: {full_path}")
+    return "Not Found", 404
+
+# Default route for the root
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
+
+# Serve static files from the web directory
+@app.route('/<path:path>')
+def serve_web(path):
+    return app.send_static_file(path)
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    # Enable debug mode for auto-reload and better error messages
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=True)

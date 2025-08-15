@@ -13,5 +13,14 @@ COPY ./gbWeb/monitor/ /app/monitor/
 # Copy static web files
 COPY ./gbWeb/ /app/web/
 
+# Install development dependencies
+RUN pip install --no-cache-dir watchdog
+
+# Set environment variables for development
+ENV FLASK_APP=/app/monitor/app.py
+ENV FLASK_ENV=development
+
 EXPOSE 5000
-CMD ["python", "/app/monitor/app.py"]
+
+# Use the Flask development server with auto-reload
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5000", "--reload"]
