@@ -1,13 +1,10 @@
-<!-- _coverpage.md -->
-
-![logo](images/globe.svg)
-
 # geoBoundaries
 
-> An open database of political administrative boundaries.
+> A free, open database of political administrative boundaries.
 
-- Global composites or single countries.
+- Shapefiles, Pictures, GeoJSONs & API access.
+- Global or single countries.
 - Analytic and simplified visualization options.
 
-[Documentation](https://github.com/wmgeolab/geoBoundaries)
-[Get Started](#docsify)
+[Learn More](https://github.com/wmgeolab/geoBoundaries)
+[Get the Data](#docsify)

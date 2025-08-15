@@ -13,7 +13,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 
 #GB DIR:
-GB_DIR = "/sciclone/geograd/geoBoundaries/database/geoBoundariesDev/"
+GB_DIR = "/sciclone/geograd/geoBoundaries/database/geoBoundaries/"
+GB_WEB_DIR = "/sciclone/geograd/geoBoundaries/geoBoundaryBot/gbWeb/"
 
 url_static_base = "https://www.geoboundaries-dev.org/data/static/"
 url_current_base = "https://www.geoboundaries-dev.org/data/current/"
@@ -163,8 +164,20 @@ def normalize_meta_dict(meta):
     return norm
 
 def hash_meta(meta: dict) -> str:
-    meta_copy = {k: v for k, v in meta.items() if k not in EXCLUDED_META_FIELDS}
-    meta_norm = normalize_meta_dict(meta_copy)
+    """Generate a hash of the metadata, including only specified fields."""
+    # Define the fields to include in the hash
+    included_fields = [
+        'boundaryISO', 'boundaryType', 'boundaryID', 'boundaryYear', 
+        'boundarySource', 'boundaryCanonical', 'boundaryLicense', 
+        'licenseDetail', 'licenseSource', 'boundarySourceURL', 
+        'admUnitCount', 'meanAreaSqKM'
+    ]
+    
+    # Create a new dict with only the included fields
+    meta_filtered = {k: meta.get(k) for k in included_fields if k in meta}
+    
+    # Normalize and hash the filtered metadata
+    meta_norm = normalize_meta_dict(meta_filtered)
     meta_str = json.dumps(meta_norm, sort_keys=True)
     return hashlib.sha256(meta_str.encode('utf-8')).hexdigest()
 
@@ -282,26 +295,42 @@ def process_metadata(args):
         # Timing: File existence and validation check
         file_check_start = time.time()
         need_copy = True
-        # Fast check: file exists, hash in name matches, and file sizes are the same
+        # Fast check: file exists, hash in name matches
         if os.path.exists(dest_path) and os.path.exists(static_file_path):
-            try:
-                src_size = os.path.getsize(static_file_path)
-                dest_size = os.path.getsize(dest_path)
-                if src_size == dest_size:
-                    with log_lock:
-                        logging.info(f"HASH: No copy needed for {dest_path} (file exists, hash matches, same size: {src_size} bytes)")
-                    need_copy = False
-                else:
-                    with log_lock:
-                        logging.info(f"HASH: File sizes differ - src: {src_size}, dest: {dest_size}. Will copy.")
-            except Exception as e:
-                with log_lock:
-                    logging.warning(f"HASH: Error checking file sizes for {dest_path}, error: {e}. Will copy to be safe.")
+            need_copy = False
+        else:
+            need_copy = True
         file_check_time = time.time() - file_check_start
         
         # Timing: File copying (if needed)
         file_copy_start = time.time()
         if need_copy:
+            #Update the current data for the API:
+            # Copy all files from the built data folder to the web folder
+            source_dir = os.path.join(GB_DIR, "releaseData", "gbOpen", meta['boundaryISO'], meta['boundaryType'])
+            target_dir = os.path.join(GB_WEB_DIR, "data", "current", "gbOpen", meta['boundaryISO'], meta['boundaryType'])
+
+            # Create target directory if it doesn't exist
+            os.makedirs(target_dir, exist_ok=True)
+
+            if os.path.exists(source_dir):
+                # Copy all files from source to target
+                for filename in os.listdir(source_dir):
+                    source_file = os.path.join(source_dir, filename)
+                    target_file = os.path.join(target_dir, filename)
+                    try:
+                        if os.path.isfile(source_file):
+                            fast_copy(source_file, target_file)
+                            with log_lock:
+                                logging.info(f"Copied {source_file} to {target_file}")
+                    except Exception as e:
+                        with log_lock:
+                            logging.error(f"Failed to copy {source_file} to {target_file}: {e}")
+            else:
+                with log_lock:
+                    logging.warning(f"Source directory does not exist: {source_dir}")
+
+            #Copy the static zip file
             with log_lock:
                 logging.info(f"HASH: Copying static file to {dest_path} (does not exist, hash in name does not match, or zip invalid)")
             try:

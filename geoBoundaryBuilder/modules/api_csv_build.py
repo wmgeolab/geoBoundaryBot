@@ -3,6 +3,7 @@ import json
 import logging
 import threading
 import psycopg2
+import pandas as pd
 import psycopg2.extras
 from decimal import Decimal
 import pandas as pd
@@ -75,10 +76,79 @@ def to_camel_case(snake_str: str) -> str:
     return components[0].lower() + ''.join(x.title() for x in components[1:])
 
 def convert_db_row_to_api_format(row: dict) -> dict:
-    """Convert a database row to API format with proper camelCase field names."""
+    """Convert a database row to API format with proper field names and structure."""
     if not row:
         return {}
-    return {to_camel_case(k): v for k, v in row.items()}
+    
+    # Base URL for downloads
+    base_url = "https://www.geoboundaries-dev.org/data/current/gbOpen"
+    
+    # Extract base fields
+    boundary_id = row.get('boundaryid', '')
+    boundary_iso = row.get('boundaryiso', '')
+    boundary_type = row.get('boundarytype', '').upper()
+    
+    # Create the output dictionary with all required fields
+    result = {
+        "boundaryID": boundary_id,
+        "boundaryName": row.get('boundaryname', ''),
+        "boundaryISO": boundary_iso,
+        "boundaryYearRepresented": str(row.get('boundaryyear', '')),
+        "boundaryType": boundary_type,
+        "boundaryCanonical": row.get('boundarycanonical', 'Unknown'),
+        "boundarySource": row.get('boundarysource', ''),
+        "boundaryLicense": row.get('boundarylicense', ''),
+        "licenseDetail": str(row.get('licensedetail', '')),
+        "licenseSource": (row.get('licensesource', '')
+                         .replace('https//', '')
+                         .replace('http//', '')
+                         .replace('https://', '')
+                         .replace('http://', '')),
+        "boundarySourceURL": (row.get('boundarysourceurl', '')
+                             .replace('https//', '')
+                             .replace('http//', '')
+                             .replace('https://', '')
+                             .replace('http://', '')),
+        "sourceDataUpdateDate": row.get('sourcedataupdatedate', '').strftime('%a %b %d %H:%M:%S %Y') if row.get('sourcedataupdatedate') else '',
+        "buildDate": row.get('builddate', '').strftime('%b %d, %Y') if row.get('builddate') else '',
+        "Continent": row.get('continent', ''),
+        "UNSDG-region": row.get('unsdg_region', ''),
+        "UNSDG-subregion": row.get('unsdg_subregion', ''),
+        "worldBankIncomeGroup": row.get('worldbankincomegroup', ''),
+        "admUnitCount": str(row.get('admunitcount', '')),
+        "meanVertices": str(row.get('meanvertices', '')),
+        "minVertices": str(int(row.get('minvertices', 0))),
+        "maxVertices": str(int(row.get('maxvertices', 0))),
+        "meanPerimeterLengthKM": str(row.get('meanperimeterlengthkm', '')),
+        "minPerimeterLengthKM": str(row.get('minperimeterlengthkm', '')),
+        "maxPerimeterLengthKM": str(row.get('maxperimeterlengthkm', '')),
+        "meanAreaSqKM": str(row.get('meanareasqkm', '')),
+        "minAreaSqKM": str(row.get('minareasqkm', '')),
+        "maxAreaSqKM": str(row.get('maxareasqkm', '')),
+    }
+    
+    # Add download URLs if we have the required fields
+    if boundary_iso and boundary_type:
+        base_path = f"{boundary_iso}/{boundary_type}/geoBoundaries-{boundary_iso}-{boundary_type}"
+        # Use the staticdownloadlink from the database if available, otherwise construct it
+        static_download = row.get('staticdownloadlink')
+        if not static_download:
+            static_download = f"{base_url}/{base_path}-all.zip"
+            
+        result.update({
+            "staticDownloadLink": static_download,
+            "gjDownloadURL": f"{base_url}/{base_path}.geojson",
+            "tjDownloadURL": f"{base_url}/{base_path}.topojson",
+            "imagePreview": f"{base_url}/{base_path}-PREVIEW.png",
+            "simplifiedGeometryGeoJSON": f"{base_url}/{base_path}_simplified.geojson"
+        })
+    
+    # Handle None/NaN values
+    for key, value in result.items():
+        if pd.isna(value) or value is None:
+            result[key] = ""
+            
+    return result
 
 def convert_datetime_to_iso(obj: Any) -> Any:
     """Convert datetime, date, and Decimal objects to JSON-serializable types."""
